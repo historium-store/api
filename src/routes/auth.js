@@ -13,7 +13,7 @@ const options = {
 };
 const verify = async (payload, done) => {
 	try {
-		const user = User.findOneByEmail(payload.email);
+		const user = User.findOne({ email: payload.email });
 
 		if (user) {
 			return done(null, user);
@@ -32,7 +32,8 @@ const router = new Router();
 
 router.post('/signup', async (req, res, next) => {
 	const { email, password } = req.body;
-	if (await User.findOneByEmail(email)) {
+
+	if (await User.findOne({ email })) {
 		return res.status(409).json({ message: 'Email already exists' });
 	}
 
@@ -72,7 +73,7 @@ router.post('/signup', async (req, res, next) => {
 router.post('/login', async (req, res) => {
 	const { email, password } = req.body;
 
-	const user = await User.findOneByEmail(email);
+	const user = await User.findOne({ email });
 	if (!user) {
 		return res.status(404).json({ message: 'Email not found' });
 	}

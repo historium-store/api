@@ -12,10 +12,13 @@ const create = async data =>
 		}
 	});
 
-const findOneByEmail = async email =>
+const findOne = async criteria =>
 	new Promise(resolve => {
-		const user = users.find(u => u.email === email);
+		const user = users.find(u =>
+			Object.keys(criteria).every(key => u[key] === criteria[key])
+		);
+
 		resolve(user ?? false);
 	});
 
-export default { create, findOneByEmail };
+export default { create, findOne };
