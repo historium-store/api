@@ -1,26 +1,26 @@
 import { createServer } from 'http';
 import app from './src/app.js';
 
-const PORT = process.env.PORT ?? '3000';
+const port = process.env.PORT ?? '3000';
 
-app.set('port', PORT);
+app.set('port', port);
 
 const server = createServer(app);
 
-server.listen(PORT);
+server.listen(port);
 
-server.on('error', error => {
-	if (error.syscall !== 'listen') {
-		throw error;
+server.on('error', onError);
+server.on('listening', onListening);
+
+function onError(error) {
+	if (error.syscall === 'listen' && error.code === 'EADDRINUSE') {
+		console.error(`Port ${port} is already in use`);
+		process.exit(1);
 	}
 
-	switch (error.code) {
-		case 'EADDRINUSE':
-			console.error(`Port ${PORT} is already in use`);
-			process.exit(1);
-		default:
-			throw error;
-	}
-});
+	throw error;
+}
 
-server.on('listening', () => console.log(`Listening on port ${PORT}`));
+function onListening() {
+	console.log(`Listening on port ${port}`);
+}
