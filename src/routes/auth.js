@@ -12,8 +12,14 @@ const options = {
 	secretOrKey: secret
 };
 const verify = async (payload, done) => {
+	const expiresIn = payload.iat + config.JWT_EXPIRATION;
+	const now = Date.now() / 1000;
+	if (expiresIn < now) {
+		return done(null, false);
+	}
+
 	try {
-		const user = User.findOne({ email: payload.email });
+		const user = await User.findOne({ email: payload.email });
 
 		if (user) {
 			return done(null, user);
