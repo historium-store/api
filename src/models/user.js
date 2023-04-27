@@ -8,7 +8,7 @@ const create = async data =>
 		if (!userExists) {
 			const newUser = { id: randomUUID(), ...data };
 			users.push(newUser);
-			resolve(newUser);
+			resolve(newUser.id);
 		}
 	});
 

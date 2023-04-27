@@ -1,6 +1,7 @@
 import express from 'express';
 import logger from 'morgan';
 import passport from 'passport';
+import errorHandler from './middleware/errorHandler.js';
 import authRouter from './routes/auth.js';
 
 const app = express();
@@ -12,8 +13,6 @@ app.use(passport.initialize());
 
 app.use(authRouter);
 
-app.use((req, res, next) => {
-	res.status(404).json({ message: 'Not found' });
-});
+app.use(errorHandler);
 
 export default app;

@@ -1,5 +1,6 @@
 import { pbkdf2, randomBytes, timingSafeEqual } from 'crypto';
 import { Router } from 'express';
+import createHttpError from 'http-errors';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
 import { ExtractJwt, Strategy as JWTStrategy } from 'passport-jwt';
@@ -12,22 +13,28 @@ const options = {
 	secretOrKey: secret
 };
 const verify = async (payload, done) => {
+	// check if token is expired
+	// cancel authorization if it is
 	const expiresIn = payload.iat + config.JWT_EXPIRATION;
 	const now = Date.now() / 1000;
 	if (expiresIn < now) {
-		return done(null, false);
+		return done(createHttpError(401, 'Token expired'));
 	}
 
+	// otherwise search for user
+	// return if found
+	// 404 if not
+	// 500 if query failed
 	try {
-		const user = await User.findOne({ email: payload.email });
+		const user = await User.findOne({ id: payload.sub });
 
 		if (user) {
 			return done(null, user);
 		}
 
-		done(null, false);
-	} catch (err) {
-		done(err, false);
+		done(createHttpError(404, 'User not found'));
+	} catch {
+		done(createHttpError(500));
 	}
 };
 const strategy = new JWTStrategy(options, verify);
@@ -37,90 +44,74 @@ passport.use(strategy);
 const router = new Router();
 
 router.post('/signup', async (req, res, next) => {
+	// destructure request body
 	const { email, password } = req.body;
 
+	// search for user
+	// return 409 if exists
 	if (await User.findOne({ email })) {
-		return res.status(409).json({ message: 'Email already exists' });
+		return next(createHttpError(409, 'User already exists'));
 	}
 
+	// otherwise hash the password
 	const salt = randomBytes(16);
-	let hashedPassword = null;
-
+	let hash = null;
 	try {
-		hashedPassword = await new Promise((resolve, reject) => {
-			pbkdf2(
-				password,
-				salt,
-				310000,
-				32,
-				'sha256',
-				(err, hashedPassword) => {
-					if (err) {
-						reject(err);
-					}
-
-					resolve(hashedPassword);
-				}
+		hash = await new Promise((resolve, reject) => {
+			pbkdf2(password, salt, 310000, 32, 'sha256', (err, hash) =>
+				err ? reject() : resolve(hash)
 			);
 		});
-	} catch (err) {
-		return next(err);
+	} catch {
+		return next(createHttpError(500));
 	}
 
-	const user = await User.create({
+	// create user
+	const id = await User.create({
 		email,
-		password: hashedPassword,
+		password: hash,
 		salt
 	});
 
-	res.json(user);
+	// and return his id
+	res.json({ id });
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
+	//destructure request body
 	const { email, password } = req.body;
 
+	// search for user
+	// return 401 if doesn't exist
 	const user = await User.findOne({ email });
 	if (!user) {
-		return res.status(404).json({ message: 'Email not found' });
+		return next(createHttpError(401, 'User not found'));
 	}
 
-	let hashedPassword = null;
+	// otherwise hash the incoming password
+	let hash = null;
 	try {
-		hashedPassword = await new Promise((resolve, reject) => {
-			pbkdf2(
-				password,
-				user.salt,
-				310000,
-				32,
-				'sha256',
-				(err, hashedPassword) => {
-					if (err) {
-						reject(err);
-					}
-
-					resolve(hashedPassword);
-				}
+		hash = await new Promise((resolve, reject) => {
+			pbkdf2(password, user.salt, 310000, 32, 'sha256', (err, hash) =>
+				err ? reject(err) : resolve(hash)
 			);
 		});
 	} catch (err) {
 		return next(err);
 	}
 
+	// compare incoming password with the saved one
+	// return 401 if not equal
 	try {
-		await new Promise((resolve, reject) => {
-			if (timingSafeEqual(user.password, hashedPassword)) {
-				resolve();
-			}
-
-			reject();
-		});
-	} catch (err) {
-		return res
-			.status(401)
-			.json({ message: 'Incorrect username or password' });
+		await new Promise((resolve, reject) =>
+			timingSafeEqual(hash, user.password) ? resolve() : reject()
+		);
+	} catch {
+		return next(createHttpError(401, 'Incorrect password'));
 	}
 
-	const payload = { sub: user.id, email: user.email };
+	// otherwise create new token and return it
+	const payload = { sub: user.id };
 	const token = jwt.sign(payload, secret);
 	res.json({ token });
 });
@@ -130,7 +121,7 @@ router.get(
 	'/protected',
 	passport.authenticate('jwt', { session: false }),
 	(req, res) => {
-		res.sendStatus(200);
+		res.json({ id: req.user.id });
 	}
 );
 
