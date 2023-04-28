@@ -5,22 +5,16 @@ import jwt from 'jsonwebtoken';
 import passport from 'passport';
 import { ExtractJwt, Strategy as JWTStrategy } from 'passport-jwt';
 import config from '../config/main.js';
+import validateToken from '../middleware/tokenValidator.js';
 import User from '../models/user.js';
 
 const secret = process.env.SECRET ?? config.SECRET;
 const options = {
 	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-	secretOrKey: secret
+	secretOrKey: secret,
+	ignoreExpiration: true
 };
 const verify = async (payload, done) => {
-	// check if token is expired
-	// cancel authorization if it is
-	const expiresIn = payload.iat + config.JWT_EXPIRATION;
-	const now = Date.now() / 1000;
-	if (expiresIn < now) {
-		return done(createHttpError(401, 'Token expired'));
-	}
-
 	// otherwise search for user
 	// return if found
 	// 404 if not
@@ -112,13 +106,18 @@ router.post('/login', async (req, res, next) => {
 
 	// otherwise create new token and return it
 	const payload = { sub: user.id };
-	const token = jwt.sign(payload, secret);
+	const options = {
+		expiresIn: config.JWT_EXPIRATION,
+		noTimestamp: true
+	};
+	const token = jwt.sign(payload, secret, options);
 	res.json({ token });
 });
 
 // will be deleted
 router.get(
 	'/protected',
+	validateToken,
 	passport.authenticate('jwt', { session: false }),
 	(req, res) => {
 		res.json({ id: req.user.id });

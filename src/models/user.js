@@ -18,7 +18,7 @@ const findOne = async criteria =>
 			Object.keys(criteria).every(key => u[key] === criteria[key])
 		);
 
-		resolve(user ?? false);
+		resolve(user);
 	});
 
 export default { create, findOne };
