@@ -12,7 +12,7 @@ nameToError.set('JsonWebTokenError', () =>
 	createHttpError(401, 'Invalid token')
 );
 
-const verify = async (req, res, next) => {
+export default async (req, res, next) => {
 	const authHeader = req.headers.authorization;
 	if (!authHeader) {
 		return next(createHttpError(401, 'Header not provided'));
@@ -51,15 +51,3 @@ const verify = async (req, res, next) => {
 		next(createHttpError(500));
 	}
 };
-
-const sign = (req, res) => {
-	const payload = { sub: req.user.id };
-	const options = {
-		expiresIn: config.JWT_EXPIRATION,
-		noTimestamp: true
-	};
-	const token = jwt.sign(payload, secret, options);
-	res.json({ token });
-};
-
-export default { verify, sign };
