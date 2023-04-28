@@ -1,39 +1,8 @@
 import { pbkdf2, randomBytes, timingSafeEqual } from 'crypto';
 import { Router } from 'express';
 import createHttpError from 'http-errors';
-import jwt from 'jsonwebtoken';
-import passport from 'passport';
-import { ExtractJwt, Strategy as JWTStrategy } from 'passport-jwt';
-import config from '../config/main.js';
-import validateToken from '../middleware/tokenValidator.js';
+import jwt from '../middleware/jwt.js';
 import User from '../models/user.js';
-
-const secret = process.env.SECRET ?? config.SECRET;
-const options = {
-	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-	secretOrKey: secret,
-	ignoreExpiration: true
-};
-const verify = async (payload, done) => {
-	// otherwise search for user
-	// return if found
-	// 404 if not
-	// 500 if query failed
-	try {
-		const user = await User.findOne({ id: payload.sub });
-
-		if (user) {
-			return done(null, user);
-		}
-
-		done(createHttpError(404, 'User not found'));
-	} catch {
-		done(createHttpError(500));
-	}
-};
-const strategy = new JWTStrategy(options, verify);
-
-passport.use(strategy);
 
 const router = new Router();
 
@@ -71,57 +40,51 @@ router.post('/signup', async (req, res, next) => {
 	res.json({ id });
 });
 
-router.post('/login', async (req, res, next) => {
-	//destructure request body
-	const { email, password } = req.body;
+router.post(
+	'/login',
+	async (req, res, next) => {
+		//destructure request body
+		const { email, password } = req.body;
 
-	// search for user
-	// return 401 if doesn't exist
-	const user = await User.findOne({ email });
-	if (!user) {
-		return next(createHttpError(401, 'User not found'));
-	}
+		// search for user
+		// return 401 if doesn't exist
+		const user = await User.findOne({ email });
+		if (!user) {
+			return next(createHttpError(401, 'User not found'));
+		}
 
-	// otherwise hash the incoming password
-	let hash = null;
-	try {
-		hash = await new Promise((resolve, reject) => {
-			pbkdf2(password, user.salt, 310000, 32, 'sha256', (err, hash) =>
-				err ? reject(err) : resolve(hash)
+		// otherwise hash the incoming password
+		let hash = null;
+		try {
+			hash = await new Promise((resolve, reject) => {
+				pbkdf2(password, user.salt, 310000, 32, 'sha256', (err, hash) =>
+					err ? reject(err) : resolve(hash)
+				);
+			});
+		} catch (err) {
+			return next(err);
+		}
+
+		// compare incoming password with the saved one
+		// return 401 if not equal
+		try {
+			await new Promise((resolve, reject) =>
+				timingSafeEqual(hash, user.password) ? resolve() : reject()
 			);
-		});
-	} catch (err) {
-		return next(err);
-	}
+		} catch {
+			return next(createHttpError(401, 'Incorrect password'));
+		}
 
-	// compare incoming password with the saved one
-	// return 401 if not equal
-	try {
-		await new Promise((resolve, reject) =>
-			timingSafeEqual(hash, user.password) ? resolve() : reject()
-		);
-	} catch {
-		return next(createHttpError(401, 'Incorrect password'));
-	}
-
-	// otherwise create new token and return it
-	const payload = { sub: user.id };
-	const options = {
-		expiresIn: config.JWT_EXPIRATION,
-		noTimestamp: true
-	};
-	const token = jwt.sign(payload, secret, options);
-	res.json({ token });
-});
+		// otherwise create and return new token
+		req.user = user;
+		next();
+	},
+	jwt.sign
+);
 
 // will be deleted
-router.get(
-	'/protected',
-	validateToken,
-	passport.authenticate('jwt', { session: false }),
-	(req, res) => {
-		res.json({ id: req.user.id });
-	}
-);
+router.get('/protected', jwt.verify, (req, res) => {
+	res.json({ id: req.user.id });
+});
 
 export default router;
