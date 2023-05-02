@@ -1,0 +1,10 @@
+{
+    "users": [
+        {
+            "id": "51a05408-ed34-48b1-bd0f-ecb25dd4d3f6",
+            "email": "john@gmail.com",
+            "password": "214ef1f4a1cae7403fabc15f395140f9d229ece175f84873e148cb18d3a9ef27",
+            "salt": "97de39c3dc68e5360b596f5146738a96"
+        }
+    ]
+}
