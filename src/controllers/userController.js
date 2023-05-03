@@ -1,7 +1,14 @@
+import { validationResult } from 'express-validator';
 import createHttpError from 'http-errors';
 import userService from '../services/userService.js';
 
 const createOne = (req, res, next) => {
+	const errors = validationResult(req).array();
+
+	if (errors.length) {
+		return next(createHttpError(400, errors[0].msg));
+	}
+
 	const { firstName, lastName, phoneNumber, email, password } = req.body;
 
 	let user = null;
