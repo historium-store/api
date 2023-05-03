@@ -5,7 +5,7 @@ import userService from './userService.js';
 
 const SECRET = process.env.SECRET || config.SECRET;
 
-const createNewToken = credentials => {
+const createToken = credentials => {
 	let user = null;
 	try {
 		user = userService.getOne(credentials);
@@ -70,4 +70,4 @@ const authenticate = async authHeader => {
 	return user;
 };
 
-export default { createNewToken, authenticate };
+export default { createToken, authenticate };

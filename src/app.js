@@ -1,6 +1,6 @@
 import express from 'express';
 import logger from 'morgan';
-import { errorHandler } from './middleware/error-handler.js';
+import errorHandler from './middleware/error-handler.js';
 import authRoutes from './routes/authRoutes.js';
 
 const app = express();

@@ -6,33 +6,35 @@ import {
 } from 'crypto';
 import User from '../models/user.js';
 
-const createOne = user => {
-	let exists = null;
-	try {
-		exists = User.getOne({ email: user.email });
-	} catch {}
-
-	if (exists) {
+const createOne = userData => {
+	if (User.exists({ phoneNumber: userData.phoneNumber })) {
 		throw {
 			status: 400,
-			message: 'User already exists'
+			message: `User with phone number '${userData.phoneNumber}' already exists`
 		};
 	}
 
-	let createdUser = null;
+	if (User.exists({ email: userData.email })) {
+		throw {
+			status: 400,
+			message: `User with email '${userData.email}' already exists`
+		};
+	}
+
+	let user = null;
 	try {
 		const salt = randomBytes(16);
 		const hashedPassword = pbkdf2Sync(
-			user.password,
+			userData.password,
 			salt,
 			310000,
 			32,
 			'sha256'
 		);
 
-		createdUser = User.createOne({
+		user = User.createOne({
 			id: randomUUID(),
-			email: user.email,
+			...userData,
 			password: hashedPassword.toString('hex'),
 			salt: salt.toString('hex')
 		});
@@ -40,13 +42,17 @@ const createOne = user => {
 		throw err;
 	}
 
-	return createdUser;
+	return user;
 };
 
 const getOne = credentials => {
 	let user = null;
 	try {
-		user = User.getOne({ email: credentials.email });
+		if (credentials.phoneNumber) {
+			user = User.getOne({ phoneNumber: credentials.phoneNumber });
+		} else {
+			user = User.getOne({ email: credentials.email });
+		}
 
 		const hashedPassword = pbkdf2Sync(
 			credentials.password,

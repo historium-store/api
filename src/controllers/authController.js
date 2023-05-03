@@ -1,15 +1,19 @@
 import createHttpError from 'http-errors';
 import authService from '../services/authService.js';
 
-const createNewToken = (req, res, next) => {
-	const { email, password } = req.body;
+const createToken = (req, res, next) => {
+	const { phoneNumber, email, password } = req.body;
+	const credentials = { password };
+
+	if (phoneNumber) {
+		credentials.phoneNumber = phoneNumber;
+	} else {
+		credentials.email = email;
+	}
 
 	let token = null;
 	try {
-		token = authService.createNewToken({
-			email,
-			password
-		});
+		token = authService.createToken(credentials);
 	} catch (err) {
 		return next(createHttpError(err?.status || 500, err?.message || err));
 	}
@@ -32,4 +36,4 @@ const authenticate = async (req, res, next) => {
 	next();
 };
 
-export default { createNewToken, authenticate };
+export default { createToken, authenticate };

@@ -2,16 +2,21 @@ import db from './db.json' assert { type: 'json' };
 import { saveDatabase } from './utils.js';
 
 const createOne = user => {
+	if (exists({ phoneNumber: user.phoneNumber })) {
+		throw {
+			status: 400,
+			message: `User with phone number '${userData.phoneNumber}' already exists`
+		};
+	}
+
+	if (exists({ email: user.email })) {
+		throw {
+			status: 400,
+			message: `User with email '${userData.email}' already exists`
+		};
+	}
+
 	try {
-		const exists = db.users.findIndex(u => u.email === user.email) > -1;
-
-		if (exists) {
-			throw {
-				status: 409,
-				message: 'User already exists'
-			};
-		}
-
 		db.users.push(user);
 		saveDatabase(db);
 	} catch (err) {
@@ -47,4 +52,21 @@ const getOne = criteria => {
 	return user;
 };
 
-export default { createOne, getOne };
+const exists = criteria => {
+	let exists = null;
+	try {
+		exists =
+			db.users.findIndex(u =>
+				Object.keys(criteria).every(key => u[key] === criteria[key])
+			) > -1;
+	} catch (err) {
+		throw {
+			status: err?.status || 500,
+			message: err?.message || err
+		};
+	}
+
+	return exists;
+};
+
+export default { createOne, getOne, exists };

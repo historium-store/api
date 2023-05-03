@@ -6,7 +6,7 @@ const router = new Router();
 
 router.post('/signup', userController.createOne);
 
-router.post('/login', authController.createNewToken);
+router.post('/login', authController.createToken);
 
 // will be deleted
 router.get('/protected', authController.authenticate, (req, res) => {
