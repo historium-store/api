@@ -7,6 +7,18 @@ import {
 import User from '../models/user.js';
 
 const createOne = user => {
+	let exists = null;
+	try {
+		exists = User.getOne({ email: user.email });
+	} catch {}
+
+	if (exists) {
+		throw {
+			status: 400,
+			message: 'User already exists'
+		};
+	}
+
 	let createdUser = null;
 	try {
 		const salt = randomBytes(16);

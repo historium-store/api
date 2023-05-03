@@ -5,6 +5,12 @@
             "email": "john@gmail.com",
             "password": "214ef1f4a1cae7403fabc15f395140f9d229ece175f84873e148cb18d3a9ef27",
             "salt": "97de39c3dc68e5360b596f5146738a96"
+        },
+        {
+            "id": "41a876cb-1aec-4252-98c0-b7b25861c12d",
+            "email": "michael@gmail.com",
+            "password": "d3ac7a750e3a309e7787a33343b91d9a639b0aaea921dd828ce3cfe9a6f997f9",
+            "salt": "9e13b2c69369aa2a385c1b71f5ca0ce9"
         }
     ]
 }
