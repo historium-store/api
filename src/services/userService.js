@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from 'crypto';
-import User from '../models/user.js';
+import User from '../models/User.js';
 import { hashPassword } from '../models/utils.js';
 
 const createOne = async userData => {
@@ -36,6 +36,7 @@ const createOne = async userData => {
 			id: randomUUID(),
 			createdAt: date,
 			updatedAt: date,
+			deletedAt: null,
 			...userData,
 			password: hashedPassword.toString('hex'),
 			salt: salt.toString('hex')

@@ -13,15 +13,11 @@ const createOne = async (req, res, next) => {
 
 	let user = null;
 	try {
-		user = await userService.createOne({
-			firstName: data.firstName,
-			lastName: data.lastName,
-			phoneNumber: data.phoneNumber,
-			email: data.email,
-			password: data.password
-		});
+		user = await userService.createOne(data);
 	} catch (err) {
-		return next(createHttpError(err?.status || 500, err?.message || err));
+		return next(
+			createHttpError(err?.status || 500, err?.message || err)
+		);
 	}
 
 	res.status(201).json({ status: 'OK', data: user });
@@ -39,7 +35,9 @@ const getOne = (req, res, next) => {
 	try {
 		user = userService.getOne(id);
 	} catch (err) {
-		return next(createHttpError(err?.status || 500, err?.message || err));
+		return next(
+			createHttpError(err?.status || 500, err?.message || err)
+		);
 	}
 
 	res.json({ status: 'OK', data: user });
@@ -51,13 +49,15 @@ const updateOne = async (req, res, next) => {
 		return next(createHttpError(400, errors[0].msg));
 	}
 
-	const { id, ...dataToUpdate } = matchedData(req);
+	const { id, ...changes } = matchedData(req);
 
 	let user = null;
 	try {
-		user = await userService.updateOne(id, dataToUpdate);
+		user = await userService.updateOne(id, changes);
 	} catch (err) {
-		return next(createHttpError(err?.status || 500, err?.message || err));
+		return next(
+			createHttpError(err?.status || 500, err?.message || err)
+		);
 	}
 
 	res.json({ status: 'OK', data: user });

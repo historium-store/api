@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import config from '../config/main.js';
-import User from '../models/user.js';
+import User from '../models/User.js';
 import { hashPassword, verifyJWT } from '../models/utils.js';
 
 const SECRET = process.env.SECRET || config.SECRET;
