@@ -1,9 +1,4 @@
-import {
-	pbkdf2Sync,
-	randomBytes,
-	randomUUID,
-	timingSafeEqual
-} from 'crypto';
+import { pbkdf2Sync, randomBytes, randomUUID } from 'crypto';
 import User from '../models/user.js';
 
 const createOne = userData => {
@@ -45,31 +40,10 @@ const createOne = userData => {
 	return user;
 };
 
-const getOne = credentials => {
+const getOne = id => {
 	let user = null;
 	try {
-		if (credentials.phoneNumber) {
-			user = User.getOne({ phoneNumber: credentials.phoneNumber });
-		} else {
-			user = User.getOne({ email: credentials.email });
-		}
-
-		const hashedPassword = pbkdf2Sync(
-			credentials.password,
-			Buffer.from(user.salt, 'hex'),
-			310000,
-			32,
-			'sha256'
-		);
-
-		const userPassword = Buffer.from(user.password, 'hex');
-
-		if (!timingSafeEqual(userPassword, hashedPassword)) {
-			throw {
-				status: 400,
-				message: 'Incorrect password'
-			};
-		}
+		user = User.getOne({ id });
 	} catch (err) {
 		throw err;
 	}
@@ -77,4 +51,15 @@ const getOne = credentials => {
 	return user;
 };
 
-export default { createOne, getOne };
+const updateOne = (id, changes) => {
+	let user = null;
+	try {
+		user = User.updateOne(id, changes);
+	} catch (err) {
+		throw err;
+	}
+
+	return user;
+};
+
+export default { createOne, getOne, updateOne };

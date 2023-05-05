@@ -1,14 +1,33 @@
+import { pbkdf2Sync, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import config from '../config/main.js';
 import User from '../models/user.js';
-import userService from './userService.js';
 
 const SECRET = process.env.SECRET || config.SECRET;
 
 const createToken = credentials => {
+	const { phoneNumber, email, password } = credentials;
+
 	let user = null;
 	try {
-		user = userService.getOne(credentials);
+		user = User.getOne(phoneNumber ? { phoneNumber } : { email });
+
+		const hashedPassword = pbkdf2Sync(
+			password,
+			Buffer.from(user.salt, 'hex'),
+			310000,
+			32,
+			'sha256'
+		);
+
+		const userPassword = Buffer.from(user.password, 'hex');
+
+		if (!timingSafeEqual(userPassword, hashedPassword)) {
+			throw {
+				status: 400,
+				message: 'Incorrect password'
+			};
+		}
 	} catch (err) {
 		throw err;
 	}

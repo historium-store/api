@@ -1,13 +1,13 @@
 {
     "users": [
         {
-            "id": "dc7ec695-268f-494e-9d71-c345020f7a16",
-            "firstName": "John",
-            "lastName": "Williams",
-            "phoneNumber": "+380501111111",
-            "email": "john.williams@gmail.com",
-            "password": "2d8388784d6dc91ff339ed49d6126ff23fb53679da4a7938106f8d85fbd25bad",
-            "salt": "d07e9117367478003a9fc8241df52efa"
+            "id": "a91c1c60-b361-4ab9-a6a8-9651de4ac786",
+            "firstName": "Michael",
+            "lastName": "Jupiter",
+            "phoneNumber": "+380501111112",
+            "email": "michael.jupiter@gmail.com",
+            "password": "53f7f38277b9f5c517c313d0ae4158d02fd019c1c2da61df9521e28514c93908",
+            "salt": "85bc70b8446e0b02a64bebee8c6a0a84"
         }
     ]
 }

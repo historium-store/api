@@ -5,14 +5,14 @@ const createOne = user => {
 	if (exists({ phoneNumber: user.phoneNumber })) {
 		throw {
 			status: 400,
-			message: `User with phone number '${userData.phoneNumber}' already exists`
+			message: `User with phone number '${user.phoneNumber}' already exists`
 		};
 	}
 
 	if (exists({ email: user.email })) {
 		throw {
 			status: 400,
-			message: `User with email '${userData.email}' already exists`
+			message: `User with email '${user.email}' already exists`
 		};
 	}
 
@@ -39,9 +39,52 @@ const getOne = criteria => {
 		if (!user) {
 			throw {
 				status: 404,
-				message: 'User not found'
+				message: `User not found`
 			};
 		}
+	} catch (err) {
+		throw {
+			status: err?.status || 500,
+			message: err?.message || err
+		};
+	}
+
+	return user;
+};
+
+const updateOne = (id, changes) => {
+	if (exists({ phoneNumber: changes.phoneNumber })) {
+		throw {
+			status: 400,
+			message: `User with phone number '${changes.phoneNumber}' already exists`
+		};
+	}
+
+	if (exists({ email: changes.email })) {
+		throw {
+			status: 400,
+			message: `User with email '${changes.email}' already exists`
+		};
+	}
+
+	let user = null;
+	try {
+		const indexToUpdate = db.users.findIndex(u => u.id == id);
+
+		if (indexToUpdate == -1) {
+			throw {
+				status: 404,
+				message: `User with id '${id}' not found`
+			};
+		}
+
+		user = {
+			...db.users[indexToUpdate],
+			...changes
+		};
+
+		db.users[indexToUpdate] = user;
+		saveDatabase(db);
 	} catch (err) {
 		throw {
 			status: err?.status || 500,
@@ -69,4 +112,4 @@ const exists = criteria => {
 	return exists;
 };
 
-export default { createOne, getOne, exists };
+export default { createOne, getOne, updateOne, exists };
