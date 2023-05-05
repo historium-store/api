@@ -20,8 +20,7 @@ export const signupSchema = {
 		},
 		isMobilePhone: {
 			locale: 'uk-UA',
-			errorMessage: 'Invalid phone number format',
-			bail: true
+			errorMessage: 'Invalid phone number format'
 		}
 	},
 	email: {
@@ -77,8 +76,7 @@ export const updateSchema = {
 		optional: true,
 		isMobilePhone: {
 			locale: 'uk-UA',
-			errorMessage: 'Invalid phone number format',
-			bail: true
+			errorMessage: 'Invalid phone number format'
 		}
 	},
 	email: {
