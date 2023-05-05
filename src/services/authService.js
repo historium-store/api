@@ -1,8 +1,8 @@
-import { pbkdf2, timingSafeEqual } from 'crypto';
+import { timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
-import { promisify } from 'util';
 import config from '../config/main.js';
 import User from '../models/user.js';
+import { hashPassword, verifyJWT } from '../models/utils.js';
 
 const SECRET = process.env.SECRET || config.SECRET;
 
@@ -13,7 +13,6 @@ const createToken = async credentials => {
 	try {
 		user = User.getOne(phoneNumber ? { phoneNumber } : { email });
 
-		const hashPassword = promisify(pbkdf2);
 		const hashedPassword = await hashPassword(
 			password,
 			Buffer.from(user.salt, 'hex'),
@@ -61,9 +60,8 @@ const authenticate = async authHeader => {
 	}
 
 	let payload = null;
-	const verify = promisify(jwt.verify);
 	try {
-		payload = await verify(token, SECRET);
+		payload = await verifyJWT(token, SECRET);
 	} catch (err) {
 		throw {
 			status: 401,

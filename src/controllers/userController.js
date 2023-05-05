@@ -45,7 +45,7 @@ const getOne = (req, res, next) => {
 	res.json({ status: 'OK', data: user });
 };
 
-const updateOne = (req, res, next) => {
+const updateOne = async (req, res, next) => {
 	const errors = validationResult(req).array();
 	if (errors.length) {
 		return next(createHttpError(400, errors[0].msg));
@@ -55,7 +55,7 @@ const updateOne = (req, res, next) => {
 
 	let user = null;
 	try {
-		user = userService.updateOne(id, dataToUpdate);
+		user = await userService.updateOne(id, dataToUpdate);
 	} catch (err) {
 		return next(createHttpError(err?.status || 500, err?.message || err));
 	}

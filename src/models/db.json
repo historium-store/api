@@ -3,13 +3,13 @@
         {
             "id": "cfec2d01-bfa3-471e-8b3b-42303ff35ca7",
             "createdAt": "05.05.2023, 14:05:48",
-            "updatedAt": "05.05.2023, 18:20:26",
+            "updatedAt": "05.05.2023, 18:34:10",
             "firstName": "John",
             "lastName": "Williams",
             "phoneNumber": "+380501111112",
             "email": "john.williams@gmail.com",
-            "password": "559f537f8e7f1c2b8aca29fc0b354aab43d2b5585c7b49574783c26791cb52c1",
-            "salt": "29120f5f771ac05a256b92db1890bf38"
+            "password": "b6e3652e0467d08a1e402fc6847f83d6ae553360397ee912ff9b7cc3acaa1c5d",
+            "salt": "6319e9b52a57b409cedfb1739c4710d5"
         },
         {
             "id": "d15681b2-98a8-4fa3-aa15-9546809e8451",

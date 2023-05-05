@@ -1,6 +1,6 @@
-import { pbkdf2, randomBytes, randomUUID } from 'crypto';
-import { promisify } from 'util';
+import { randomBytes, randomUUID } from 'crypto';
 import User from '../models/user.js';
+import { hashPassword } from '../models/utils.js';
 
 const createOne = async userData => {
 	if (User.exists({ phoneNumber: userData.phoneNumber })) {
@@ -19,7 +19,6 @@ const createOne = async userData => {
 
 	let user = null;
 	try {
-		const hashPassword = promisify(pbkdf2);
 		const salt = randomBytes(16);
 		const hashedPassword = await hashPassword(
 			userData.password,
@@ -59,9 +58,23 @@ const getOne = id => {
 	return user;
 };
 
-const updateOne = (id, changes) => {
+const updateOne = async (id, changes) => {
 	let user = null;
 	try {
+		if (changes.password) {
+			const salt = randomBytes(16);
+			const hashedPassword = await hashPassword(
+				changes.password,
+				salt,
+				310000,
+				32,
+				'sha256'
+			);
+
+			changes.password = hashedPassword.toString('hex');
+			changes.salt = salt.toString('hex');
+		}
+
 		user = User.updateOne(id, changes);
 	} catch (err) {
 		throw err;
