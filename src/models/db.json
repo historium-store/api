@@ -8,6 +8,15 @@
             "email": "michael.jupiter@gmail.com",
             "password": "53f7f38277b9f5c517c313d0ae4158d02fd019c1c2da61df9521e28514c93908",
             "salt": "85bc70b8446e0b02a64bebee8c6a0a84"
+        },
+        {
+            "id": "c0a3fc2b-d7bd-4231-a13c-74ce9cd37c7a",
+            "firstName": "John",
+            "lastName": "Williams",
+            "phoneNumber": "+380501111111",
+            "email": "john.williams@gmail.com",
+            "password": "f52a2653e706d5fd78e07b984f33821e49777cab8e7a61b3b9f4849d212b4da8",
+            "salt": "9dbaca68c362eb90a2ff401c00a96111"
         }
     ]
 }

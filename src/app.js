@@ -1,4 +1,5 @@
 import express from 'express';
+import createHttpError from 'http-errors';
 import logger from 'morgan';
 import errorHandler from './middleware/error-handler.js';
 import authRoutes from './routes/authRoutes.js';
@@ -12,6 +13,10 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(authRoutes);
 app.use('/user', userRoutes);
+
+app.use((req, res, next) =>
+	next(createHttpError(404, 'Endpoint not found'))
+);
 
 app.use(errorHandler);
 
