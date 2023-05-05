@@ -27,8 +27,14 @@ const createOne = userData => {
 			'sha256'
 		);
 
+		const date = new Date().toLocaleString('ua-UA', {
+			timeZone: 'Europe/Kyiv'
+		});
+
 		user = User.createOne({
 			id: randomUUID(),
+			createdAt: date,
+			updatedAt: date,
 			...userData,
 			password: hashedPassword.toString('hex'),
 			salt: salt.toString('hex')

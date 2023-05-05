@@ -80,7 +80,10 @@ const updateOne = (id, changes) => {
 
 		user = {
 			...db.users[indexToUpdate],
-			...changes
+			...changes,
+			updatedAt: new Date().toLocaleString('ua-UA', {
+				timeZone: 'Europe/Kyiv'
+			})
 		};
 
 		db.users[indexToUpdate] = user;
