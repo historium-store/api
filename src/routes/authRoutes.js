@@ -18,4 +18,8 @@ router.post(
 	authController.createToken
 );
 
+router.get('/protected', authController.authenticate, (req, res) => {
+	res.json({ status: 'OK', data: req.user });
+});
+
 export default router;

@@ -1,18 +1,20 @@
-import { pbkdf2Sync, timingSafeEqual } from 'crypto';
+import { pbkdf2, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
+import { promisify } from 'util';
 import config from '../config/main.js';
 import User from '../models/user.js';
 
 const SECRET = process.env.SECRET || config.SECRET;
 
-const createToken = credentials => {
+const createToken = async credentials => {
 	const { phoneNumber, email, password } = credentials;
 
 	let user = null;
 	try {
 		user = User.getOne(phoneNumber ? { phoneNumber } : { email });
 
-		const hashedPassword = pbkdf2Sync(
+		const hashPassword = promisify(pbkdf2);
+		const hashedPassword = await hashPassword(
 			password,
 			Buffer.from(user.salt, 'hex'),
 			310000,
@@ -59,24 +61,17 @@ const authenticate = async authHeader => {
 	}
 
 	let payload = null;
+	const verify = promisify(jwt.verify);
 	try {
-		payload = await new Promise((resolve, reject) =>
-			jwt.verify(token, SECRET, (err, payload) => {
-				if (err) {
-					reject({
-						status: 401,
-						message:
-							err.name === 'TokenExpiredError'
-								? 'Token has expired'
-								: 'Invalid token'
-					});
-				}
-
-				resolve(payload);
-			})
-		);
+		payload = await verify(token, SECRET);
 	} catch (err) {
-		throw err;
+		throw {
+			status: 401,
+			message:
+				err.name === 'TokenExpiredError'
+					? 'Token has expired'
+					: 'Invalid token'
+		};
 	}
 
 	let user = null;

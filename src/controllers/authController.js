@@ -2,7 +2,7 @@ import { validationResult } from 'express-validator';
 import createHttpError from 'http-errors';
 import authService from '../services/authService.js';
 
-const createToken = (req, res, next) => {
+const createToken = async (req, res, next) => {
 	const errors = validationResult(req).array();
 
 	if (errors.length == 2) {
@@ -20,7 +20,7 @@ const createToken = (req, res, next) => {
 
 	let token = null;
 	try {
-		token = authService.createToken(credentials);
+		token = await authService.createToken(credentials);
 	} catch (err) {
 		return next(createHttpError(err?.status || 500, err?.message || err));
 	}

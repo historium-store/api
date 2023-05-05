@@ -2,7 +2,7 @@ import { matchedData, validationResult } from 'express-validator';
 import createHttpError from 'http-errors';
 import userService from '../services/userService.js';
 
-const createOne = (req, res, next) => {
+const createOne = async (req, res, next) => {
 	const errors = validationResult(req).array();
 
 	if (errors.length) {
@@ -13,7 +13,7 @@ const createOne = (req, res, next) => {
 
 	let user = null;
 	try {
-		user = userService.createOne({
+		user = await userService.createOne({
 			firstName: data.firstName,
 			lastName: data.lastName,
 			phoneNumber: data.phoneNumber,

@@ -1,7 +1,8 @@
-import { pbkdf2Sync, randomBytes, randomUUID } from 'crypto';
+import { pbkdf2, randomBytes, randomUUID } from 'crypto';
+import { promisify } from 'util';
 import User from '../models/user.js';
 
-const createOne = userData => {
+const createOne = async userData => {
 	if (User.exists({ phoneNumber: userData.phoneNumber })) {
 		throw {
 			status: 400,
@@ -18,8 +19,9 @@ const createOne = userData => {
 
 	let user = null;
 	try {
+		const hashPassword = promisify(pbkdf2);
 		const salt = randomBytes(16);
-		const hashedPassword = pbkdf2Sync(
+		const hashedPassword = await hashPassword(
 			userData.password,
 			salt,
 			310000,
