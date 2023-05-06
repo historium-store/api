@@ -3,15 +3,13 @@ import createHttpError from 'http-errors';
 import productService from '../services/productService.js';
 
 const createOne = (req, res, next) => {
-	// const errors = validationResult(req).array();
+	const errors = validationResult(req).array();
 
-	// if (errors.length) {
-	// 	return next(createHttpError(400, errors[0].msg));
-	// }
+	if (errors.length) {
+		return next(createHttpError(400, errors[0].msg));
+	}
 
-	// const data = matchedData(req);
-
-	const data = req.body;
+	const data = matchedData(req);
 
 	let product = null;
 	try {
@@ -26,15 +24,13 @@ const createOne = (req, res, next) => {
 };
 
 const getOne = (req, res, next) => {
-	// const errors = validationResult(req).array();
+	const errors = validationResult(req).array();
 
-	// if (errors.length) {
-	// 	return next(createHttpError(400, errors[0].msg));
-	// }
+	if (errors.length) {
+		return next(createHttpError(400, errors[0].msg));
+	}
 
-	// const id = matchedData(req).id;
-
-	const id = req.params.id;
+	const id = matchedData(req).id;
 
 	let product = null;
 	try {
@@ -57,16 +53,13 @@ const getAll = (req, res, next) => {
 };
 
 const updateOne = (req, res, next) => {
-	// const errors = validationResult(req).array();
+	const errors = validationResult(req).array();
 
-	// if (errors.length) {
-	// 	return next(createHttpError(400, errors[0].msg));
-	// }
+	if (errors.length) {
+		return next(createHttpError(400, errors[0].msg));
+	}
 
-	// const { id, ...changes } = matchedData(req);
-
-	const id = req.params.id;
-	const changes = { code: req.body.code };
+	const { id, ...changes } = matchedData(req);
 
 	let product = null;
 	try {
@@ -81,15 +74,13 @@ const updateOne = (req, res, next) => {
 };
 
 const deleteOne = (req, res, next) => {
-	// const errors = validationResult(req).array();
+	const errors = validationResult(req).array();
 
-	// if (errors.length) {
-	// 	return next(createHttpError(400, errors[0].msg));
-	// }
+	if (errors.length) {
+		return next(createHttpError(400, errors[0].msg));
+	}
 
-	// const id = matchedData(req).id;
-
-	const id = req.params.id;
+	const id = matchedData(req).id;
 
 	let product = null;
 	try {

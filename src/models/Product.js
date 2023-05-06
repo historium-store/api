@@ -4,7 +4,9 @@ import { saveDatabase } from './utils.js';
 const createOne = product => {
 	try {
 		const exists =
-			db.products.findIndex(p => p.code === product.code) > -1;
+			db.products.findIndex(
+				p => p.code === product.code && !p.deletedAt
+			) > -1;
 
 		if (exists) {
 			throw {

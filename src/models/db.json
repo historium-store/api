@@ -1,63 +1,38 @@
 {
-    "users": [
-        {
-            "id": "cfec2d01-bfa3-471e-8b3b-42303ff35ca7",
-            "createdAt": "05.05.2023, 14:05:48",
-            "updatedAt": "05.05.2023, 18:34:10",
-            "firstName": "John",
-            "lastName": "Williams",
-            "phoneNumber": "+380501111112",
-            "email": "john.williams@gmail.com",
-            "password": "b6e3652e0467d08a1e402fc6847f83d6ae553360397ee912ff9b7cc3acaa1c5d",
-            "salt": "6319e9b52a57b409cedfb1739c4710d5"
-        },
-        {
-            "id": "d15681b2-98a8-4fa3-aa15-9546809e8451",
-            "createdAt": "05.05.2023, 18:22:40",
-            "updatedAt": "05.05.2023, 18:22:40",
-            "firstName": "Michael",
-            "lastName": "Jupiter",
-            "phoneNumber": "+380501111113",
-            "email": "michael.jupiter@gmail.com",
-            "password": "fff918b419b6394209a76ed02ed6aaeba79f6526093b97eadbdfb00f1afbfa05",
-            "salt": "a52a466d3ca7c18efb1be2d228f82f54"
-        }
-    ],
-    "products": [
-        {
-            "id": "8805f726-3ebe-4fcc-b6b6-6f3f17790b0f",
-            "createdAt": "05.05.2023, 22:50:59",
-            "updatedAt": "05.05.2023, 22:50:59",
-            "deletedAt": null,
-            "code": "000000"
-        },
-        {
-            "id": "62e3824f-0ad3-4764-80da-15afe126cb2f",
-            "createdAt": "05.05.2023, 22:53:32",
-            "updatedAt": "05.05.2023, 22:53:32",
-            "deletedAt": null,
-            "code": "000001"
-        },
-        {
-            "id": "5cf5cac0-90c6-4b07-92a0-8a809891f99d",
-            "createdAt": "05.05.2023, 22:56:14",
-            "updatedAt": "05.05.2023, 22:56:14",
-            "deletedAt": null,
-            "code": "000002"
-        },
-        {
-            "id": "14802029-20d8-4400-b6e1-7b0a21fa83cc",
-            "createdAt": "05.05.2023, 22:57:11",
-            "updatedAt": "05.05.2023, 22:58:18",
-            "deletedAt": "05.05.2023, 23:07:22",
-            "code": "111111"
-        },
-        {
-            "id": "96393234-7fb6-4f0c-80f9-7dc2d8f28b05",
-            "createdAt": "05.05.2023, 23:04:21",
-            "updatedAt": "05.05.2023, 23:04:21",
-            "deletedAt": null,
-            "code": "000003"
-        }
-    ]
+	"users": [
+		{
+			"id": "cfec2d01-bfa3-471e-8b3b-42303ff35ca7",
+			"createdAt": "05.05.2023, 14:05:48",
+			"updatedAt": "05.05.2023, 18:34:10",
+			"firstName": "John",
+			"lastName": "Williams",
+			"phoneNumber": "+380501111112",
+			"email": "john.williams@gmail.com",
+			"password": "b6e3652e0467d08a1e402fc6847f83d6ae553360397ee912ff9b7cc3acaa1c5d",
+			"salt": "6319e9b52a57b409cedfb1739c4710d5"
+		},
+		{
+			"id": "d15681b2-98a8-4fa3-aa15-9546809e8451",
+			"createdAt": "05.05.2023, 18:22:40",
+			"updatedAt": "05.05.2023, 18:22:40",
+			"firstName": "Michael",
+			"lastName": "Jupiter",
+			"phoneNumber": "+380501111113",
+			"email": "michael.jupiter@gmail.com",
+			"password": "fff918b419b6394209a76ed02ed6aaeba79f6526093b97eadbdfb00f1afbfa05",
+			"salt": "a52a466d3ca7c18efb1be2d228f82f54"
+		}
+	],
+	"products": [
+		{
+			"id": "faae76d0-3f7c-4e4f-bd47-65cbe3b86eaf",
+			"createdAt": "06.05.2023, 23:41:16",
+			"updatedAt": "06.05.2023, 23:51:42",
+			"deletedAt": null,
+			"name": "1984",
+			"code": "000000",
+			"price": "980.00",
+			"quantity": "200"
+		}
+	]
 }
