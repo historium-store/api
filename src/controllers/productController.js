@@ -11,16 +11,13 @@ const createOne = (req, res, next) => {
 
 	const data = matchedData(req);
 
-	let product = null;
 	try {
-		product = productService.createOne(data);
-	} catch (err) {
-		return next(
-			createHttpError(err?.status || 500, err?.message || err)
-		);
-	}
+		const product = productService.createOne(data);
 
-	res.json({ status: 'OK', data: product });
+		res.status(201).json({ status: 'OK', data: product });
+	} catch (err) {
+		next(createHttpError(err.status, err.message));
+	}
 };
 
 const getOne = (req, res, next) => {
@@ -32,23 +29,20 @@ const getOne = (req, res, next) => {
 
 	const id = matchedData(req).id;
 
-	let product = null;
 	try {
-		product = productService.getOne(id);
-	} catch (err) {
-		return next(
-			createHttpError(err?.status || 500, err?.message || err)
-		);
-	}
+		const product = productService.getOne(id);
 
-	res.json({ status: 'OK', data: product });
+		res.json({ status: 'OK', data: product });
+	} catch (err) {
+		next(createHttpError(err.status, err.message));
+	}
 };
 
 const getAll = (req, res, next) => {
 	try {
 		res.json({ status: 'OK', data: productService.getAll() });
 	} catch (err) {
-		next(createHttpError(err?.status || 500, err?.message || err));
+		next(createHttpError(err.status, err.message));
 	}
 };
 
@@ -61,16 +55,13 @@ const updateOne = (req, res, next) => {
 
 	const { id, ...changes } = matchedData(req);
 
-	let product = null;
 	try {
-		product = productService.updateOne(id, changes);
-	} catch (err) {
-		return next(
-			createHttpError(err?.status || 500, err?.message || err)
-		);
-	}
+		const product = productService.updateOne(id, changes);
 
-	res.json({ status: 'OK', data: product });
+		res.json({ status: 'OK', data: product });
+	} catch (err) {
+		next(createHttpError(err.status, err.message));
+	}
 };
 
 const deleteOne = (req, res, next) => {
@@ -82,16 +73,13 @@ const deleteOne = (req, res, next) => {
 
 	const id = matchedData(req).id;
 
-	let product = null;
 	try {
-		product = productService.deleteOne(id);
-	} catch (err) {
-		return next(
-			createHttpError(err?.status || 500, err?.message || err)
-		);
-	}
+		const product = productService.deleteOne(id);
 
-	res.json({ status: 'OK', data: product });
+		res.json({ status: 'OK', data: product });
+	} catch (err) {
+		next(createHttpError(err.status, err.message));
+	}
 };
 
 export default { createOne, getOne, getAll, updateOne, deleteOne };

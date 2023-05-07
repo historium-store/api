@@ -5,6 +5,8 @@ import User from '../models/User.js';
 import { hashPassword, verifyJWT } from '../models/utils.js';
 
 const SECRET = process.env.SECRET || config.SECRET;
+const EXPIRES_IN =
+	process.env.JWT_EXPIRATION || config.JWT_EXPIRATION;
 
 const createToken = async credentials => {
 	const { phoneNumber, email, password } = credentials;
@@ -35,7 +37,7 @@ const createToken = async credentials => {
 
 	const payload = { sub: user.id };
 	const options = {
-		expiresIn: config.JWT_EXPIRATION,
+		expiresIn: EXPIRES_IN,
 		noTimestamp: true
 	};
 	const token = jwt.sign(payload, SECRET, options);
@@ -72,14 +74,11 @@ const authenticate = async authHeader => {
 		};
 	}
 
-	let user = null;
 	try {
-		user = User.getOne({ id: payload.sub });
+		return User.getOne({ id: payload.sub });
 	} catch (err) {
 		throw err;
 	}
-
-	return user;
 };
 
 export default { createToken, authenticate };

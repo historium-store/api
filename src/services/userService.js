@@ -17,7 +17,6 @@ const createOne = async userData => {
 		};
 	}
 
-	let user = null;
 	try {
 		const salt = randomBytes(16);
 		const hashedPassword = await hashPassword(
@@ -32,7 +31,7 @@ const createOne = async userData => {
 			timeZone: 'Europe/Kyiv'
 		});
 
-		user = User.createOne({
+		return User.createOne({
 			id: randomUUID(),
 			createdAt: date,
 			updatedAt: date,
@@ -44,23 +43,17 @@ const createOne = async userData => {
 	} catch (err) {
 		throw err;
 	}
-
-	return user;
 };
 
 const getOne = id => {
-	let user = null;
 	try {
-		user = User.getOne({ id });
+		return User.getOne({ id });
 	} catch (err) {
 		throw err;
 	}
-
-	return user;
 };
 
 const updateOne = async (id, changes) => {
-	let user = null;
 	try {
 		if (changes.password) {
 			const salt = randomBytes(16);
@@ -76,12 +69,10 @@ const updateOne = async (id, changes) => {
 			changes.salt = salt.toString('hex');
 		}
 
-		user = User.updateOne(id, changes);
+		return User.updateOne(id, changes);
 	} catch (err) {
 		throw err;
 	}
-
-	return user;
 };
 
 export default { createOne, getOne, updateOne };

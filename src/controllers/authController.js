@@ -18,29 +18,25 @@ const createToken = async (req, res, next) => {
 		credentials.email = login;
 	}
 
-	let token = null;
 	try {
-		token = await authService.createToken(credentials);
-	} catch (err) {
-		return next(createHttpError(err?.status || 500, err?.message || err));
-	}
+		const token = await authService.createToken(credentials);
 
-	res.json({
-		status: 'OK',
-		data: { token }
-	});
+		res.json({ status: 'OK', data: { token } });
+	} catch (err) {
+		next(createHttpError(err.status, err.message));
+	}
 };
 
 const authenticate = async (req, res, next) => {
-	let user = null;
 	try {
-		user = await authService.authenticate(req.headers.authorization);
-	} catch (err) {
-		return next(createHttpError(err?.status || 500, err?.message || err));
-	}
+		req.user = await authService.authenticate(
+			req.headers.authorization
+		);
 
-	req.user = user;
-	next();
+		next();
+	} catch (err) {
+		next(createHttpError(err.status, err.message));
+	}
 };
 
 export default { createToken, authenticate };
