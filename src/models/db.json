@@ -1,38 +1,52 @@
 {
-	"users": [
-		{
-			"id": "cfec2d01-bfa3-471e-8b3b-42303ff35ca7",
-			"createdAt": "05.05.2023, 14:05:48",
-			"updatedAt": "05.05.2023, 18:34:10",
-			"firstName": "John",
-			"lastName": "Williams",
-			"phoneNumber": "+380501111112",
-			"email": "john.williams@gmail.com",
-			"password": "b6e3652e0467d08a1e402fc6847f83d6ae553360397ee912ff9b7cc3acaa1c5d",
-			"salt": "6319e9b52a57b409cedfb1739c4710d5"
-		},
-		{
-			"id": "d15681b2-98a8-4fa3-aa15-9546809e8451",
-			"createdAt": "05.05.2023, 18:22:40",
-			"updatedAt": "05.05.2023, 18:22:40",
-			"firstName": "Michael",
-			"lastName": "Jupiter",
-			"phoneNumber": "+380501111113",
-			"email": "michael.jupiter@gmail.com",
-			"password": "fff918b419b6394209a76ed02ed6aaeba79f6526093b97eadbdfb00f1afbfa05",
-			"salt": "a52a466d3ca7c18efb1be2d228f82f54"
-		}
-	],
-	"products": [
-		{
-			"id": "faae76d0-3f7c-4e4f-bd47-65cbe3b86eaf",
-			"createdAt": "06.05.2023, 23:41:16",
-			"updatedAt": "06.05.2023, 23:51:42",
-			"deletedAt": null,
-			"name": "1984",
-			"code": "000000",
-			"price": "980.00",
-			"quantity": "200"
-		}
-	]
+    "users": [
+        {
+            "id": "563a8069-eb41-4954-9f62-4521d03542c3",
+            "createdAt": "07.05.2023, 23:47:24",
+            "updatedAt": "07.05.2023, 23:47:24",
+            "deletedAt": null,
+            "firstName": "Jack",
+            "lastName": "Daniels",
+            "phoneNumber": "+380501111111",
+            "email": "jack.daniels@gmail.com",
+            "password": "613b0750297f579fabec475af76fe0b4ba49f13e09d523a81864f3d81a8e49b7",
+            "role": "user",
+            "salt": "e9dbe15e342a02938d25e0c248324d3f"
+        },
+        {
+            "id": "e7b3d6e5-35eb-498f-92cf-026c9cce2938",
+            "createdAt": "07.05.2023, 23:48:12",
+            "updatedAt": "07.05.2023, 23:49:11",
+            "deletedAt": null,
+            "firstName": "Michael",
+            "lastName": "Williams",
+            "phoneNumber": "+380501111112",
+            "email": "michael.williams@gmail.com",
+            "password": "66334a0cdd5529e4b53ff44c3d4f5ac1b964ca466d0143de9a52d58b661c1d04",
+            "role": "seller",
+            "salt": "c7e95f242a8b3475cd0e8d58ca736b35"
+        }
+    ],
+    "products": [
+        {
+            "id": "faae76d0-3f7c-4e4f-bd47-65cbe3b86eaf",
+            "createdAt": "06.05.2023, 23:41:16",
+            "updatedAt": "07.05.2023, 23:53:13",
+            "deletedAt": "07.05.2023, 23:53:24",
+            "name": "1984",
+            "code": "000003",
+            "price": "980.00",
+            "quantity": "200"
+        },
+        {
+            "id": "d024fd72-f927-48fa-8045-f45a23203514",
+            "createdAt": "07.05.2023, 23:51:28",
+            "updatedAt": "07.05.2023, 23:51:28",
+            "deletedAt": null,
+            "name": "Метро 2033",
+            "code": "000001",
+            "price": "780.00",
+            "quantity": "5000"
+        }
+    ]
 }

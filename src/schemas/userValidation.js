@@ -33,6 +33,9 @@ export const signupSchema = {
 			options: { min: 8, max: 50 },
 			errorMessage: 'Password must be between 8 and 50 characters'
 		}
+	},
+	role: {
+		default: { options: 'user' }
 	}
 };
 
@@ -89,5 +92,6 @@ export const updateSchema = {
 			options: { min: 8, max: 50 },
 			errorMessage: 'Password must be between 8 and 50 characters'
 		}
-	}
+	},
+	role: { optional: true }
 };
