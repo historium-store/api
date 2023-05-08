@@ -17,20 +17,19 @@ const createOne = product => {
 
 		db.products.push(product);
 		saveDatabase(db);
+
+		return product;
 	} catch (err) {
 		throw {
 			status: err?.status || 500,
 			message: err?.message || err
 		};
 	}
-
-	return product;
 };
 
 const getOne = criteria => {
-	let product = null;
 	try {
-		product = db.products.find(p =>
+		const product = db.products.find(p =>
 			Object.keys(criteria).every(key => p[key] === criteria[key])
 		);
 
@@ -40,14 +39,14 @@ const getOne = criteria => {
 				message: `Product not found`
 			};
 		}
+
+		return product;
 	} catch (err) {
 		throw {
 			status: err?.status || 500,
 			message: err?.message || err
 		};
 	}
-
-	return product;
 };
 
 const getAll = () => {
@@ -62,7 +61,6 @@ const getAll = () => {
 };
 
 const updateOne = (id, changes) => {
-	let product = null;
 	try {
 		const exists =
 			db.products.findIndex(p => p.code === changes.code) > -1;
@@ -83,7 +81,7 @@ const updateOne = (id, changes) => {
 			};
 		}
 
-		product = {
+		const product = {
 			...db.products[indexToUpdate],
 			...changes,
 			updatedAt: new Date().toLocaleString('ua-UA', {
@@ -93,18 +91,17 @@ const updateOne = (id, changes) => {
 
 		db.products[indexToUpdate] = product;
 		saveDatabase(db);
+
+		return product;
 	} catch (err) {
 		throw {
 			status: err?.status || 500,
 			message: err?.message || err
 		};
 	}
-
-	return product;
 };
 
 const deleteOne = id => {
-	let product = null;
 	try {
 		const indexToDelete = db.products.findIndex(p => p.id == id);
 
@@ -115,7 +112,7 @@ const deleteOne = id => {
 			};
 		}
 
-		product = {
+		const product = {
 			...db.products[indexToDelete],
 			deletedAt: new Date().toLocaleString('ua-UA', {
 				timeZone: 'Europe/Kyiv'
@@ -124,14 +121,14 @@ const deleteOne = id => {
 
 		db.products[indexToDelete] = product;
 		saveDatabase(db);
+
+		return product;
 	} catch (err) {
 		throw {
 			status: err?.status || 500,
 			message: err?.message || err
 		};
 	}
-
-	return product;
 };
 
 export default { createOne, getOne, getAll, updateOne, deleteOne };

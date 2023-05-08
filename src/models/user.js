@@ -30,9 +30,8 @@ const createOne = user => {
 };
 
 const getOne = criteria => {
-	let user = null;
 	try {
-		user = db.users.find(u =>
+		const user = db.users.find(u =>
 			Object.keys(criteria).every(key => u[key] === criteria[key])
 		);
 
@@ -42,14 +41,14 @@ const getOne = criteria => {
 				message: `User not found`
 			};
 		}
+
+		return user;
 	} catch (err) {
 		throw {
 			status: err?.status || 500,
 			message: err?.message || err
 		};
 	}
-
-	return user;
 };
 
 const updateOne = (id, changes) => {
@@ -67,7 +66,6 @@ const updateOne = (id, changes) => {
 		};
 	}
 
-	let user = null;
 	try {
 		const indexToUpdate = db.users.findIndex(u => u.id == id);
 
@@ -78,7 +76,7 @@ const updateOne = (id, changes) => {
 			};
 		}
 
-		user = {
+		const user = {
 			...db.users[indexToUpdate],
 			...changes,
 			updatedAt: new Date().toLocaleString('ua-UA', {
@@ -88,31 +86,29 @@ const updateOne = (id, changes) => {
 
 		db.users[indexToUpdate] = user;
 		saveDatabase(db);
+
+		return user;
 	} catch (err) {
 		throw {
 			status: err?.status || 500,
 			message: err?.message || err
 		};
 	}
-
-	return user;
 };
 
 const exists = criteria => {
-	let exists = null;
 	try {
-		exists =
+		return (
 			db.users.findIndex(u =>
 				Object.keys(criteria).every(key => u[key] === criteria[key])
-			) > -1;
+			) > -1
+		);
 	} catch (err) {
 		throw {
 			status: err?.status || 500,
 			message: err?.message || err
 		};
 	}
-
-	return exists;
 };
 
 export default { createOne, getOne, updateOne, exists };
