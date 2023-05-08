@@ -37,7 +37,11 @@ const createOne = async userData => {
 			createdAt: date,
 			updatedAt: date,
 			deletedAt: null,
-			...userData,
+			firstName: userData.firstName,
+			lastName: userData.lastName,
+			phoneNumber: userData.phoneNumber,
+			email: userData.email,
+			role: userData.role,
 			password: hashedPassword.toString('hex'),
 			salt: salt.toString('hex')
 		});

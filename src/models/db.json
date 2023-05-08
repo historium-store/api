@@ -1,52 +1,52 @@
 {
-    "users": [
-        {
-            "id": "563a8069-eb41-4954-9f62-4521d03542c3",
-            "createdAt": "07.05.2023, 23:47:24",
-            "updatedAt": "07.05.2023, 23:47:24",
-            "deletedAt": null,
-            "firstName": "Jack",
-            "lastName": "Daniels",
-            "phoneNumber": "+380501111111",
-            "email": "jack.daniels@gmail.com",
-            "password": "613b0750297f579fabec475af76fe0b4ba49f13e09d523a81864f3d81a8e49b7",
-            "role": "user",
-            "salt": "e9dbe15e342a02938d25e0c248324d3f"
-        },
-        {
-            "id": "e7b3d6e5-35eb-498f-92cf-026c9cce2938",
-            "createdAt": "07.05.2023, 23:48:12",
-            "updatedAt": "07.05.2023, 23:49:11",
-            "deletedAt": null,
-            "firstName": "Michael",
-            "lastName": "Williams",
-            "phoneNumber": "+380501111112",
-            "email": "michael.williams@gmail.com",
-            "password": "66334a0cdd5529e4b53ff44c3d4f5ac1b964ca466d0143de9a52d58b661c1d04",
-            "role": "seller",
-            "salt": "c7e95f242a8b3475cd0e8d58ca736b35"
-        }
-    ],
-    "products": [
-        {
-            "id": "faae76d0-3f7c-4e4f-bd47-65cbe3b86eaf",
-            "createdAt": "06.05.2023, 23:41:16",
-            "updatedAt": "07.05.2023, 23:53:13",
-            "deletedAt": "07.05.2023, 23:53:24",
-            "name": "1984",
-            "code": "000003",
-            "price": "980.00",
-            "quantity": "200"
-        },
-        {
-            "id": "d024fd72-f927-48fa-8045-f45a23203514",
-            "createdAt": "07.05.2023, 23:51:28",
-            "updatedAt": "07.05.2023, 23:51:28",
-            "deletedAt": null,
-            "name": "Метро 2033",
-            "code": "000001",
-            "price": "780.00",
-            "quantity": "5000"
-        }
-    ]
+	"users": [
+		{
+			"id": "563a8069-eb41-4954-9f62-4521d03542c3",
+			"createdAt": "07.05.2023, 23:47:24",
+			"updatedAt": "07.05.2023, 23:47:24",
+			"deletedAt": null,
+			"firstName": "Jack",
+			"lastName": "Daniels",
+			"phoneNumber": "+380501111111",
+			"email": "jack.daniels@gmail.com",
+			"role": "user",
+			"password": "613b0750297f579fabec475af76fe0b4ba49f13e09d523a81864f3d81a8e49b7",
+			"salt": "e9dbe15e342a02938d25e0c248324d3f"
+		},
+		{
+			"id": "e7b3d6e5-35eb-498f-92cf-026c9cce2938",
+			"createdAt": "07.05.2023, 23:48:12",
+			"updatedAt": "07.05.2023, 23:49:11",
+			"deletedAt": null,
+			"firstName": "Michael",
+			"lastName": "Williams",
+			"phoneNumber": "+380501111112",
+			"email": "michael.williams@gmail.com",
+			"role": "seller",
+			"password": "66334a0cdd5529e4b53ff44c3d4f5ac1b964ca466d0143de9a52d58b661c1d04",
+			"salt": "c7e95f242a8b3475cd0e8d58ca736b35"
+		}
+	],
+	"products": [
+		{
+			"id": "faae76d0-3f7c-4e4f-bd47-65cbe3b86eaf",
+			"createdAt": "06.05.2023, 23:41:16",
+			"updatedAt": "07.05.2023, 23:53:13",
+			"deletedAt": "07.05.2023, 23:53:24",
+			"name": "1984",
+			"code": "000003",
+			"price": "980.00",
+			"quantity": "200"
+		},
+		{
+			"id": "d024fd72-f927-48fa-8045-f45a23203514",
+			"createdAt": "07.05.2023, 23:51:28",
+			"updatedAt": "07.05.2023, 23:51:28",
+			"deletedAt": null,
+			"name": "Метро 2033",
+			"code": "000001",
+			"price": "780.00",
+			"quantity": "5000"
+		}
+	]
 }
