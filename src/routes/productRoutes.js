@@ -15,7 +15,7 @@ router
 	.get(productController.getAll)
 	.post(
 		authController.authenticate,
-		checkRole('seller'),
+		checkRole('admin'),
 		checkSchema(creationSchema, ['body']),
 		productController.createOne
 	);
@@ -28,14 +28,14 @@ router
 	)
 	.patch(
 		authController.authenticate,
-		checkRole('seller'),
+		checkRole('admin'),
 		param('id').isUUID().withMessage('Invalid product id format'),
 		checkSchema(updateSchema, ['body']),
 		productController.updateOne
 	)
 	.delete(
 		authController.authenticate,
-		checkRole('seller'),
+		checkRole('admin'),
 		param('id').isUUID().withMessage('Invalid product id format'),
 		productController.deleteOne
 	);

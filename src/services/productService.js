@@ -11,7 +11,6 @@ const createOne = productData => {
 			id: randomUUID(),
 			createdAt: date,
 			updatedAt: date,
-			deletedAt: null,
 			...productData
 		});
 	} catch (err) {

@@ -2,7 +2,9 @@ import express from 'express';
 import createHttpError from 'http-errors';
 import logger from 'morgan';
 import errorHandler from './middleware/error-handler.js';
+
 import authRoutes from './routes/authRoutes.js';
+import bookRoutes from './routes/bookRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 
@@ -15,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(authRoutes);
 app.use('/user', userRoutes);
 app.use('/product', productRoutes);
+app.use('/book', bookRoutes);
 
 app.use((req, res, next) =>
 	next(createHttpError(404, 'Endpoint not found'))

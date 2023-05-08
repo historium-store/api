@@ -35,7 +35,6 @@ const createOne = async userData => {
 			id: randomUUID(),
 			createdAt: date,
 			updatedAt: date,
-			deletedAt: null,
 			firstName: userData.firstName,
 			lastName: userData.lastName,
 			phoneNumber: userData.phoneNumber,

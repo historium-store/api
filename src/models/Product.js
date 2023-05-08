@@ -131,4 +131,26 @@ const deleteOne = id => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+const exists = criteria => {
+	try {
+		return (
+			db.products.findIndex(u =>
+				Object.keys(criteria).every(key => u[key] === criteria[key])
+			) > -1
+		);
+	} catch (err) {
+		throw {
+			status: err?.status || 500,
+			message: err?.message || err
+		};
+	}
+};
+
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne,
+	exists
+};
