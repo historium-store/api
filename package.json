@@ -2,7 +2,8 @@
 	"type": "module",
 	"main": "server.js",
 	"scripts": {
-		"start": "node server.js"
+		"start": "node server.js",
+		"dev": "nodemon --no-warnings -i db.json"
 	},
 	"dependencies": {
 		"dotenv": "^16.0.3",
@@ -10,6 +11,7 @@
 		"express-validator": "^7.0.1",
 		"http-errors": "^2.0.0",
 		"jsonwebtoken": "^9.0.0",
-		"morgan": "^1.10.0"
+		"morgan": "^1.10.0",
+		"validator": "^13.9.0"
 	}
 }

@@ -38,9 +38,14 @@ const getOne = (req, res, next) => {
 };
 
 const updateOne = async (req, res, next) => {
-	const errors = validationResult(req).array();
-	if (errors.length) {
-		return next(createHttpError(400, errors[0].msg));
+	const error = validationResult(req)
+		.formatWith(e => e.msg)
+		.array({
+			onlyFirstError: true
+		})[0];
+
+	if (error) {
+		return next(createHttpError(400, error));
 	}
 
 	const { id, ...changes } = matchedData(req);

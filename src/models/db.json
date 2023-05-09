@@ -3,14 +3,38 @@
         {
             "id": "08f31316-a664-4126-b2b7-605d7defa1aa",
             "createdAt": "09.05.2023, 13:40:10",
-            "updatedAt": "09.05.2023, 13:41:25",
+            "updatedAt": "09.05.2023, 18:56:45",
+            "firstName": "Robert",
+            "lastName": "Willow",
+            "phoneNumber": "+380501111111",
+            "email": "robert.willow@gmail.com",
+            "role": "user",
+            "password": "fc22f783202af4017b335a0be4e720933e04875ffae565758af87203e79f9ef2",
+            "salt": "a90a120894858a37f0a893549673e42d"
+        },
+        {
+            "id": "c323c265-2c30-4913-a8b3-09980464fdec",
+            "createdAt": "09.05.2023, 19:37:13",
+            "updatedAt": "09.05.2023, 19:37:13",
             "firstName": "Michael",
             "lastName": "Williams",
-            "phoneNumber": "+380501111111",
+            "phoneNumber": "+380501111112",
             "email": "michael.williams@gmail.com",
-            "role": "seller",
-            "password": "b5c07453cb09987377cbb8b12618b86af1e956aab2286272be15b23406a58d6f",
-            "salt": "c4d5c8a3b8f5fe8658920cc30a133d3a"
+            "role": "user",
+            "password": "eb984c4304d9a467feb57f5dd944d363c275375b8a65559058018d7df90c26ab",
+            "salt": "a4688fb00b3bce2119da73dae83c925e"
+        },
+        {
+            "id": "01126243-6629-49ce-b112-94e205b98387",
+            "createdAt": "09.05.2023, 19:43:51",
+            "updatedAt": "09.05.2023, 19:43:51",
+            "firstName": "Marcus",
+            "lastName": "Brownley",
+            "phoneNumber": "+380501111113",
+            "email": "marcus.brownley@gmail.com",
+            "role": "admin",
+            "password": "bfc15367a11a80d7832ba81430865d671263d865229081f35bfb254a58775037",
+            "salt": "f1ec4c1fcd855f82bb16e5a5ee0ae1eb"
         }
     ],
     "products": [

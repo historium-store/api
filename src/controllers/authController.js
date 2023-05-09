@@ -1,27 +1,31 @@
-import { validationResult } from 'express-validator';
+import { matchedData, validationResult } from 'express-validator';
 import createHttpError from 'http-errors';
 import authService from '../services/authService.js';
 
 const createToken = async (req, res, next) => {
-	const errors = validationResult(req).array();
+	const error = validationResult(req)
+		.formatWith(e => e.msg)
+		.array({
+			onlyFirstError: true
+		})[0];
 
-	if (errors.length == 2) {
-		return next(createHttpError(400, 'Invalid login format'));
+	if (error) {
+		return next(createHttpError(400, error));
 	}
 
-	const { login, password } = req.body;
-	const credentials = { password };
-
-	if (errors[0].msg === 'Invalid email format') {
-		credentials.phoneNumber = login;
-	} else {
-		credentials.email = login;
-	}
+	const data = matchedData(req);
+	const credentials = {
+		...(/^(\+380\d{9})$/.test(data.login)
+			? { phoneNumber: data.login }
+			: { email: data.login }),
+		password: data.password
+	};
 
 	try {
-		const token = await authService.createToken(credentials);
-
-		res.json({ status: 'OK', data: { token } });
+		res.json({
+			status: 'OK',
+			data: { token: await authService.createToken(credentials) }
+		});
 	} catch (err) {
 		next(createHttpError(err.status, err.message));
 	}
