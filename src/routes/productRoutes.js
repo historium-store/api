@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { checkSchema, param } from 'express-validator';
 import authController from '../controllers/authController.js';
 import productController from '../controllers/productController.js';
-import checkRole from '../middleware/role-checker.js';
+import { checkRole } from '../middleware/role-checker.js';
 import {
 	creationSchema,
 	updateSchema

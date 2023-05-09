@@ -22,7 +22,7 @@ export const creationSchema = {
 			errorMessage: 'Product price is required',
 			bail: true
 		},
-		isNumeric: {
+		isDecimal: {
 			errorMessage: 'Product price must be a number'
 		}
 	},
@@ -31,7 +31,7 @@ export const creationSchema = {
 			errorMessage: 'Product quantity is required',
 			bail: true
 		},
-		isNumeric: {
+		isDecimal: {
 			errorMessage: 'Product quantity must be a number'
 		}
 	}
@@ -64,7 +64,7 @@ export const updateSchema = {
 			errorMessage: 'Product price is required',
 			bail: true
 		},
-		isNumeric: {
+		isDecimal: {
 			errorMessage: 'Product price must be a number'
 		}
 	},
@@ -74,7 +74,7 @@ export const updateSchema = {
 			errorMessage: 'Product quantity is required',
 			bail: true
 		},
-		isNumeric: {
+		isDecimal: {
 			errorMessage: 'Product quantity must be a number'
 		}
 	}
