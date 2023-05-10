@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { check, param } from 'express-validator';
 import userController from '../controllers/userController.js';
 import {
 	validateId,

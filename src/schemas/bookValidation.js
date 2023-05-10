@@ -1,50 +1,79 @@
-import { creationSchema as productCreationSchema } from '../schemas/productValidation.js';
-import { creationSchema as authorCreationSchema } from './authorValidation.js';
-import { creationSchema as publisherCreationSchema } from './publisherValidation.js';
+import { body } from 'express-validator';
+import validator from 'validator';
 
-const addPrefix = (obj, prefix) => {
-	const result = { ...obj };
+export const validateCreate = [
+	body('product')
+		.isObject({ strict: true })
+		.withMessage('Product data is required'),
+	body('product.name')
+		.trim()
+		.notEmpty()
+		.withMessage('Product name is required')
+		.bail(),
+	body('product.price')
+		.isCurrency({
+			allow_negatives: false,
+			digits_after_decimal: [1, 2]
+		})
+		.withMessage('Product price must be a valid UAH value'),
+	body('product.quantity')
+		.isInt({ min: 0 })
+		.withMessage('Product quantity must be a positive integer'),
+	body('bookType')
+		.isIn(['Паперова', 'Електронна', 'Аудіо'])
+		.withMessage('Invalid book type'),
+	body('author')
+		.trim()
+		.notEmpty()
+		.withMessage('Book author full name is required')
+		.bail()
+		.custom(value => {
+			const valueCopy = value.slice().replace(' ', '');
+			if (
+				!validator.isAlpha(valueCopy, 'uk-UA') &&
+				!validator.isAlpha(valueCopy, 'en-US')
+			) {
+				throw {
+					message: 'Book author full name can only contain letters'
+				};
+			}
 
-	Object.keys(result).forEach(k => {
-		result[`${prefix}.${k}`] = result[k];
-		delete result[k];
-	});
-
-	return result;
-};
-
-export const creationSchema = {
-	...addPrefix(productCreationSchema, 'product'),
-	bookType: {
-		notEmpty: { errorMessage: 'Book type is required', bail: true },
-		isIn: {
-			options: ['Паперова', 'Електронна', 'Аудіо'],
-			errorMessage: 'Invalid book type'
-		}
-	},
-	...addPrefix(authorCreationSchema, 'author'),
-	language: {
-		notEmpty: {
-			errorMessage: 'Book language is required',
-			bail: true
-		},
-		isString: { errorMessage: 'Book language must be a string' }
-	},
-	...addPrefix(publisherCreationSchema, 'publisher'),
-	publicationYear: {
-		notEmpty: {
-			errorMessage: 'Book publication year is required',
-			bail: true
-		},
-		isDecimal: {
-			errorMessage: 'Book publication year must be a number'
-		}
-	},
-	description: {
-		notEmpty: {
-			errorMessage: 'Book description is required',
-			bail: true
-		},
-		isString: { errorMessage: 'Book description must be a string' }
-	}
-};
+			return true;
+		})
+		.bail()
+		.isLength({ min: 2, max: 50 })
+		.withMessage(
+			'Book author full name must be between 2 and 50 characters'
+		),
+	body('language')
+		.trim()
+		.notEmpty()
+		.withMessage('Book language is required')
+		.bail()
+		.isAlpha('uk-UA')
+		.withMessage('Book language can only contain letters')
+		.bail()
+		.isLength({ min: 2, max: 50 })
+		.withMessage('Book language must be between 2 and 50 characters'),
+	body('publisher')
+		.trim()
+		.notEmpty()
+		.withMessage('Book publisher name is required')
+		.bail()
+		.isLength({ min: 1, max: 100 })
+		.withMessage(
+			'Book publisher name must be between 1 and 100 characters'
+		),
+	body('publicationYear')
+		.isInt({ allow_negatives: false, min: 1400 })
+		.withMessage('Invalid book publication year'),
+	body('description')
+		.trim()
+		.notEmpty()
+		.withMessage('Book description is required')
+		.bail()
+		.isLength({ min: 50, max: 10000 })
+		.withMessage(
+			'Book description must be between 50 and 10000 characters'
+		)
+];

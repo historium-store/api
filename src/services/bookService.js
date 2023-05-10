@@ -7,8 +7,12 @@ import publisherService from './publisherService.js';
 const createOne = bookData => {
 	try {
 		const product = productService.createOne(bookData.product);
-		const author = authorService.createOne(bookData.author);
-		const publisher = publisherService.createOne(bookData.publisher);
+		const author = authorService.createOne({
+			fullName: bookData.author
+		});
+		const publisher = publisherService.createOne({
+			name: bookData.publisher
+		});
 		const date = new Date().toLocaleString('ua-UA', {
 			timeZone: 'Europe/Kyiv'
 		});

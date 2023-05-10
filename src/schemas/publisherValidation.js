@@ -1,9 +1,13 @@
-export const creationSchema = {
-	name: {
-		notEmpty: {
-			errorMessage: "Publisher's name is required",
-			bail: true
-		},
-		isString: { errorMessage: "Publisher's name must be a string" }
-	}
-};
+import { body } from 'express-validator';
+
+export const validateCreate = [
+	body('name')
+		.trim()
+		.notEmpty()
+		.withMessage('Publisher name is required')
+		.bail()
+		.isLength({ min: 1, max: 100 })
+		.withMessage(
+			'Publisher name must be between 1 and 100 characters'
+		)
+];

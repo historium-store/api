@@ -3,10 +3,14 @@ import createHttpError from 'http-errors';
 import bookService from '../services/bookService.js';
 
 const createOne = (req, res, next) => {
-	const errors = validationResult(req).array();
+	const error = validationResult(req)
+		.formatWith(e => e.msg)
+		.array({
+			onlyFirstError: true
+		})[0];
 
-	if (errors.length) {
-		return next(createHttpError(400, errors[0].msg));
+	if (error) {
+		return next(createHttpError(400, error));
 	}
 
 	const data = matchedData(req);

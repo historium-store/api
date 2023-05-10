@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { checkSchema, param } from 'express-validator';
 import authController from '../controllers/authController.js';
 import productController from '../controllers/productController.js';
 import { checkRole } from '../middleware/role-checker.js';
 import {
-	creationSchema,
-	updateSchema
+	validateCreate,
+	validateId,
+	validateUpdate
 } from '../schemas/productValidation.js';
 
 const router = new Router();
@@ -16,27 +16,23 @@ router
 	.post(
 		authController.authenticate,
 		checkRole('admin'),
-		checkSchema(creationSchema, ['body']),
+		validateCreate,
 		productController.createOne
 	);
 
 router
 	.route('/:id')
-	.get(
-		param('id').isUUID().withMessage('Invalid product id format'),
-		productController.getOne
-	)
+	.get(validateId, productController.getOne)
 	.patch(
 		authController.authenticate,
 		checkRole('admin'),
-		param('id').isUUID().withMessage('Invalid product id format'),
-		checkSchema(updateSchema, ['body']),
+		validateUpdate,
 		productController.updateOne
 	)
 	.delete(
 		authController.authenticate,
 		checkRole('admin'),
-		param('id').isUUID().withMessage('Invalid product id format'),
+		validateId,
 		productController.deleteOne
 	);
 

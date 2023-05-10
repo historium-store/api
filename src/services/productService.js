@@ -6,11 +6,13 @@ const createOne = productData => {
 		const date = new Date().toLocaleString('ua-UA', {
 			timeZone: 'Europe/Kyiv'
 		});
+		const code = Math.max(...Product.getAll().map(p => +p.code)) + 1;
 
 		return Product.createOne({
 			id: randomUUID(),
 			createdAt: date,
 			updatedAt: date,
+			code: `${code}`,
 			...productData
 		});
 	} catch (err) {

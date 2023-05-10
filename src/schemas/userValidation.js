@@ -1,50 +1,9 @@
-import { body, oneOf, param } from 'express-validator';
+import { body, param } from 'express-validator';
 import validator from 'validator';
 
 export const validateId = param('id')
 	.isUUID()
 	.withMessage('Invalid user id format');
-
-export const signupSchema = {
-	firstName: {
-		notEmpty: { errorMessage: 'First name is required', bail: true },
-		isLength: {
-			options: { min: 2, max: 50 },
-			errorMessage: 'First name must be between 2 and 50 characters'
-		}
-	},
-	lastName: {
-		notEmpty: { errorMessage: 'Last name is required', bail: true },
-		isLength: {
-			options: { min: 2, max: 50 },
-			errorMessage: 'Last name must be between 2 and 50 characters'
-		}
-	},
-	phoneNumber: {
-		notEmpty: {
-			errorMessage: 'Phone number is required',
-			bail: true
-		},
-		isMobilePhone: {
-			locale: 'uk-UA',
-			errorMessage: 'Invalid phone number format'
-		}
-	},
-	email: {
-		notEmpty: { errorMessage: 'Email is required', bail: true },
-		isEmail: { errorMessage: 'Invalid email format' }
-	},
-	password: {
-		notEmpty: { errorMessage: 'Password is required', bail: true },
-		isLength: {
-			options: { min: 8, max: 50 },
-			errorMessage: 'Password must be between 8 and 50 characters'
-		}
-	},
-	role: {
-		default: { options: 'user' }
-	}
-};
 
 export const validateSignup = [
 	body('firstName')
@@ -52,8 +11,18 @@ export const validateSignup = [
 		.notEmpty()
 		.withMessage('User first name is required')
 		.bail()
-		.isString()
-		.withMessage('User first name must be a string')
+		.custom(value => {
+			if (
+				!validator.isAlpha(value, 'uk-UA') &&
+				!validator.isAlpha(value, 'en-US')
+			) {
+				throw {
+					message: 'User first name can only contain letters'
+				};
+			}
+
+			return true;
+		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
 		.withMessage(
@@ -64,8 +33,18 @@ export const validateSignup = [
 		.notEmpty()
 		.withMessage('User last name is required')
 		.bail()
-		.isString()
-		.withMessage('User last name must be a string')
+		.custom(value => {
+			if (
+				!validator.isAlpha(value, 'uk-UA') &&
+				!validator.isAlpha(value, 'en-US')
+			) {
+				throw {
+					message: 'User last name can only contain letters'
+				};
+			}
+
+			return true;
+		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
 		.withMessage(
@@ -126,8 +105,22 @@ export const validateUpdate = [
 	body('firstName')
 		.optional()
 		.trim()
-		.isString()
-		.withMessage('User first name must be a string')
+		.notEmpty()
+		.withMessage("User first name can't be empty")
+		.bail()
+		.custom(value => {
+			const valueCopy = value.slice().replace(' ', '');
+			if (
+				!validator.isAlpha(valueCopy, 'uk-UA') &&
+				!validator.isAlpha(valueCopy, 'en-US')
+			) {
+				throw {
+					message: 'User first name can only contain letters'
+				};
+			}
+
+			return true;
+		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
 		.withMessage(
@@ -136,8 +129,22 @@ export const validateUpdate = [
 	body('lastName')
 		.optional()
 		.trim()
-		.isString()
-		.withMessage('User last name must be a string')
+		.notEmpty()
+		.withMessage("User last name can't be empty")
+		.bail()
+		.custom(value => {
+			const valueCopy = value.slice().replace(' ', '');
+			if (
+				!validator.isAlpha(valueCopy, 'uk-UA') &&
+				!validator.isAlpha(valueCopy, 'en-US')
+			) {
+				throw {
+					message: 'User last name can only contain letters'
+				};
+			}
+
+			return true;
+		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
 		.withMessage(
