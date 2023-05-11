@@ -1,5 +1,4 @@
 import { body } from 'express-validator';
-import validator from 'validator';
 
 export const validateCreate = [
 	body('product')
@@ -10,6 +9,13 @@ export const validateCreate = [
 		.notEmpty()
 		.withMessage('Product name is required')
 		.bail(),
+	body('product.type')
+		.trim()
+		.notEmpty()
+		.withMessage('Product type is required')
+		.bail()
+		.isAlpha('uk-UA')
+		.withMessage('Product type can only contain letters'),
 	body('product.price')
 		.isCurrency({
 			allow_negatives: false,
@@ -19,33 +25,13 @@ export const validateCreate = [
 	body('product.quantity')
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer'),
-	body('bookType')
-		.isIn(['Паперова', 'Електронна', 'Аудіо'])
-		.withMessage('Invalid book type'),
-	body('author')
-		.optional()
+	body('type')
 		.trim()
 		.notEmpty()
-		.withMessage('Book author full name is required')
+		.withMessage('Book type is required')
 		.bail()
-		.custom(value => {
-			const valueCopy = value.slice().replace(' ', '');
-
-			if (
-				validator.isAlpha(valueCopy, 'uk-UA') ||
-				validator.isAlpha(valueCopy, 'ru-RU') ||
-				validator.isAlpha(valueCopy, 'en-US')
-			) {
-				return true;
-			}
-
-			throw 'Book author full name can only contain letters';
-		})
-		.bail()
-		.isLength({ min: 2, max: 50 })
-		.withMessage(
-			'Book author full name must be between 2 and 50 characters'
-		),
+		.isIn(['Паперова', 'Електронна', 'Аудіо'])
+		.withMessage('Invalid book type'),
 	body('language')
 		.trim()
 		.notEmpty()

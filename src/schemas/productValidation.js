@@ -10,6 +10,13 @@ export const validateCreate = [
 		.notEmpty()
 		.withMessage('Product name is required')
 		.bail(),
+	body('type')
+		.trim()
+		.notEmpty()
+		.withMessage('Product type is required')
+		.bail()
+		.isAlpha('uk-UA')
+		.withMessage('Product type can only contain letters'),
 	body('price')
 		.isCurrency({
 			allow_negatives: false,
@@ -32,6 +39,14 @@ export const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Product name can't be empty"),
+	body('type')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Product type can't be empty")
+		.bail()
+		.isAlpha('uk-UA')
+		.withMessage('Product type can only contain letters'),
 	body('price')
 		.optional()
 		.isCurrency({
