@@ -1,21 +1,40 @@
 import { matchedData, validationResult } from 'express-validator';
 import createHttpError from 'http-errors';
+import validator from 'validator';
 import authService from '../services/authService.js';
 
-const createToken = async (req, res, next) => {
-	const error = validationResult(req)
-		.formatWith(e => e.msg)
-		.array({
-			onlyFirstError: true
-		})[0];
+const signup = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+	} catch (result) {
+		return next(createHttpError(400, JSON.stringify(result.array())));
+	}
 
-	if (error) {
-		return next(createHttpError(400, error));
+	const data = matchedData(req);
+
+	try {
+		res
+			.status(201)
+			.json({ status: 'OK', data: await authService.signup(data) });
+	} catch (err) {
+		next(createHttpError(err.status, err.message));
+	}
+};
+
+const login = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+	} catch (result) {
+		return next(createHttpError(400, JSON.stringify(result.array())));
 	}
 
 	const data = matchedData(req);
 	const credentials = {
-		...(/^(\+380\d{9})$/.test(data.login)
+		...(validator.isMobilePhone(data.login, 'uk-UA')
 			? { phoneNumber: data.login }
 			: { email: data.login }),
 		password: data.password
@@ -24,7 +43,7 @@ const createToken = async (req, res, next) => {
 	try {
 		res.json({
 			status: 'OK',
-			data: { token: await authService.createToken(credentials) }
+			data: await authService.login(credentials)
 		});
 	} catch (err) {
 		next(createHttpError(err.status, err.message));
@@ -43,4 +62,4 @@ const authenticate = async (req, res, next) => {
 	}
 };
 
-export default { createToken, authenticate };
+export default { signup, login, authenticate };

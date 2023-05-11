@@ -4,14 +4,14 @@ import { saveDatabase } from './utils.js';
 const createOne = user => {
 	if (exists({ phoneNumber: user.phoneNumber })) {
 		throw {
-			status: 400,
+			status: 409,
 			message: `User with phone number '${user.phoneNumber}' already exists`
 		};
 	}
 
 	if (exists({ email: user.email })) {
 		throw {
-			status: 400,
+			status: 409,
 			message: `User with email '${user.email}' already exists`
 		};
 	}
@@ -21,8 +21,8 @@ const createOne = user => {
 		saveDatabase(db);
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: 500,
+			message: err
 		};
 	}
 
@@ -45,8 +45,8 @@ const getOne = criteria => {
 		return user;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: err.status ?? 500,
+			message: err.message ?? err
 		};
 	}
 };
@@ -54,14 +54,14 @@ const getOne = criteria => {
 const updateOne = (id, changes) => {
 	if (exists({ phoneNumber: changes.phoneNumber })) {
 		throw {
-			status: 400,
+			status: 409,
 			message: `User with phone number '${changes.phoneNumber}' already exists`
 		};
 	}
 
 	if (exists({ email: changes.email })) {
 		throw {
-			status: 400,
+			status: 409,
 			message: `User with email '${changes.email}' already exists`
 		};
 	}
@@ -90,23 +90,24 @@ const updateOne = (id, changes) => {
 		return user;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: err.status ?? 500,
+			message: err.message ?? err
 		};
 	}
 };
 
 const exists = criteria => {
 	try {
-		return (
+		const exists =
 			db.users.findIndex(u =>
 				Object.keys(criteria).every(key => u[key] === criteria[key])
-			) > -1
-		);
+			) > -1;
+
+		return exists;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: 500,
+			message: err
 		};
 	}
 };

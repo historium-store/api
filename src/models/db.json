@@ -35,6 +35,18 @@
             "role": "admin",
             "password": "bfc15367a11a80d7832ba81430865d671263d865229081f35bfb254a58775037",
             "salt": "f1ec4c1fcd855f82bb16e5a5ee0ae1eb"
+        },
+        {
+            "id": "73bd1d5e-a664-4329-bac6-e5f678121f8e",
+            "createdAt": "11.05.2023, 15:34:38",
+            "updatedAt": "11.05.2023, 15:34:38",
+            "firstName": "Jack",
+            "lastName": "Sparrow",
+            "phoneNumber": "+380671112233",
+            "email": "jacksparrow@gmail.com",
+            "password": "f9e25a50b81517e15f3352e05ec63ae1f7ea0483f90ffa55c6f3e266d5ea9d3a",
+            "role": "user",
+            "salt": "e17a42e73f5390001e1110c1136b6bd4"
         }
     ],
     "products": [
