@@ -15,16 +15,16 @@ export const validateUpdate = [
 		.bail()
 		.custom(value => {
 			const valueCopy = value.slice().replace(' ', '');
+
 			if (
-				!validator.isAlpha(valueCopy, 'uk-UA') &&
-				!validator.isAlpha(valueCopy, 'en-US')
+				validator.isAlpha(valueCopy, 'uk-UA') ||
+				validator.isAlpha(valueCopy, 'ru-RU') ||
+				validator.isAlpha(valueCopy, 'en-US')
 			) {
-				throw {
-					message: 'User first name can only contain letters'
-				};
+				return true;
 			}
 
-			return true;
+			throw 'User first name can only contain letters';
 		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
@@ -39,16 +39,16 @@ export const validateUpdate = [
 		.bail()
 		.custom(value => {
 			const valueCopy = value.slice().replace(' ', '');
+
 			if (
-				!validator.isAlpha(valueCopy, 'uk-UA') &&
-				!validator.isAlpha(valueCopy, 'en-US')
+				validator.isAlpha(valueCopy, 'uk-UA') ||
+				validator.isAlpha(valueCopy, 'ru-RU') ||
+				validator.isAlpha(valueCopy, 'en-US')
 			) {
-				throw {
-					message: 'User last name can only contain letters'
-				};
+				return true;
 			}
 
-			return true;
+			throw 'User last name can only contain letters';
 		})
 		.bail()
 		.isLength({ min: 2, max: 50 })

@@ -3,20 +3,21 @@ import Product from '../models/Product.js';
 
 const createOne = productData => {
 	try {
-		const date = new Date().toLocaleString('ua-UA', {
+		const now = new Date().toLocaleString('ua-UA', {
 			timeZone: 'Europe/Kyiv'
 		});
-		const code = Math.max(...Product.getAll().map(p => +p.code)) + 1;
+		const code =
+			Math.max(...Product.getAll(true).map(p => +p.code)) + 1;
 
 		return Product.createOne({
 			id: randomUUID(),
-			createdAt: date,
-			updatedAt: date,
+			createdAt: now,
+			updatedAt: now,
 			code: `${code}`,
 			...productData
 		});
 	} catch (err) {
-		throw err;
+		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
 };
 

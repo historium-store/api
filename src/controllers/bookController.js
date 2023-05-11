@@ -3,24 +3,23 @@ import createHttpError from 'http-errors';
 import bookService from '../services/bookService.js';
 
 const createOne = (req, res, next) => {
-	const error = validationResult(req)
-		.formatWith(e => e.msg)
-		.array({
-			onlyFirstError: true
-		})[0];
-
-	if (error) {
-		return next(createHttpError(400, error));
-	}
-
-	const data = matchedData(req);
-
 	try {
-		const book = bookService.createOne(data);
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
 
-		res.status(201).json({ status: 'OK', data: book });
+		const data = matchedData(req);
+
+		res
+			.status(201)
+			.json({ status: 'OK', data: bookService.createOne(data) });
 	} catch (err) {
-		next(createHttpError(err.status, err.message));
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
 	}
 };
 

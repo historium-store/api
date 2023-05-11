@@ -18,9 +18,7 @@ export const validateSignup = [
 				return true;
 			}
 
-			throw {
-				message: 'User first name can only contain letters'
-			};
+			throw 'User first name can only contain letters';
 		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
@@ -43,9 +41,7 @@ export const validateSignup = [
 				return true;
 			}
 
-			throw {
-				message: 'User last name can only contain letters'
-			};
+			throw 'User last name can only contain letters';
 		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
@@ -66,7 +62,9 @@ export const validateSignup = [
 		.bail()
 		.isEmail()
 		.withMessage('Invalid user email format')
-		.normalizeEmail(),
+		.normalizeEmail({
+			gmail_remove_dots: false
+		}),
 	body('password')
 		.trim()
 		.notEmpty()
@@ -97,7 +95,9 @@ export const validateLogin = [
 			throw 'Invalid user phone number or email format';
 		})
 		.if(body('login').isEmail())
-		.normalizeEmail(),
+		.normalizeEmail({
+			gmail_remove_dots: false
+		}),
 	body('password')
 		.trim()
 		.isLength({ min: 8, max: 50 })

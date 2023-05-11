@@ -2,27 +2,22 @@ import db from './db.json' assert { type: 'json' };
 import { saveDatabase } from './utils.js';
 
 const createOne = product => {
+	if (exists({ code: product.code })) {
+		throw {
+			status: 409,
+			message: `Product with code '${product.code}' already exists`
+		};
+	}
+
 	try {
-		const exists =
-			db.products.findIndex(
-				p => p.code === product.code && !p.deletedAt
-			) > -1;
-
-		if (exists) {
-			throw {
-				status: 409,
-				message: `Product with code '${product.code}' already exists`
-			};
-		}
-
 		db.products.push(product);
 		saveDatabase(db);
 
 		return product;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: 500,
+			message: err
 		};
 	}
 };
@@ -43,35 +38,34 @@ const getOne = criteria => {
 		return product;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: err.status ?? 500,
+			message: err.message ?? err
 		};
 	}
 };
 
-const getAll = () => {
+const getAll = includeDeleted => {
 	try {
-		return db.products.filter(p => !p.deletedAt);
+		return includeDeleted
+			? db.products
+			: db.products.filter(p => !p.deletedAt);
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: 500,
+			message: err
 		};
 	}
 };
 
 const updateOne = (id, changes) => {
+	if (exists({ code: changes.code })) {
+		throw {
+			status: 409,
+			message: `Product with code '${changes.code}' already exists`
+		};
+	}
+
 	try {
-		const exists =
-			db.products.findIndex(p => p.code === changes.code) > -1;
-
-		if (exists) {
-			throw {
-				status: 409,
-				message: `Product with code '${changes.code}' already exists`
-			};
-		}
-
 		const indexToUpdate = db.products.findIndex(p => p.id == id);
 
 		if (indexToUpdate == -1 || db.products[indexToUpdate].deletedAt) {
@@ -95,8 +89,8 @@ const updateOne = (id, changes) => {
 		return product;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: err.status ?? 500,
+			message: err.message ?? err
 		};
 	}
 };
@@ -125,23 +119,24 @@ const deleteOne = id => {
 		return product;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: err.status ?? 500,
+			message: err.message ?? err
 		};
 	}
 };
 
 const exists = criteria => {
 	try {
-		return (
+		const exists =
 			db.products.findIndex(u =>
 				Object.keys(criteria).every(key => u[key] === criteria[key])
-			) > -1
-		);
+			) > -1;
+
+		return exists;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: 500,
+			message: err
 		};
 	}
 };

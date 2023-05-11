@@ -20,7 +20,7 @@ app.use('/product', productRoutes);
 app.use('/book', bookRoutes);
 
 app.use((req, res, next) =>
-	next(createHttpError(404, 'Endpoint not found'))
+	next(createHttpError(404, JSON.stringify('Endpoint not found')))
 );
 
 app.use(errorHandler);

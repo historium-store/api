@@ -19,14 +19,14 @@ const createOne = user => {
 	try {
 		db.users.push(user);
 		saveDatabase(db);
+
+		return user;
 	} catch (err) {
 		throw {
 			status: 500,
 			message: err
 		};
 	}
-
-	return user;
 };
 
 const getOne = criteria => {

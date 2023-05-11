@@ -3,14 +3,14 @@ import Author from '../models/Author.js';
 
 const createOne = authorData => {
 	try {
-		const date = new Date().toLocaleString('ua-UA', {
+		const now = new Date().toLocaleString('ua-UA', {
 			timeZone: 'Europe/Kyiv'
 		});
 
 		return Author.createOne({
 			id: randomUUID(),
-			createdAt: date,
-			updatedAt: date,
+			createdAt: now,
+			updatedAt: now,
 			...authorData
 		});
 	} catch (err) {

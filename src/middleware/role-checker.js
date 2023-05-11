@@ -5,5 +5,5 @@ export const checkRole = role => (req, res, next) => {
 		return next();
 	}
 
-	next(createHttpError(403));
+	next(createHttpError(403, JSON.stringify('Forbidden')));
 };

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import authController from '../controllers/authController.js';
+import { authenticate } from '../controllers/authController.js';
 import productController from '../controllers/productController.js';
 import { checkRole } from '../middleware/role-checker.js';
 import {
@@ -14,7 +14,7 @@ router
 	.route('/')
 	.get(productController.getAll)
 	.post(
-		authController.authenticate,
+		authenticate,
 		checkRole('admin'),
 		validateCreate,
 		productController.createOne
@@ -24,13 +24,13 @@ router
 	.route('/:id')
 	.get(validateId, productController.getOne)
 	.patch(
-		authController.authenticate,
+		authenticate,
 		checkRole('admin'),
 		validateUpdate,
 		productController.updateOne
 	)
 	.delete(
-		authController.authenticate,
+		authenticate,
 		checkRole('admin'),
 		validateId,
 		productController.deleteOne

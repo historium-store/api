@@ -45,16 +45,17 @@ const signup = async userData => {
 			salt: salt.toString('hex')
 		});
 	} catch (err) {
-		throw err;
+		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
 };
 
 const login = async credentials => {
 	const { phoneNumber, email, password } = credentials;
 
-	let user;
 	try {
-		user = User.getOne(phoneNumber ? { phoneNumber } : { email });
+		const user = User.getOne(
+			phoneNumber ? { phoneNumber } : { email }
+		);
 
 		const hashedPassword = await hashPassword(
 			password,
@@ -72,18 +73,17 @@ const login = async credentials => {
 				message: 'Incorrect password'
 			};
 		}
+
+		const payload = { sub: user.id };
+		const options = {
+			expiresIn: EXPIRES_IN,
+			noTimestamp: true
+		};
+
+		return jwt.sign(payload, SECRET, options);
 	} catch (err) {
-		throw err;
+		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
-
-	const payload = { sub: user.id };
-	const options = {
-		expiresIn: EXPIRES_IN,
-		noTimestamp: true
-	};
-	const token = jwt.sign(payload, SECRET, options);
-
-	return token;
 };
 
 const authenticate = async authHeader => {
@@ -117,7 +117,7 @@ const authenticate = async authHeader => {
 			};
 		}
 
-		throw err;
+		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
 };
 

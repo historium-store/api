@@ -5,14 +5,14 @@ const createOne = author => {
 	try {
 		db.authors.push(author);
 		saveDatabase(db);
+
+		return author;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: 500,
+			message: err
 		};
 	}
-
-	return author;
 };
 
 export default { createOne };

@@ -3,38 +3,42 @@ import createHttpError from 'http-errors';
 import productService from '../services/productService.js';
 
 const createOne = (req, res, next) => {
-	const errors = validationResult(req).array();
-
-	if (errors.length) {
-		return next(createHttpError(400, errors[0].msg));
-	}
-
-	const data = matchedData(req);
-
 	try {
-		const product = productService.createOne(data);
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
 
-		res.status(201).json({ status: 'OK', data: product });
+		const data = matchedData(req);
+
+		res
+			.status(201)
+			.json({ status: 'OK', data: productService.createOne(data) });
 	} catch (err) {
-		next(createHttpError(err.status, err.message));
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
 	}
 };
 
 const getOne = (req, res, next) => {
-	const errors = validationResult(req).array();
-
-	if (errors.length) {
-		return next(createHttpError(400, errors[0].msg));
-	}
-
-	const id = matchedData(req).id;
-
 	try {
-		const product = productService.getOne(id);
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
 
-		res.json({ status: 'OK', data: product });
+		const id = matchedData(req).id;
+
+		res.json({ status: 'OK', data: productService.getOne(id) });
 	} catch (err) {
-		next(createHttpError(err.status, err.message));
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
 	}
 };
 
@@ -42,43 +46,48 @@ const getAll = (req, res, next) => {
 	try {
 		res.json({ status: 'OK', data: productService.getAll() });
 	} catch (err) {
-		next(createHttpError(err.status, err.message));
+		next(createHttpError(err.status, JSON.stringify(err.message)));
 	}
 };
 
 const updateOne = (req, res, next) => {
-	const errors = validationResult(req).array();
-
-	if (errors.length) {
-		return next(createHttpError(400, errors[0].msg));
-	}
-
-	const { id, ...changes } = matchedData(req);
-
 	try {
-		const product = productService.updateOne(id, changes);
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
 
-		res.json({ status: 'OK', data: product });
+		const { id, ...changes } = matchedData(req);
+
+		res.json({
+			status: 'OK',
+			data: productService.updateOne(id, changes)
+		});
 	} catch (err) {
-		next(createHttpError(err.status, err.message));
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
 	}
 };
 
 const deleteOne = (req, res, next) => {
-	const errors = validationResult(req).array();
-
-	if (errors.length) {
-		return next(createHttpError(400, errors[0].msg));
-	}
-
-	const id = matchedData(req).id;
-
 	try {
-		const product = productService.deleteOne(id);
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
 
-		res.json({ status: 'OK', data: product });
+		const id = matchedData(req).id;
+
+		res.json({ status: 'OK', data: productService.deleteOne(id) });
 	} catch (err) {
-		next(createHttpError(err.status, err.message));
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
 	}
 };
 

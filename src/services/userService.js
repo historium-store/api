@@ -27,14 +27,14 @@ const createOne = async userData => {
 			'sha256'
 		);
 
-		const date = new Date().toLocaleString('ua-UA', {
+		const now = new Date().toLocaleString('ua-UA', {
 			timeZone: 'Europe/Kyiv'
 		});
 
 		return User.createOne({
 			id: randomUUID(),
-			createdAt: date,
-			updatedAt: date,
+			createdAt: now,
+			updatedAt: now,
 			firstName: userData.firstName,
 			lastName: userData.lastName,
 			phoneNumber: userData.phoneNumber,
@@ -44,7 +44,7 @@ const createOne = async userData => {
 			salt: salt.toString('hex')
 		});
 	} catch (err) {
-		throw err;
+		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
 };
 
@@ -74,7 +74,7 @@ const updateOne = async (id, changes) => {
 
 		return User.updateOne(id, changes);
 	} catch (err) {
-		throw err;
+		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
 };
 

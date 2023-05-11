@@ -23,22 +23,23 @@ export const validateCreate = [
 		.isIn(['Паперова', 'Електронна', 'Аудіо'])
 		.withMessage('Invalid book type'),
 	body('author')
+		.optional()
 		.trim()
 		.notEmpty()
 		.withMessage('Book author full name is required')
 		.bail()
 		.custom(value => {
 			const valueCopy = value.slice().replace(' ', '');
+
 			if (
-				!validator.isAlpha(valueCopy, 'uk-UA') &&
-				!validator.isAlpha(valueCopy, 'en-US')
+				validator.isAlpha(valueCopy, 'uk-UA') ||
+				validator.isAlpha(valueCopy, 'ru-RU') ||
+				validator.isAlpha(valueCopy, 'en-US')
 			) {
-				throw {
-					message: 'Book author full name can only contain letters'
-				};
+				return true;
 			}
 
-			return true;
+			throw 'Book author full name can only contain letters';
 		})
 		.bail()
 		.isLength({ min: 2, max: 50 })

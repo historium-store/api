@@ -5,14 +5,14 @@ const createOne = publisher => {
 	try {
 		db.publishers.push(publisher);
 		saveDatabase(db);
+
+		return publisher;
 	} catch (err) {
 		throw {
-			status: err?.status || 500,
-			message: err?.message || err
+			status: 500,
+			message: err
 		};
 	}
-
-	return publisher;
 };
 
 export default { createOne };
