@@ -1,115 +1,62 @@
-import db from './db.json' assert { type: 'json' };
-import { saveDatabase } from './utils.js';
+import { User } from './mongo-utils/schemas.js';
 
-const createOne = user => {
-	if (exists({ phoneNumber: user.phoneNumber })) {
-		throw {
-			status: 409,
-			message: `User with phone number '${user.phoneNumber}' already exists`
-		};
-	}
+export const createOne = async (user) => {
+	try
+	{
+		const newUser = new User(user);
 
-	if (exists({ email: user.email })) {
-		throw {
-			status: 409,
-			message: `User with email '${user.email}' already exists`
-		};
-	}
-
-	try {
-		db.users.push(user);
-		saveDatabase(db);
-
-		return user;
-	} catch (err) {
-		throw {
-			status: 500,
-			message: err
-		};
-	}
-};
-
-const getOne = criteria => {
-	try {
-		const user = db.users.find(u =>
-			Object.keys(criteria).every(key => u[key] === criteria[key])
-		);
-
-		if (!user) {
-			throw {
-				status: 404,
-				message: `User not found`
-			};
+		const validationError = newUser.validateSync();
+		if(validationError){
+			throw new Error(validationError.message);
 		}
 
-		return user;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
-	}
-};
-
-const updateOne = (id, changes) => {
-	if (exists({ phoneNumber: changes.phoneNumber })) {
-		throw {
-			status: 409,
-			message: `User with phone number '${changes.phoneNumber}' already exists`
-		};
-	}
-
-	if (exists({ email: changes.email })) {
-		throw {
-			status: 409,
-			message: `User with email '${changes.email}' already exists`
-		};
-	}
-
-	try {
-		const indexToUpdate = db.users.findIndex(u => u.id == id);
-
-		if (indexToUpdate == -1) {
-			throw {
-				status: 404,
-				message: `User with id '${id}' not found`
-			};
-		}
-
-		const user = {
-			...db.users[indexToUpdate],
-			...changes,
-			updatedAt: new Date().toLocaleString('ua-UA', {
-				timeZone: 'Europe/Kyiv'
+		await newUser.save()
+			.then( savedUser => {
+				console.log( `${savedUser.email} added to db.`);
 			})
-		};
+	}
+	catch(err)
+	{
+		console.error(err);
+    	throw err;
+	}
+}
 
-		db.users[indexToUpdate] = user;
-		saveDatabase(db);
-
+export const getOne = async (filter) => {
+	try 
+	{
+		const user = await User.findOne(filter).exec();
 		return user;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
+	} 
+	catch(err) 
+	{
+		console.error(err);
+    	throw err;
 	}
-};
+}
 
-const exists = criteria => {
-	try {
-		const exists =
-			db.users.findIndex(u =>
-				Object.keys(criteria).every(key => u[key] === criteria[key])
-			) > -1;
-
-		return exists;
-	} catch (err) {
-		throw {
-			status: 500,
-			message: err
-		};
+export const updateOne = async (filter, update) => {
+	try
+	{
+		const result = await User.updateOne(filter, update);
+		return result;
 	}
-};
+	catch(err)
+	{
+		console.error(err);
+    	throw err;
+	}
+}
 
-export default { createOne, getOne, updateOne, exists };
+export const deleteOne = async (filter) => {
+	try
+	{
+		const result = await User.deleteOne(filter);
+		return result;
+	}
+	catch(err)
+	{
+		console.error(err);
+    	throw err;
+	}
+}

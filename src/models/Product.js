@@ -1,151 +1,62 @@
-import db from './db.json' assert { type: 'json' };
-import { saveDatabase } from './utils.js';
+import { Product } from './mongo-utils/schemas.js';
 
-const createOne = product => {
-	if (exists({ code: product.code })) {
-		throw {
-			status: 409,
-			message: `Product with code '${product.code}' already exists`
-		};
-	}
+export const createOne = async (product) => {
+	try
+	{
+		const newProduct = new Product(product);
 
-	try {
-		db.products.push(product);
-		saveDatabase(db);
-
-		return product;
-	} catch (err) {
-		throw {
-			status: 500,
-			message: err
-		};
-	}
-};
-
-const getOne = criteria => {
-	try {
-		const product = db.products.find(p =>
-			Object.keys(criteria).every(key => p[key] === criteria[key])
-		);
-
-		if (!product || product.deletedAt) {
-			throw {
-				status: 404,
-				message: `Product not found`
-			};
+		const validationError = newProduct.validateSync();
+		if(validationError){
+			throw new Error(validationError.message);
 		}
 
-		return product;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
-	}
-};
-
-const getAll = includeDeleted => {
-	try {
-		return includeDeleted
-			? db.products
-			: db.products.filter(p => !p.deletedAt);
-	} catch (err) {
-		throw {
-			status: 500,
-			message: err
-		};
-	}
-};
-
-const updateOne = (id, changes) => {
-	if (exists({ code: changes.code })) {
-		throw {
-			status: 409,
-			message: `Product with code '${changes.code}' already exists`
-		};
-	}
-
-	try {
-		const indexToUpdate = db.products.findIndex(p => p.id == id);
-
-		if (indexToUpdate == -1 || db.products[indexToUpdate].deletedAt) {
-			throw {
-				status: 404,
-				message: `Product with id '${id}' not found`
-			};
-		}
-
-		const product = {
-			...db.products[indexToUpdate],
-			...changes,
-			updatedAt: new Date().toLocaleString('ua-UA', {
-				timeZone: 'Europe/Kyiv'
+		await newProduct.save()
+			.then( savedProduct => {
+				console.log( `${savedProduct.name} added to db.`);
 			})
-		};
+	}
+	catch(err)
+	{
+		console.error(err);
+    	throw err;
+	}
+}
 
-		db.products[indexToUpdate] = product;
-		saveDatabase(db);
-
+export const getOne = async (filter) => {
+	try 
+	{
+		const product = await Product.findOne(filter).exec();
 		return product;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
+	} 
+	catch(err) 
+	{
+		console.error(err);
+    	throw err;
 	}
-};
+}
 
-const deleteOne = id => {
-	try {
-		const indexToDelete = db.products.findIndex(p => p.id == id);
-
-		if (indexToDelete == -1 || db.products[indexToDelete].deletedAt) {
-			throw {
-				status: 404,
-				message: `Product with id '${id}' not found`
-			};
-		}
-
-		const product = {
-			...db.products[indexToDelete],
-			deletedAt: new Date().toLocaleString('ua-UA', {
-				timeZone: 'Europe/Kyiv'
-			})
-		};
-
-		db.products[indexToDelete] = product;
-		saveDatabase(db);
-
-		return product;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
+export const updateOne = async (filter, update) => {
+	try
+	{
+		const result = await Product.updateOne(filter, update);
+		return result;
 	}
-};
-
-const exists = criteria => {
-	try {
-		const exists =
-			db.products.findIndex(u =>
-				Object.keys(criteria).every(key => u[key] === criteria[key])
-			) > -1;
-
-		return exists;
-	} catch (err) {
-		throw {
-			status: 500,
-			message: err
-		};
+	catch(err)
+	{
+		console.error(err);
+    	throw err;
 	}
-};
+}
 
-export default {
-	createOne,
-	getOne,
-	getAll,
-	updateOne,
-	deleteOne,
-	exists
-};
+export const deleteOne = async (filter) => {
+	try
+	{
+		const result = await Product.deleteOne(filter);
+		return result;
+	}
+	catch(err)
+	{
+		console.error(err);
+    	throw err;
+	}
+}
