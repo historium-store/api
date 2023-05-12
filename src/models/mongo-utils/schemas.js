@@ -1,8 +1,7 @@
-import DB from '.env';
 import mongoose from 'mongoose';
 import connectToDatabase from './mongo-connect.js';
 
-connectToDatabase(DB);
+connectToDatabase(process.env.CONNECTION_STRING);
 
 const UserSchema = mongoose.Schema(
 	{
@@ -97,19 +96,6 @@ const PublisherSchema = mongoose.Schema(
 	}
 );
 export const Publisher = mongoose.model('Publisher', PublisherSchema);
-
-const AuthorSchema = mongoose.Schema(
-	{
-		name: {
-			type: String,
-			required: true
-		}
-	},
-	{
-		versionKey: false
-	}
-);
-export const Author = mongoose.model('Author', AuthorSchema);
 
 const BookSchema = mongoose.Schema(
 	{

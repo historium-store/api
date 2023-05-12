@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from 'crypto';
 import User from '../models/User.js';
-import { hashPassword } from '../models/utils.js';
+import { hashPassword } from '../utils/index.js';
 
 const createOne = async userData => {
 	if (User.exists({ phoneNumber: userData.phoneNumber })) {

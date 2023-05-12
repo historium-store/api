@@ -1,12 +1,10 @@
 import { randomBytes, randomUUID, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
-import config from '../config/main.js';
 import User from '../models/User.js';
-import { hashPassword, verifyJWT } from '../models/utils.js';
+import { hashPassword, verifyJWT } from '../utils/index.js';
 
-const SECRET = process.env.SECRET || config.SECRET;
-const EXPIRES_IN =
-	process.env.JWT_EXPIRATION || config.JWT_EXPIRATION;
+const SECRET = process.env.SECRET;
+const EXPIRES_IN = process.env.JWT_EXPIRATION;
 
 const signup = async userData => {
 	if (User.exists({ phoneNumber: userData.phoneNumber })) {
