@@ -62,7 +62,9 @@ export const validateUpdate = [
 	body('email')
 		.optional()
 		.isEmail()
-		.withMessage('Invalid user email format'),
+		.withMessage('Invalid user email format')
+		.bail()
+		.normalizeEmail({ gmail_remove_dots: false }),
 	body('password')
 		.optional()
 		.trim()

@@ -42,6 +42,8 @@ const getOne = async id => {
 
 const updateOne = async (id, changes) => {
 	try {
+		// если среди изменений есть пароль,
+		// то создаётся новая соль
 		if (changes.password) {
 			const salt = randomBytes(16);
 			const hashedPassword = await hashPassword(

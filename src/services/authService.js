@@ -79,6 +79,7 @@ const login = async credentials => {
 
 		const savedPassword = Buffer.from(user.password, 'hex');
 
+		// проверка на совпадение паролей
 		if (!timingSafeEqual(savedPassword, hashedPassword)) {
 			throw {
 				status: 400,
@@ -86,6 +87,7 @@ const login = async credentials => {
 			};
 		}
 
+		// создание и подпись токена
 		const payload = { sub: user.id };
 		const options = {
 			expiresIn: EXPIRES_IN,

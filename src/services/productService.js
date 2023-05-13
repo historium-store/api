@@ -1,6 +1,8 @@
 import { Product } from '../models/index.js';
 
 const createOne = async productData => {
+	// проверка на существование продукта
+	// такого же типа и с таким же названием
 	const product = await Product.findOne({
 		type: productData.type,
 		name: productData.name
@@ -14,6 +16,11 @@ const createOne = async productData => {
 	}
 
 	try {
+		// НУЖНА ДОРАБОТКА
+		// последний использованный код нужно хранить в базе,
+		// при добавлении нового продукта должен будет
+		// срабатывать триггер, который будет увеличивать
+		// его значение на единицу
 		const code =
 			Math.max(...(await Product.find({})).map(p => +p.code)) + 1;
 

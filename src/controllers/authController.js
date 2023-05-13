@@ -5,10 +5,13 @@ import authService from '../services/authService.js';
 
 export const signup = async (req, res, next) => {
 	try {
+		// если есть ошибки валидации - отформатировать их
+		// убрав всё кроме сообщения и кинуть ошибку
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
+		// получение прошедших валидацию данных
 		const data = matchedData(req);
 
 		res
@@ -31,6 +34,9 @@ export const login = async (req, res, next) => {
 			.throw();
 
 		const data = matchedData(req);
+
+		// приведение поля 'login' к 'email' или 'phoneNumber'
+		// для корректной работы поиска
 		const credentials = {
 			...(validator.isMobilePhone(data.login, 'uk-UA')
 				? { phoneNumber: data.login }
