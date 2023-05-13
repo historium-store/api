@@ -1,7 +1,6 @@
-import mongoose from 'mongoose';
-const db = require('./mongo-utils/mongo-connect');
+import { Schema, model } from 'mongoose';
 
-const productSchema = mongoose.Schema(
+const productSchema = new Schema(
 	{
 		name: {
 			type: String,
@@ -36,4 +35,5 @@ const productSchema = mongoose.Schema(
 		versionKey: false
 	}
 );
-export const Product = db.model('Product', productSchema);
+
+export default model('Product', productSchema);

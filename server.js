@@ -1,10 +1,15 @@
-import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import app from './src/app.js';
-
-dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () =>
-	console.log(`API is listening on port ${PORT}`)
-);
+mongoose
+	.connect(process.env.CONNECTION_STRING)
+	.then(() =>
+		app.listen(PORT, () =>
+			console.log(`API is listening on port ${PORT}`)
+		)
+	)
+	.catch(err => {
+		console.log(`Failed to connect to database: ${err.message}`);
+	});

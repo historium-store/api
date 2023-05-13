@@ -2,7 +2,7 @@ import { body, param } from 'express-validator';
 import validator from 'validator';
 
 export const validateId = param('id')
-	.isUUID()
+	.isMongoId()
 	.withMessage('Invalid user id format');
 
 export const validateUpdate = [

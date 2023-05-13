@@ -1,16 +1,7 @@
-import mongoose from 'mongoose';
-const db = require('./mongo-utils/mongo-connect');
+import { Schema, model } from 'mongoose';
 
-const UserSchema = mongoose.Schema(
+const userSchema = new Schema(
 	{
-		createdAt: {
-			type: Date,
-			default: Date.now
-		},
-		updatedAt: {
-			type: Date,
-			default: Date.now
-		},
 		firstName: {
 			type: String,
 			required: true
@@ -36,11 +27,15 @@ const UserSchema = mongoose.Schema(
 		salt: {
 			type: String,
 			required: true
+		},
+		role: {
+			type: String,
+			required: true
 		}
 	},
 	{
-		timestamps: true,
 		versionKey: false
 	}
 );
-export const User = db.model('User', UserSchema);
+
+export default model('User', userSchema);

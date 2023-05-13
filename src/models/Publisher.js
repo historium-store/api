@@ -1,7 +1,6 @@
-import mongoose from 'mongoose';
-const db = require('./mongo-utils/mongo-connect');
+import { Schema, model } from 'mongoose';
 
-const publisherSchema = mongoose.Schema(
+const publisherSchema = new Schema(
 	{
 		name: {
 			type: String,
@@ -12,4 +11,5 @@ const publisherSchema = mongoose.Schema(
 		versionKey: false
 	}
 );
-export const Publisher = db.model('Publisher', publisherSchema);
+
+export default model('Publisher', publisherSchema);

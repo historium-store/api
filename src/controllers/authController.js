@@ -40,7 +40,7 @@ export const login = async (req, res, next) => {
 
 		res.json({
 			status: 'OK',
-			data: await authService.login(credentials)
+			data: { token: await authService.login(credentials) }
 		});
 	} catch (err) {
 		next(

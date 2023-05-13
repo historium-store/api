@@ -1,15 +1,16 @@
-import mongoose from 'mongoose';
-const db = require('./mongo-utils/mongo-connect')
+import { Schema, model } from 'mongoose';
 
-const BookSchema = mongoose.Schema(
+const { ObjectId } = Schema.Types;
+
+const bookSchema = new Schema(
 	{
 		product: {
-			type: mongoose.Schema.Types.ObjectId,
+			type: ObjectId,
 			ref: 'Product',
 			required: true
 		},
 		publisher: {
-			type: mongoose.Schema.Types.ObjectId,
+			type: ObjectId,
 			ref: 'Publisher',
 			required: true
 		},
@@ -26,4 +27,5 @@ const BookSchema = mongoose.Schema(
 		versionKey: false
 	}
 );
-export const Book = db.model('Book', BookSchema);
+
+export default model('Book', bookSchema);

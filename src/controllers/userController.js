@@ -24,7 +24,7 @@ const createOne = async (req, res, next) => {
 	}
 };
 
-const getOne = (req, res, next) => {
+const getOne = async (req, res, next) => {
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
@@ -32,7 +32,7 @@ const getOne = (req, res, next) => {
 
 		const id = matchedData(req).id;
 
-		res.json({ status: 'OK', data: userService.getOne(id) });
+		res.json({ status: 'OK', data: await userService.getOne(id) });
 	} catch (err) {
 		next(
 			createHttpError(

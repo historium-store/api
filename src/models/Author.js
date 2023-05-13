@@ -1,9 +1,8 @@
-import mongoose from 'mongoose';
-const db = require('./mongo-utils/mongo-connect');
+import { Schema, model } from 'mongoose';
 
-const authorSchema = new mongoose.Schema(
+const authorSchema = new Schema(
 	{
-		name: {
+		fullName: {
 			type: String,
 			required: true
 		}
@@ -13,4 +12,4 @@ const authorSchema = new mongoose.Schema(
 	}
 );
 
-export default db.model('Author', authorSchema);
+export default model('Author', authorSchema);
