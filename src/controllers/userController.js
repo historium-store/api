@@ -30,7 +30,7 @@ const getOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const id = matchedData(req).id;
+		const { id } = matchedData(req);
 
 		res.json({ status: 'OK', data: await userService.getOne(id) });
 	} catch (err) {

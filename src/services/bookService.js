@@ -4,9 +4,13 @@ import productService from './productService.js';
 const createOne = async bookData => {
 	try {
 		const product = await productService.createOne(bookData.product);
-		const publisher = await Publisher.create({
-			name: bookData.publisher
-		});
+		const publisher = await Publisher.findOneAndUpdate(
+			{
+				name: bookData.publisher
+			},
+			{ name: bookData.publisher },
+			{ upsert: true }
+		);
 
 		return await Book.create({
 			...bookData,

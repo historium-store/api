@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import User from '../models/User.js';
+import { User } from '../models/index.js';
 import { hashPassword } from '../utils/promisified.js';
 
 const createOne = async userData => {
@@ -25,9 +25,18 @@ const createOne = async userData => {
 
 const getOne = async id => {
 	try {
-		return await User.findById(id);
+		const user = await User.findById(id);
+
+		if (!user) {
+			throw {
+				status: 404,
+				message: `User with id '${id}' not found`
+			};
+		}
+
+		return user;
 	} catch (err) {
-		throw err;
+		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
 };
 
@@ -47,7 +56,18 @@ const updateOne = async (id, changes) => {
 			changes.salt = salt.toString('hex');
 		}
 
-		return await User.findByIdAndUpdate(id, changes, { new: true });
+		const user = await User.findByIdAndUpdate(id, changes, {
+			new: true
+		});
+
+		if (!user) {
+			throw {
+				status: 404,
+				message: `User with id '${id}' not found`
+			};
+		}
+
+		return user;
 	} catch (err) {
 		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
