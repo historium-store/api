@@ -2,7 +2,7 @@ import { matchedData, validationResult } from 'express-validator';
 import createHttpError from 'http-errors';
 import productService from '../services/productService.js';
 
-const createOne = (req, res, next) => {
+const createOne = async (req, res, next) => {
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
@@ -10,57 +10,9 @@ const createOne = (req, res, next) => {
 
 		const data = matchedData(req);
 
-		res
-			.status(201)
-			.json({ status: 'OK', data: productService.createOne(data) });
-	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
-			)
-		);
-	}
-};
-
-const getOne = (req, res, next) => {
-	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
-
-		const id = matchedData(req).id;
-
-		res.json({ status: 'OK', data: productService.getOne(id) });
-	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
-			)
-		);
-	}
-};
-
-const getAll = (req, res, next) => {
-	try {
-		res.json({ status: 'OK', data: productService.getAll() });
-	} catch (err) {
-		next(createHttpError(err.status, JSON.stringify(err.message)));
-	}
-};
-
-const updateOne = (req, res, next) => {
-	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
-
-		const { id, ...changes } = matchedData(req);
-
-		res.json({
+		res.status(201).json({
 			status: 'OK',
-			data: productService.updateOne(id, changes)
+			data: await productService.createOne(data)
 		});
 	} catch (err) {
 		next(
@@ -72,7 +24,7 @@ const updateOne = (req, res, next) => {
 	}
 };
 
-const deleteOne = (req, res, next) => {
+const getOne = async (req, res, next) => {
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
@@ -80,7 +32,59 @@ const deleteOne = (req, res, next) => {
 
 		const id = matchedData(req).id;
 
-		res.json({ status: 'OK', data: productService.deleteOne(id) });
+		res.json({ status: 'OK', data: await productService.getOne(id) });
+	} catch (err) {
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
+	}
+};
+
+const getAll = async (req, res, next) => {
+	try {
+		res.json({ status: 'OK', data: await productService.getAll() });
+	} catch (err) {
+		next(createHttpError(err.status, JSON.stringify(err.message)));
+	}
+};
+
+const updateOne = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { id, ...changes } = matchedData(req);
+
+		res.json({
+			status: 'OK',
+			data: await productService.updateOne(id, changes)
+		});
+	} catch (err) {
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
+	}
+};
+
+const deleteOne = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const id = matchedData(req).id;
+
+		res.json({
+			status: 'OK',
+			data: await productService.deleteOne(id)
+		});
 	} catch (err) {
 		next(
 			createHttpError(

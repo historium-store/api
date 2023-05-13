@@ -1,7 +1,7 @@
 import { randomBytes, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { hashPassword, verifyJWT } from '../utils/index.js';
+import { hashPassword, verifyJWT } from '../utils/promisified.js';
 
 const EXPIRES_IN = process.env.JWT_EXPIRATION;
 const SECRET = process.env.SECRET;
@@ -80,9 +80,9 @@ const authenticate = async authHeader => {
 	}
 
 	try {
-		const payload = await verifyJWT(token, SECRET);
+		const { sub: id } = await verifyJWT(token, SECRET);
 
-		return await User.findById(payload.sub);
+		return await User.findById(id);
 	} catch (err) {
 		if (err.name) {
 			throw {

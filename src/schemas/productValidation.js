@@ -1,7 +1,8 @@
 import { body, param } from 'express-validator';
+import validator from 'validator';
 
 export const validateId = [
-	param('id').isUUID().withMessage('Invalid product id format')
+	param('id').isMongoId().withMessage('Invalid product id format')
 ];
 
 export const validateCreate = [
@@ -15,8 +16,15 @@ export const validateCreate = [
 		.notEmpty()
 		.withMessage('Product type is required')
 		.bail()
-		.isAlpha('uk-UA')
-		.withMessage('Product type can only contain letters'),
+		.custom(value => {
+			const valueCopy = value.slice().replace(' ', '');
+
+			if (validator.isAlpha(valueCopy, 'uk-UA')) {
+				return true;
+			}
+
+			throw 'Product type can only contain letters';
+		}),
 	body('price')
 		.isCurrency({
 			allow_negatives: false,
@@ -45,8 +53,22 @@ export const validateUpdate = [
 		.notEmpty()
 		.withMessage("Product type can't be empty")
 		.bail()
-		.isAlpha('uk-UA')
-		.withMessage('Product type can only contain letters'),
+		.custom(value => {
+			const valueCopy = value.slice().replace(' ', '');
+
+			if (validator.isAlpha(valueCopy, 'uk-UA')) {
+				return true;
+			}
+
+			throw 'Product type can only contain letters';
+		}),
+	body('code')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Product type can't be empty")
+		.isNumeric({ no_symbols: true })
+		.withMessage('Invalid product code format'),
 	body('price')
 		.optional()
 		.isCurrency({

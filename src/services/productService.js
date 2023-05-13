@@ -1,68 +1,51 @@
-const createOne = productData => {
-	// try {
-	// 	const now = new Date().toLocaleString('ua-UA', {
-	// 		timeZone: 'Europe/Kyiv'
-	// 	});
-	// 	const code =
-	// 		Math.max(...Product.getAll(true).map(p => +p.code)) + 1;
+import Product from '../models/Product.js';
 
-	// 	return Product.createOne({
-	// 		id: randomUUID(),
-	// 		createdAt: now,
-	// 		updatedAt: now,
-	// 		code: `${code}`,
-	// 		...productData
-	// 	});
-	// } catch (err) {
-	// 	throw { status: err.status ?? 500, message: err.message ?? err };
-	// }
+const createOne = async productData => {
+	try {
+		const code =
+			Math.max(...(await Product.find({})).map(p => +p.code)) + 1;
 
-	// will be reworked
-	return;
+		return await Product.create({
+			code: isFinite(code) ? `${code}` : '100000',
+			...productData
+		});
+	} catch (err) {
+		throw { status: err.status ?? 500, message: err.message ?? err };
+	}
 };
 
-const getOne = id => {
-	// try {
-	// 	return Product.getOne({ id });
-	// } catch (err) {
-	// 	throw err;
-	// }
-
-	// will be reworked
-	return;
+const getOne = async id => {
+	try {
+		return await Product.findById(id);
+	} catch (err) {
+		throw err;
+	}
 };
 
-const getAll = () => {
-	// try {
-	// 	return Product.getAll();
-	// } catch (err) {
-	// 	throw err;
-	// }
-
-	// will be reworked
-	return;
+const getAll = async () => {
+	try {
+		return await Product.find({});
+	} catch (err) {
+		throw err;
+	}
 };
 
-const updateOne = (id, changes) => {
-	// try {
-	// 	return Product.updateOne(id, changes);
-	// } catch (err) {
-	// 	throw err;
-	// }
-
-	// will be reworked
-	return;
+const updateOne = async (id, changes) => {
+	try {
+		return await Product.findByIdAndUpdate(id, changes, {
+			new: true
+		});
+	} catch (err) {
+		throw err;
+	}
 };
 
-const deleteOne = id => {
-	// try {
-	// 	return Product.deleteOne(id);
-	// } catch (err) {
-	// 	throw err;
-	// }
-
-	// will be reworked
-	return;
+const deleteOne = async id => {
+	try {
+		return await Product.findByIdAndDelete(id);
+	} catch (err) {
+		throw err;
+	}
 };
 
 export default { createOne, getOne, getAll, updateOne, deleteOne };

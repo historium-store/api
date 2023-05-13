@@ -22,9 +22,7 @@ const productSchema = new Schema(
 			min: 0
 		},
 		type: {
-			type: String,
-			enum: ['book', 'other'],
-			default: 'other'
+			type: String
 		},
 		description: {
 			type: String,
