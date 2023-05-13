@@ -1,49 +1,46 @@
-import { User } from './mongo-utils/schemas.js';
+import mongoose from 'mongoose';
+const db = require('./mongo-utils/mongo-connect');
 
-export const createOne = async user => {
-	try {
-		const newUser = new User(user);
-
-		const validationError = newUser.validateSync();
-		if (validationError) {
-			throw new Error(validationError.message);
+const UserSchema = mongoose.Schema(
+	{
+		createdAt: {
+			type: Date,
+			default: Date.now
+		},
+		updatedAt: {
+			type: Date,
+			default: Date.now
+		},
+		firstName: {
+			type: String,
+			required: true
+		},
+		lastName: {
+			type: String,
+			required: true
+		},
+		phoneNumber: {
+			type: String,
+			required: true,
+			unique: true
+		},
+		email: {
+			type: String,
+			required: true,
+			unique: true
+		},
+		password: {
+			type: String,
+			required: true
+		},
+		salt: {
+			type: String,
+			required: true
 		}
-
-		await newUser.save().then(savedUser => {
-			console.log(`${savedUser.email} added to db.`);
-		});
-	} catch (err) {
-		console.error(err);
-		throw err;
+	},
+	{
+		timestamps: true,
+		versionKey: false
 	}
-};
-
-export const getOne = async filter => {
-	try {
-		const user = await User.findOne(filter).exec();
-		return user;
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
-};
-
-export const updateOne = async (filter, update) => {
-	try {
-		const result = await User.updateOne(filter, update);
-		return result;
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
-};
-
-export const deleteOne = async filter => {
-	try {
-		const result = await User.deleteOne(filter);
-		return result;
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
-};
+);
+export const User = db.model('User', UserSchema);

@@ -19,4 +19,4 @@ const connectToDatabase =  dbUri => {
     }
 };
 
-export default connectToDatabase;
+export default connectToDatabase();

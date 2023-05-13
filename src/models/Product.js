@@ -1,49 +1,39 @@
-import { Product } from './mongo-utils/schemas.js';
+import mongoose from 'mongoose';
+const db = require('./mongo-utils/mongo-connect');
 
-export const createOne = async product => {
-	try {
-		const newProduct = new Product(product);
-
-		const validationError = newProduct.validateSync();
-		if (validationError) {
-			throw new Error(validationError.message);
+const productSchema = mongoose.Schema(
+	{
+		name: {
+			type: String,
+			required: true
+		},
+		code: {
+			type: String,
+			required: true,
+			unique: true
+		},
+		price: {
+			type: Number,
+			required: true,
+			min: 0
+		},
+		quantity: {
+			type: Number,
+			required: true,
+			min: 0
+		},
+		type: {
+			type: String,
+			enum: ['book', 'other'],
+			default: 'other'
+		},
+		description: {
+			type: String,
+			required: false
 		}
-
-		await newProduct.save().then(savedProduct => {
-			console.log(`${savedProduct.name} added to db.`);
-		});
-	} catch (err) {
-		console.error(err);
-		throw err;
+	},
+	{
+		versionKey: false
 	}
-};
-
-export const getOne = async filter => {
-	try {
-		const product = await Product.findOne(filter).exec();
-		return product;
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
-};
-
-export const updateOne = async (filter, update) => {
-	try {
-		const result = await Product.updateOne(filter, update);
-		return result;
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
-};
-
-export const deleteOne = async filter => {
-	try {
-		const result = await Product.deleteOne(filter);
-		return result;
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
-};
+);
+export const Product = db.model('Product', productSchema);

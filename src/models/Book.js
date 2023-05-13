@@ -1,49 +1,29 @@
-import { Book } from './mongo-utils/schemas.js';
+import mongoose from 'mongoose';
+const db = require('./mongo-utils/mongo-connect')
 
-export const createOne = async book => {
-	try {
-		const newBook = new Book(book);
-
-		const validationError = newBook.validateSync();
-		if (validationError) {
-			throw new Error(validationError.message);
+const BookSchema = mongoose.Schema(
+	{
+		product: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Product',
+			required: true
+		},
+		publisher: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Publisher',
+			required: true
+		},
+		language: {
+			type: String,
+			required: true
+		},
+		publishedIn: {
+			type: Number,
+			required: true
 		}
-
-		await newBook.save().then(savedBook => {
-			console.log(`${savedBook.email} added to db.`);
-		});
-	} catch (err) {
-		console.error(err);
-		throw err;
+	},
+	{
+		versionKey: false
 	}
-};
-
-export const getOne = async filter => {
-	try {
-		const book = await Book.findOne(filter).exec();
-		return book;
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
-};
-
-export const updateOne = async (filter, update) => {
-	try {
-		const result = await Book.updateOne(filter, update);
-		return result;
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
-};
-
-export const deleteOne = async filter => {
-	try {
-		const result = await Book.deleteOne(filter);
-		return result;
-	} catch (err) {
-		console.error(err);
-		throw err;
-	}
-};
+);
+export const Book = db.model('Book', BookSchema);
