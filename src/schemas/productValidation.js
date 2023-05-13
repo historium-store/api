@@ -31,6 +31,15 @@ export const validateCreate = [
 			digits_after_decimal: [1, 2]
 		})
 		.withMessage('Product price must be a valid UAH value'),
+	body('description')
+		.trim()
+		.notEmpty()
+		.withMessage('Product description is required')
+		.bail()
+		.isLength({ min: 50, max: 10000 })
+		.withMessage(
+			'Product description must be between 50 and 10000 characters'
+		),
 	body('quantity')
 		.trim()
 		.notEmpty()
@@ -76,6 +85,16 @@ export const validateUpdate = [
 			digits_after_decimal: [1, 2]
 		})
 		.withMessage('Product price must be a valid UAH value'),
+	body('description')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage('Book description is required')
+		.bail()
+		.isLength({ min: 50, max: 10000 })
+		.withMessage(
+			'Product description must be between 50 and 10000 characters'
+		),
 	body('quantity')
 		.optional()
 		.isInt({ min: 0 })

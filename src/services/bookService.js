@@ -1,27 +1,21 @@
-const createOne = bookData => {
-	// try {
-	// 	const product = productService.createOne(bookData.product);
-	// 	const publisher = publisherService.createOne({
-	// 		name: bookData.publisher
-	// 	});
-	// 	const now = new Date().toLocaleString('ua-UA', {
-	// 		timeZone: 'Europe/Kyiv'
-	// 	});
+import { Book, Publisher } from '../models/index.js';
+import productService from './productService.js';
 
-	// 	return Book.createOne({
-	// 		id: randomUUID(),
-	// 		createdAt: now,
-	// 		updatedAt: now,
-	// 		...bookData,
-	// 		product: product.id,
-	// 		publisher: publisher.id
-	// 	});
-	// } catch (err) {
-	// 	throw { status: err.status ?? 500, message: err.message ?? err };
-	// }
+const createOne = async bookData => {
+	try {
+		const product = await productService.createOne(bookData.product);
+		const publisher = await Publisher.create({
+			name: bookData.publisher
+		});
 
-	// will be reworked
-	return;
+		return await Book.create({
+			...bookData,
+			product: product.id,
+			publisher: publisher.id
+		});
+	} catch (err) {
+		throw { status: err.status ?? 500, message: err.message ?? err };
+	}
 };
 
 export default { createOne };

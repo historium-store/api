@@ -3,12 +3,12 @@ import { body } from 'express-validator';
 export const validateCreate = [
 	body('product')
 		.isObject({ strict: true })
-		.withMessage('Product data is required'),
+		.withMessage('Product data is required')
+		.bail({ level: 'request' }),
 	body('product.name')
 		.trim()
 		.notEmpty()
-		.withMessage('Product name is required')
-		.bail(),
+		.withMessage('Product name is required'),
 	body('product.type')
 		.trim()
 		.notEmpty()
@@ -22,6 +22,15 @@ export const validateCreate = [
 			digits_after_decimal: [1, 2]
 		})
 		.withMessage('Product price must be a valid UAH value'),
+	body('product.description')
+		.trim()
+		.notEmpty()
+		.withMessage('Product description is required')
+		.bail()
+		.isLength({ min: 50, max: 10000 })
+		.withMessage(
+			'Product description must be between 50 and 10000 characters'
+		),
 	body('product.quantity')
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer'),
@@ -51,16 +60,7 @@ export const validateCreate = [
 		.withMessage(
 			'Book publisher name must be between 1 and 100 characters'
 		),
-	body('publicationYear')
+	body('publishedIn')
 		.isInt({ allow_negatives: false, min: 1400 })
-		.withMessage('Invalid book publication year'),
-	body('description')
-		.trim()
-		.notEmpty()
-		.withMessage('Book description is required')
-		.bail()
-		.isLength({ min: 50, max: 10000 })
-		.withMessage(
-			'Book description must be between 50 and 10000 characters'
-		)
+		.withMessage('Invalid book publication year')
 ];
