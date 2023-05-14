@@ -1,4 +1,8 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
+
+export const validateId = [
+	param('id').isMongoId().withMessage('Invalid book id format')
+];
 
 export const validateCreate = [
 	body('product')
@@ -32,6 +36,7 @@ export const validateCreate = [
 			'Product description must be between 50 and 10000 characters'
 		),
 	body('product.quantity')
+		.default(1)
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer'),
 	body('type')

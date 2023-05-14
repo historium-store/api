@@ -12,7 +12,7 @@ const createOne = async bookData => {
 				name: bookData.publisher
 			},
 			{ name: bookData.publisher },
-			{ upsert: true }
+			{ upsert: true, new: true }
 		);
 
 		return await Book.create({
@@ -25,4 +25,32 @@ const createOne = async bookData => {
 	}
 };
 
-export default { createOne };
+const getOne = async id => {
+	try {
+		const book = await Book.findById(id).populate([
+			'product',
+			'publisher'
+		]);
+
+		if (!book) {
+			throw {
+				status: 404,
+				message: `Book with id '${id}' not found`
+			};
+		}
+
+		return book;
+	} catch (err) {
+		throw { status: err.status ?? 500, message: err.message ?? err };
+	}
+};
+
+const getAll = async () => {
+	try {
+		return await Book.find({}).populate(['product', 'publisher']);
+	} catch (err) {
+		throw { status: err.status ?? 500, message: err.message ?? err };
+	}
+};
+
+export default { createOne, getOne, getAll };

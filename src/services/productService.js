@@ -54,7 +54,7 @@ const getAll = async () => {
 	try {
 		return await Product.find({});
 	} catch (err) {
-		throw { status: 500, message: err };
+		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
 };
 
