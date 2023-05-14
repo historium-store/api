@@ -77,4 +77,25 @@ const updateOne = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne };
+const deleteOne = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { id } = matchedData(req);
+
+		res
+			.status(200)
+			.json({ status: 'OK', data: await bookService.deleteOne(id) });
+	} catch (err) {
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
+	}
+};
+
+export default { createOne, getOne, getAll, updateOne, deleteOne };

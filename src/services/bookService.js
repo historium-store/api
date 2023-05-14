@@ -88,4 +88,24 @@ const updateOne = async (id, changes) => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne };
+const deleteOne = async id => {
+	try {
+		const book = await Book.findByIdAndDelete(id).populate([
+			'product',
+			'publisher'
+		]);
+
+		if (!book) {
+			throw {
+				status: 404,
+				message: `Book with id '${id}' not found`
+			};
+		}
+
+		return book;
+	} catch (err) {
+		throw { status: err.status ?? 500, message: err.message ?? err };
+	}
+};
+
+export default { createOne, getOne, getAll, updateOne, deleteOne };

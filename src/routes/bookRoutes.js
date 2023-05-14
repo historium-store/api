@@ -28,6 +28,7 @@ router
 		checkRole(['seller', 'admin']),
 		validateUpdate,
 		bookController.updateOne
-	);
+	)
+	.delete(validateId, bookController.deleteOne);
 
 export default router;
