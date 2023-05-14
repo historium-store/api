@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../controllers/authController.js';
 import productController from '../controllers/productController.js';
-import { checkRole } from '../middleware/role-checker.js';
+import { checkRole } from '../middleware/index.js';
 import {
 	validateCreate,
 	validateId,
