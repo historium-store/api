@@ -59,6 +59,18 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
+	const product = await Product.findOne({
+		type: changes.type,
+		name: changes.name
+	});
+
+	if (product) {
+		throw {
+			status: 409,
+			message: `Product with type '${product.type}' & name '${product.name}' already exists`
+		};
+	}
+
 	try {
 		const product = await Product.findByIdAndUpdate(id, changes, {
 			new: true

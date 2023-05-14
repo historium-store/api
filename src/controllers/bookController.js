@@ -55,4 +55,26 @@ const getAll = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne, getAll };
+const updateOne = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { id, ...changes } = matchedData(req);
+
+		res.status(200).json({
+			status: 'OK',
+			data: await bookService.updateOne(id, changes)
+		});
+	} catch (err) {
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
+	}
+};
+
+export default { createOne, getOne, getAll, updateOne };

@@ -1,4 +1,4 @@
-import { Book, Publisher } from '../models/index.js';
+import { Book, Product, Publisher } from '../models/index.js';
 import productService from './productService.js';
 
 const createOne = async bookData => {
@@ -53,4 +53,39 @@ const getAll = async () => {
 	}
 };
 
-export default { createOne, getOne, getAll };
+const updateOne = async (id, changes) => {
+	try {
+		const book = await Book.findById(id);
+
+		if (!book) {
+			throw {
+				status: 404,
+				message: `Book with id '${id}' not found`
+			};
+		}
+
+		if (changes.product) {
+			await productService.updateOne(book.product, changes.product);
+		}
+
+		delete changes.product;
+
+		if (changes.publisher) {
+			const { id } = await Publisher.findOneAndUpdate(
+				{ name: changes.publisher },
+				{ name: changes.publisher },
+				{ upsert: true, new: true }
+			);
+
+			changes.publisher = id;
+		}
+
+		return await Book.findByIdAndUpdate(id, changes, {
+			new: true
+		}).populate(['product', 'publisher']);
+	} catch (err) {
+		throw { status: err.status ?? 500, message: err.message ?? err };
+	}
+};
+
+export default { createOne, getOne, getAll, updateOne };

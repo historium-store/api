@@ -41,7 +41,7 @@ export const validateCreate = [
 			'Product description must be between 50 and 10000 characters'
 		),
 	body('quantity')
-		.default(1)
+		.default(Infinity)
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer')
 ];
@@ -85,16 +85,12 @@ export const validateUpdate = [
 	body('description')
 		.optional()
 		.trim()
-		.notEmpty()
-		.withMessage('Book description is required')
-		.bail()
 		.isLength({ min: 50, max: 10000 })
 		.withMessage(
 			'Product description must be between 50 and 10000 characters'
 		),
 	body('quantity')
 		.optional()
-		.default(1)
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer')
 ];

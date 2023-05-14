@@ -4,7 +4,8 @@ import bookController from '../controllers/bookController.js';
 import { checkRole } from '../middleware/role-checker.js';
 import {
 	validateCreate,
-	validateId
+	validateId,
+	validateUpdate
 } from '../schemas/bookValidation.js';
 
 const router = new Router();
@@ -14,11 +15,19 @@ router
 	.get(bookController.getAll)
 	.post(
 		authenticate,
-		checkRole('seller'),
+		checkRole(['seller', 'admin']),
 		validateCreate,
 		bookController.createOne
 	);
 
-router.route('/:id').get(validateId, bookController.getOne);
+router
+	.route('/:id')
+	.get(validateId, bookController.getOne)
+	.patch(
+		authenticate,
+		checkRole(['seller', 'admin']),
+		validateUpdate,
+		bookController.updateOne
+	);
 
 export default router;

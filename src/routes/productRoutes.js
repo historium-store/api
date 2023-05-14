@@ -15,7 +15,7 @@ router
 	.get(productController.getAll)
 	.post(
 		authenticate,
-		checkRole('admin'),
+		checkRole(['admin']),
 		validateCreate,
 		productController.createOne
 	);
@@ -25,13 +25,13 @@ router
 	.get(validateId, productController.getOne)
 	.patch(
 		authenticate,
-		checkRole('admin'),
+		checkRole(['admin']),
 		validateUpdate,
 		productController.updateOne
 	)
 	.delete(
 		authenticate,
-		checkRole('admin'),
+		checkRole(['admin']),
 		validateId,
 		productController.deleteOne
 	);
