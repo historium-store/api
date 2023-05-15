@@ -1,14 +1,11 @@
 import { body, param } from 'express-validator';
+import validator from 'validator';
 
 export const validateId = [
 	param('id').isMongoId().withMessage('Invalid book id format')
 ];
 
 export const validateCreate = [
-	body('product')
-		.isObject({ strict: true })
-		.withMessage('Product data is required')
-		.bail({ level: 'request' }),
 	body('product.name')
 		.trim()
 		.notEmpty()
@@ -18,8 +15,15 @@ export const validateCreate = [
 		.notEmpty()
 		.withMessage('Product type is required')
 		.bail()
-		.isAlpha('uk-UA')
-		.withMessage('Product type can only contain letters'),
+		.custom(value => {
+			const valueCopy = value.slice().replace(' ', '');
+
+			if (validator.isAlpha(valueCopy, 'uk-UA')) {
+				return true;
+			}
+
+			throw 'Product type can only contain letters';
+		}),
 	body('product.price')
 		.isCurrency({
 			allow_negatives: false,
@@ -36,6 +40,7 @@ export const validateCreate = [
 			'Product description must be between 50 and 10000 characters'
 		),
 	body('product.quantity')
+		.optional()
 		.default(Infinity)
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer'),

@@ -1,11 +1,7 @@
-import fs from 'fs';
-
 const fileSender = (req, res) => {
-	const { id } = req.params;
+	const { filename } = req.params;
 
-	const file = fs.readdirSync('uploads').find(f => f.includes(id));
-
-	res.sendFile(file, {
+	res.sendFile(filename, {
 		root: 'uploads'
 	});
 };

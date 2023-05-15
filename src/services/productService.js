@@ -24,6 +24,9 @@ const createOne = async productData => {
 		const code =
 			Math.max(...(await Product.find({})).map(p => +p.code)) + 1;
 
+		console.log(productData.images);
+		delete productData.images;
+
 		return await Product.create({
 			code: isFinite(code) ? `${code}` : '100000',
 			...productData

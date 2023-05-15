@@ -102,6 +102,8 @@ const deleteOne = async id => {
 			};
 		}
 
+		await productService.deleteOne(book.product);
+
 		return book;
 	} catch (err) {
 		throw { status: err.status ?? 500, message: err.message ?? err };

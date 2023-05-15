@@ -41,7 +41,7 @@ export const validateCreate = [
 			'Product description must be between 50 and 10000 characters'
 		),
 	body('quantity')
-		.default(Infinity)
+		.default(1)
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer')
 ];
