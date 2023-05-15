@@ -27,7 +27,13 @@ const productSchema = new Schema(
 		description: {
 			type: String,
 			required: false
-		}
+		},
+		images: [
+			{
+				type: String,
+				required: true
+			}
+		]
 	},
 	{
 		versionKey: false
