@@ -1,13 +1,16 @@
 const errorHandler = (err, req, res, next) => {
-	let error = 'Internal server error';
-
-	if (err.status == 500) {
+	if (!err.status || err.status == 500) {
 		console.log(err.message);
-	} else {
-		error = JSON.parse(err.message);
 	}
 
-	res.status(err.status).json({
+	let error;
+	try {
+		error = JSON.parse(err.message ?? err);
+	} catch {
+		error = 'Internal server error';
+	}
+
+	res.status(err.status ?? 500).json({
 		status: 'FAILED',
 		data: {
 			error
