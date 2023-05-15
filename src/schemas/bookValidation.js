@@ -6,6 +6,10 @@ export const validateId = [
 ];
 
 export const validateCreate = [
+	body('product')
+		.isObject({ strict: true })
+		.withMessage('Product data must be an object')
+		.bail({ level: 'request' }),
 	body('product.name')
 		.trim()
 		.notEmpty()
@@ -44,6 +48,9 @@ export const validateCreate = [
 		.default(Infinity)
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer'),
+	body('product.images')
+		.isArray({ min: 1, max: 8 })
+		.withMessage('Product must have between 1 and 8 images'),
 	body('type')
 		.trim()
 		.notEmpty()
@@ -110,10 +117,13 @@ export const validateUpdate = [
 			'Product description must be between 50 and 10000 characters'
 		),
 	body('product.quantity')
-		.optional()
-		.default(Infinity)
+		.default(1)
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer'),
+	body('product.images')
+		.optional()
+		.isArray({ min: 1, max: 8 })
+		.withMessage('Product must have between 1 and 8 images'),
 	body('type')
 		.optional()
 		.isIn(['Паперова', 'Електронна', 'Аудіо'])

@@ -9,7 +9,6 @@ const createOne = async (req, res, next) => {
 			.throw();
 
 		const data = matchedData(req);
-		data.product.images = req.files.map(f => f.filename);
 
 		res.status(201).json({
 			status: 'OK',

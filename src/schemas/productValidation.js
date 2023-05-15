@@ -43,7 +43,10 @@ export const validateCreate = [
 	body('quantity')
 		.default(1)
 		.isInt({ min: 0 })
-		.withMessage('Product quantity must be a positive integer')
+		.withMessage('Product quantity must be a positive integer'),
+	body('images')
+		.isArray({ min: 1, max: 8 })
+		.withMessage('Product must have between 1 and 8 images')
 ];
 
 export const validateUpdate = [
