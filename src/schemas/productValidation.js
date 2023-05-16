@@ -1,5 +1,4 @@
 import { body, param } from 'express-validator';
-import validator from 'validator';
 
 export const validateId = [
 	param('id').isMongoId().withMessage('Invalid product id format')
@@ -9,28 +8,17 @@ export const validateCreate = [
 	body('name')
 		.trim()
 		.notEmpty()
-		.withMessage('Product name is required')
-		.bail(),
+		.withMessage('Product name is required'),
 	body('type')
 		.trim()
 		.notEmpty()
-		.withMessage('Product type is required')
-		.bail()
-		.custom(value => {
-			const valueCopy = value.slice().replace(' ', '');
-
-			if (validator.isAlpha(valueCopy, 'uk-UA')) {
-				return true;
-			}
-
-			throw 'Product type can only contain letters';
-		}),
+		.withMessage('Product type is required'),
 	body('price')
 		.isCurrency({
 			allow_negatives: false,
 			digits_after_decimal: [1, 2]
 		})
-		.withMessage('Product price must be a valid UAH value'),
+		.withMessage('Product price must be a valid currency value'),
 	body('description')
 		.trim()
 		.notEmpty()
@@ -40,17 +28,20 @@ export const validateCreate = [
 		.withMessage(
 			'Product description must be between 50 and 10000 characters'
 		),
-	body('quantity')
-		.default(1)
-		.isInt({ min: 0 })
-		.withMessage('Product quantity must be a positive integer'),
 	body('images')
 		.isArray({ min: 1, max: 8 })
-		.withMessage('Product must have between 1 and 8 images')
+		.withMessage('Product must have between 1 and 8 images'),
+	body('quantity')
+		.optional()
+		.isInt({ min: 0 })
+		.withMessage('Product quantity must be a positive integer'),
+	body('sections')
+		.isArray({ min: 1 })
+		.withMessage('Product must be in at least 1 section')
 ];
 
 export const validateUpdate = [
-	validateId,
+	...validateId,
 	body('name')
 		.optional()
 		.trim()
@@ -60,34 +51,20 @@ export const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Product type can't be empty")
-		.bail()
-		.custom(value => {
-			const valueCopy = value.slice().replace(' ', '');
-
-			if (validator.isAlpha(valueCopy, 'uk-UA')) {
-				return true;
-			}
-
-			throw 'Product type can only contain letters';
-		}),
-	body('code')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Product type can't be empty")
-		.isNumeric({ no_symbols: true })
-		.withMessage('Invalid product code format'),
+		.withMessage("Product type can't be empty"),
 	body('price')
 		.optional()
 		.isCurrency({
 			allow_negatives: false,
 			digits_after_decimal: [1, 2]
 		})
-		.withMessage('Product price must be a valid UAH value'),
+		.withMessage('Product price must be a valid currency value'),
 	body('description')
 		.optional()
 		.trim()
+		.notEmpty()
+		.withMessage("Product description can't be empty")
+		.bail()
 		.isLength({ min: 50, max: 10000 })
 		.withMessage(
 			'Product description must be between 50 and 10000 characters'
@@ -95,5 +72,13 @@ export const validateUpdate = [
 	body('quantity')
 		.optional()
 		.isInt({ min: 0 })
-		.withMessage('Product quantity must be a positive integer')
+		.withMessage('Product quantity must be a positive integer'),
+	body('images')
+		.optional()
+		.isArray({ min: 1, max: 8 })
+		.withMessage('Product must have between 1 and 8 images'),
+	body('sections')
+		.optional()
+		.isArray({ min: 1 })
+		.withMessage('Product must be in at least 1 section')
 ];

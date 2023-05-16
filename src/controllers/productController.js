@@ -9,7 +9,6 @@ const createOne = async (req, res, next) => {
 			.throw();
 
 		const data = matchedData(req);
-		data.images = req.files.map(f => f.filename);
 
 		res.status(201).json({
 			status: 'OK',
@@ -18,8 +17,8 @@ const createOne = async (req, res, next) => {
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}
@@ -31,14 +30,14 @@ const getOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const id = matchedData(req).id;
+		const { id } = matchedData(req);
 
 		res.json({ status: 'OK', data: await productService.getOne(id) });
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}
@@ -48,7 +47,7 @@ const getAll = async (req, res, next) => {
 	try {
 		res.json({ status: 'OK', data: await productService.getAll() });
 	} catch (err) {
-		next(createHttpError(err.status, JSON.stringify(err.message)));
+		next(createHttpError(err.status ?? 500, err.message ?? err));
 	}
 };
 
@@ -67,8 +66,8 @@ const updateOne = async (req, res, next) => {
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}
@@ -80,7 +79,7 @@ const deleteOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const id = matchedData(req).id;
+		const { id } = matchedData(req);
 
 		res.json({
 			status: 'OK',
@@ -89,8 +88,8 @@ const deleteOne = async (req, res, next) => {
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}

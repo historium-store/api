@@ -1,33 +1,44 @@
 import { Product } from '../models/index.js';
 
 const createOne = async productData => {
-	// проверка на существование продукта
-	// такого же типа и с таким же названием
-	const product = await Product.findOne({
-		type: productData.type,
-		name: productData.name
-	});
-
-	if (product) {
-		throw {
-			status: 409,
-			message: `Product with type '${product.type}' & name '${product.name}' already exists`
-		};
-	}
-
 	try {
-		// НУЖНА ДОРАБОТКА
-		// последний использованный код нужно хранить в базе,
-		// при добавлении нового продукта должен будет
-		// срабатывать триггер, который будет увеличивать
-		// его значение на единицу
-		const code =
-			Math.max(...(await Product.find({})).map(p => +p.code)) + 1;
+		// TODO: хранить последний использованный код в базе (триггер)
+		const codes = (await Product.find({})).map(p => +p.code);
+		const code = codes.length
+			? `${Math.max(...codes) + 1}`
+			: '100000';
+		productData.code = code;
 
-		return await Product.create({
-			code: isFinite(code) ? `${code}` : '100000',
-			...productData
-		});
+		// TODO: сделать поле количества опциональным
+		productData.quantity = 1;
+
+		// TODO: создать модель ProductType
+		// let type = await ProductType.findOne({name: productData.type});
+		// if (!type) {
+		// 	throw {
+		// 		status: 404,
+		// 		message: `Product type '${productData.type}' not found`
+		// 	}
+		// }
+		// productData.type = type.id;
+
+		// TODO: создать модель Section
+		// let sections = [];
+		// for (let section of productData.sections) {
+		// 	sections.push(
+		// 		await Section.findOneAndUpdate(
+		// 			{
+		// 				name: section
+		// 			},
+		// 			{ name: section },
+		// 			{ upsert: true, new: true }
+		// 		)
+		// 	);
+		// }
+		// productData.sections = sections.map(s => s.id);
+
+		// TODO: добавить свойства type и sections для модели продукта
+		return await Product.create(productData);
 	} catch (err) {
 		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
@@ -59,18 +70,6 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	const product = await Product.findOne({
-		type: changes.type,
-		name: changes.name
-	});
-
-	if (product) {
-		throw {
-			status: 409,
-			message: `Product with type '${product.type}' & name '${product.name}' already exists`
-		};
-	}
-
 	try {
 		const product = await Product.findByIdAndUpdate(id, changes, {
 			new: true
