@@ -7,7 +7,6 @@ import {
 	validateId,
 	validateUpdate
 } from '../schemas/productValidation.js';
-import upload from '../utils/upload.js';
 
 const router = new Router();
 
@@ -17,7 +16,6 @@ router
 	.post(
 		authenticate,
 		checkRole(['admin']),
-		upload.array('images'),
 		validateCreate,
 		productController.createOne
 	);

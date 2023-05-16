@@ -40,6 +40,14 @@ const getOne = async id => {
 	}
 };
 
+const getAll = async () => {
+	try {
+		return await User.find({});
+	} catch (err) {
+		throw { status: err.status ?? 500, message: err.message ?? err };
+	}
+};
+
 const updateOne = async (id, changes) => {
 	try {
 		// если среди изменений есть пароль,
@@ -75,4 +83,21 @@ const updateOne = async (id, changes) => {
 	}
 };
 
-export default { createOne, getOne, updateOne };
+const deleteOne = async id => {
+	try {
+		const user = await User.findByIdAndDelete(id);
+
+		if (!user) {
+			throw {
+				status: 404,
+				message: `User with id '${id}' not found`
+			};
+		}
+
+		return user;
+	} catch (err) {
+		throw { status: err.status ?? 500, message: err.message ?? err };
+	}
+};
+
+export default { createOne, getOne, getAll, updateOne, deleteOne };

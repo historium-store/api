@@ -43,6 +43,14 @@ const getOne = async (req, res, next) => {
 	}
 };
 
+const getAll = async (req, res, next) => {
+	try {
+		res.json({ status: 'OK', data: await userService.getAll() });
+	} catch (err) {
+		next(createHttpError(err.status, JSON.stringify(err.message)));
+	}
+};
+
 const updateOne = async (req, res, next) => {
 	try {
 		validationResult(req)
@@ -65,4 +73,26 @@ const updateOne = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne, updateOne };
+const deleteOne = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const id = matchedData(req).id;
+
+		res.json({
+			status: 'OK',
+			data: await userService.deleteOne(id)
+		});
+	} catch (err) {
+		next(
+			createHttpError(
+				err.array ? 400 : err.status,
+				JSON.stringify(err.array ? err.array() : err.message)
+			)
+		);
+	}
+};
+
+export default { createOne, getOne, getAll, updateOne, deleteOne };
