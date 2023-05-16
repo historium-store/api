@@ -1,15 +1,10 @@
 import { body, param } from 'express-validator';
-import validator from 'validator';
 
 export const validateId = [
 	param('id').isMongoId().withMessage('Invalid book id format')
 ];
 
 export const validateCreate = [
-	body('product')
-		.isObject({ strict: true })
-		.withMessage('Product data must be an object')
-		.bail({ level: 'request' }),
 	body('product.name')
 		.trim()
 		.notEmpty()
@@ -17,23 +12,13 @@ export const validateCreate = [
 	body('product.type')
 		.trim()
 		.notEmpty()
-		.withMessage('Product type is required')
-		.bail()
-		.custom(value => {
-			const valueCopy = value.slice().replace(' ', '');
-
-			if (validator.isAlpha(valueCopy, 'uk-UA')) {
-				return true;
-			}
-
-			throw 'Product type can only contain letters';
-		}),
+		.withMessage('Product type is required'),
 	body('product.price')
 		.isCurrency({
 			allow_negatives: false,
 			digits_after_decimal: [1, 2]
 		})
-		.withMessage('Product price must be a valid UAH value'),
+		.withMessage('Product price must be a valid currency value'),
 	body('product.description')
 		.trim()
 		.notEmpty()
@@ -43,39 +28,28 @@ export const validateCreate = [
 		.withMessage(
 			'Product description must be between 50 and 10000 characters'
 		),
-	body('product.quantity')
-		.optional()
-		.default(Infinity)
-		.isInt({ min: 0 })
-		.withMessage('Product quantity must be a positive integer'),
 	body('product.images')
 		.isArray({ min: 1, max: 8 })
 		.withMessage('Product must have between 1 and 8 images'),
-	body('type')
-		.trim()
-		.notEmpty()
-		.withMessage('Book type is required')
-		.bail()
-		.isIn(['Паперова', 'Електронна', 'Аудіо'])
-		.withMessage('Invalid book type'),
-	body('language')
-		.trim()
-		.notEmpty()
-		.withMessage('Book language is required')
-		.bail()
-		.isAlpha('uk-UA')
-		.withMessage('Book language can only contain letters')
-		.bail()
-		.isLength({ min: 2, max: 50 })
-		.withMessage('Book language must be between 2 and 50 characters'),
+	body('product.quantity')
+		.optional()
+		.isInt({ min: 0 })
+		.withMessage('Product quantity must be a positive integer'),
+	body('product.sections')
+		.isArray({ min: 1 })
+		.withMessage('Product must be in at least 1 section'),
+	body('type').trim().notEmpty().withMessage('Book type is required'),
+	body('languages')
+		.isArray({ min: 1 })
+		.withMessage('Book must have at least 1 language'),
 	body('publisher')
 		.trim()
 		.notEmpty()
-		.withMessage('Book publisher name is required')
+		.withMessage('Publisher name is required')
 		.bail()
 		.isLength({ min: 1, max: 100 })
 		.withMessage(
-			'Book publisher name must be between 1 and 100 characters'
+			'Publisher name must be between 1 and 100 characters'
 		),
 	body('publishedIn')
 		.isInt({ allow_negatives: false, min: 1400 })
@@ -83,12 +57,7 @@ export const validateCreate = [
 ];
 
 export const validateUpdate = [
-	validateId,
-	body('product')
-		.optional()
-		.isObject({ strict: true })
-		.withMessage('Product data must be an object')
-		.bail({ level: 'request' }),
+	...validateId,
 	body('product.name')
 		.optional()
 		.trim()
@@ -98,44 +67,45 @@ export const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Product type can't be empty")
-		.bail()
-		.isAlpha('uk-UA')
-		.withMessage('Product type can only contain letters'),
+		.withMessage("Product type can't be empty"),
 	body('product.price')
 		.optional()
 		.isCurrency({
 			allow_negatives: false,
 			digits_after_decimal: [1, 2]
 		})
-		.withMessage('Product price must be a valid UAH value'),
+		.withMessage('Product price must be a valid currency value'),
 	body('product.description')
 		.optional()
 		.trim()
+		.notEmpty()
+		.withMessage("Product description can't be empty")
+		.bail()
 		.isLength({ min: 50, max: 10000 })
 		.withMessage(
 			'Product description must be between 50 and 10000 characters'
 		),
-	body('product.quantity')
-		.default(1)
-		.isInt({ min: 0 })
-		.withMessage('Product quantity must be a positive integer'),
 	body('product.images')
 		.optional()
 		.isArray({ min: 1, max: 8 })
 		.withMessage('Product must have between 1 and 8 images'),
+	body('product.quantity')
+		.optional()
+		.isInt({ min: 0 })
+		.withMessage('Product quantity must be a positive integer'),
+	body('product.sections')
+		.optional()
+		.isArray({ min: 1 })
+		.withMessage('Product must be in at least 1 section'),
 	body('type')
 		.optional()
-		.isIn(['Паперова', 'Електронна', 'Аудіо'])
-		.withMessage('Invalid book type'),
-	body('language')
 		.trim()
+		.notEmpty()
+		.withMessage("Book type can't be empty"),
+	body('languages')
 		.optional()
-		.isAlpha('uk-UA')
-		.withMessage('Book language can only contain letters')
-		.bail()
-		.isLength({ min: 2, max: 50 })
-		.withMessage('Book language must be between 2 and 50 characters'),
+		.isArray({ min: 1 })
+		.withMessage('Book must have at least 1 language'),
 	body('publisher')
 		.optional()
 		.trim()

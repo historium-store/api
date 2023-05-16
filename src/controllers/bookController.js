@@ -17,8 +17,8 @@ const createOne = async (req, res, next) => {
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}
@@ -32,14 +32,12 @@ const getOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res
-			.status(200)
-			.json({ status: 'OK', data: await bookService.getOne(id) });
+		res.json({ status: 'OK', data: await bookService.getOne(id) });
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}
@@ -47,11 +45,9 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
 	try {
-		res
-			.status(200)
-			.json({ status: 'OK', data: await bookService.getAll() });
+		res.json({ status: 'OK', data: await bookService.getAll() });
 	} catch (err) {
-		next(createHttpError(err.status, JSON.stringify(err.message)));
+		next(createHttpError(err.status ?? 500, err.message ?? err));
 	}
 };
 
@@ -63,15 +59,15 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
-		res.status(200).json({
+		res.json({
 			status: 'OK',
 			data: await bookService.updateOne(id, changes)
 		});
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}
@@ -85,14 +81,12 @@ const deleteOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res
-			.status(200)
-			.json({ status: 'OK', data: await bookService.deleteOne(id) });
+		res.json({ status: 'OK', data: await bookService.deleteOne(id) });
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}

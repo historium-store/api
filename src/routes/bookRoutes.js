@@ -7,7 +7,6 @@ import {
 	validateId,
 	validateUpdate
 } from '../schemas/bookValidation.js';
-import upload from '../utils/upload.js';
 
 const router = new Router();
 
@@ -17,7 +16,6 @@ router
 	.post(
 		authenticate,
 		checkRole(['seller', 'admin']),
-		upload.array('product.images'),
 		validateCreate,
 		bookController.createOne
 	);
@@ -31,6 +29,11 @@ router
 		validateUpdate,
 		bookController.updateOne
 	)
-	.delete(validateId, bookController.deleteOne);
+	.delete(
+		authenticate,
+		checkRole(['seller', 'admin']),
+		validateId,
+		bookController.deleteOne
+	);
 
 export default router;

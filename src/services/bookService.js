@@ -1,25 +1,27 @@
-import { Book, Product, Publisher } from '../models/index.js';
+import { Book, Publisher } from '../models/index.js';
 import productService from './productService.js';
 
 const createOne = async bookData => {
+	const publisher = await Publisher.findOne({
+		name: bookData.publisher
+	});
+
+	if (!publisher) {
+		throw {
+			status: 404,
+			message: `Publisher '${bookData.publisher}' not found`
+		};
+	}
+	bookData.publisher = publisher.id;
+
+	//TODO: сделать возможным указывать несколько языков книги
+	bookData.language = bookData.languages[0];
+
 	try {
-		// создаст продукт если не существует, иначе кинет ошибку
 		const product = await productService.createOne(bookData.product);
+		bookData.product = product.id;
 
-		// создаст издателя если не существует, иначе получит существующего
-		const publisher = await Publisher.findOneAndUpdate(
-			{
-				name: bookData.publisher
-			},
-			{ name: bookData.publisher },
-			{ upsert: true, new: true }
-		);
-
-		return await Book.create({
-			...bookData,
-			product: product.id,
-			publisher: publisher.id
-		});
+		return await Book.create(bookData);
 	} catch (err) {
 		throw { status: err.status ?? 500, message: err.message ?? err };
 	}
@@ -66,18 +68,26 @@ const updateOne = async (id, changes) => {
 
 		if (changes.product) {
 			await productService.updateOne(book.product, changes.product);
+			delete changes.product;
 		}
 
-		delete changes.product;
-
 		if (changes.publisher) {
-			const { id } = await Publisher.findOneAndUpdate(
-				{ name: changes.publisher },
-				{ name: changes.publisher },
-				{ upsert: true, new: true }
-			);
+			const publisher = await Publisher.findOne({
+				name: changes.publisher
+			});
 
-			changes.publisher = id;
+			if (!publisher) {
+				throw {
+					status: 404,
+					message: `Publisher '${bookData.publisher}' not found`
+				};
+			}
+			changes.publisher = publisher.id;
+		}
+
+		//TODO: сделать возможным указывать несколько языков книги
+		if (changes.languages) {
+			changes.language = bookData.languages[0];
 		}
 
 		return await Book.findByIdAndUpdate(id, changes, {
