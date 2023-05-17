@@ -40,7 +40,10 @@ const createOne = async productData => {
 		// TODO: добавить свойства type и sections для модели продукта
 		return await Product.create(productData);
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -57,7 +60,10 @@ const getOne = async id => {
 
 		return product;
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -65,7 +71,10 @@ const getAll = async () => {
 	try {
 		return await Product.find({});
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -84,7 +93,10 @@ const updateOne = async (id, changes) => {
 
 		return product;
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -101,7 +113,10 @@ const deleteOne = async id => {
 
 		return product;
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 

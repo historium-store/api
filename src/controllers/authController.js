@@ -5,13 +5,10 @@ import authService from '../services/authService.js';
 
 export const signup = async (req, res, next) => {
 	try {
-		// если есть ошибки валидации - отформатировать их
-		// убрав всё кроме сообщения и кинуть ошибку
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
-		// получение прошедших валидацию данных
 		const data = matchedData(req);
 
 		res
@@ -20,8 +17,8 @@ export const signup = async (req, res, next) => {
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}
@@ -35,8 +32,6 @@ export const login = async (req, res, next) => {
 
 		const data = matchedData(req);
 
-		// приведение поля 'login' к 'email' или 'phoneNumber'
-		// для корректной работы поиска
 		const credentials = {
 			...(validator.isMobilePhone(data.login, 'uk-UA')
 				? { phoneNumber: data.login }
@@ -51,8 +46,8 @@ export const login = async (req, res, next) => {
 	} catch (err) {
 		next(
 			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
+				err.array ? 400 : err.status ?? 500,
+				err.array ? JSON.stringify(err.array()) : err.message ?? err
 			)
 		);
 	}
@@ -66,7 +61,7 @@ export const authenticate = async (req, res, next) => {
 
 		next();
 	} catch (err) {
-		next(createHttpError(err.status, JSON.stringify(err.message)));
+		next(createHttpError(err.status ?? 500, err.message ?? err));
 	}
 };
 

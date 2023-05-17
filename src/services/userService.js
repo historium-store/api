@@ -19,7 +19,10 @@ const createOne = async userData => {
 			salt: salt.toString('hex')
 		});
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -36,7 +39,10 @@ const getOne = async id => {
 
 		return user;
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -44,14 +50,15 @@ const getAll = async () => {
 	try {
 		return await User.find({});
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
 const updateOne = async (id, changes) => {
 	try {
-		// если среди изменений есть пароль,
-		// то создаётся новая соль
 		if (changes.password) {
 			const salt = randomBytes(16);
 			const hashedPassword = await hashPassword(
@@ -79,7 +86,10 @@ const updateOne = async (id, changes) => {
 
 		return user;
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -96,7 +106,10 @@ const deleteOne = async id => {
 
 		return user;
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 

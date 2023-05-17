@@ -7,20 +7,6 @@ export const validateSignup = [
 		.notEmpty()
 		.withMessage('User first name is required')
 		.bail()
-		.custom(value => {
-			const valueCopy = value.slice().replace(' ', '');
-
-			if (
-				validator.isAlpha(valueCopy, 'uk-UA') ||
-				validator.isAlpha(valueCopy, 'ru-RU') ||
-				validator.isAlpha(valueCopy, 'en-US')
-			) {
-				return true;
-			}
-
-			throw 'User first name can only contain letters';
-		})
-		.bail()
 		.isLength({ min: 2, max: 50 })
 		.withMessage(
 			'User first name must be between 2 and 50 characters'
@@ -29,20 +15,6 @@ export const validateSignup = [
 		.trim()
 		.notEmpty()
 		.withMessage('User last name is required')
-		.bail()
-		.custom(value => {
-			const valueCopy = value.slice().replace(' ', '');
-
-			if (
-				validator.isAlpha(valueCopy, 'uk-UA') ||
-				validator.isAlpha(valueCopy, 'ru-RU') ||
-				validator.isAlpha(valueCopy, 'en-US')
-			) {
-				return true;
-			}
-
-			throw 'User last name can only contain letters';
-		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
 		.withMessage(
@@ -85,10 +57,10 @@ export const validateLogin = [
 		.withMessage('User phone number or email is required')
 		.bail()
 		.custom(value => {
-			if (
-				validator.isMobilePhone(value, 'uk-UA') ||
-				validator.isEmail(value)
-			) {
+			const isPhoneNumber = validator.isMobilePhone(value, 'uk-UA');
+			const isEmail = validator.isEmail(value);
+
+			if (isPhoneNumber || isEmail) {
 				return true;
 			}
 

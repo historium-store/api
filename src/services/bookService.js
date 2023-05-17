@@ -23,7 +23,10 @@ const createOne = async bookData => {
 
 		return await Book.create(bookData);
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -43,7 +46,10 @@ const getOne = async id => {
 
 		return book;
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -51,7 +57,10 @@ const getAll = async () => {
 	try {
 		return await Book.find({}).populate(['product', 'publisher']);
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -94,7 +103,10 @@ const updateOne = async (id, changes) => {
 			new: true
 		}).populate(['product', 'publisher']);
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -116,7 +128,10 @@ const deleteOne = async id => {
 
 		return book;
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 

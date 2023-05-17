@@ -1,7 +1,8 @@
-import { randomBytes, timingSafeEqual } from 'crypto';
+import { timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/index.js';
 import { hashPassword, verifyJWT } from '../utils/promisified.js';
+import userService from './userService.js';
 
 const EXPIRES_IN = process.env.JWT_EXPIRATION;
 const SECRET = process.env.SECRET;
@@ -27,20 +28,7 @@ const signup = async userData => {
 	}
 
 	try {
-		const salt = randomBytes(16);
-		const hashedPassword = await hashPassword(
-			userData.password,
-			salt,
-			310000,
-			32,
-			'sha256'
-		);
-
-		return await User.create({
-			...userData,
-			password: hashedPassword.toString('hex'),
-			salt: salt.toString('hex')
-		});
+		return await userService.createOne(userData);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -79,7 +67,6 @@ const login = async credentials => {
 
 		const savedPassword = Buffer.from(user.password, 'hex');
 
-		// проверка на совпадение паролей
 		if (!timingSafeEqual(savedPassword, hashedPassword)) {
 			throw {
 				status: 400,
@@ -87,7 +74,6 @@ const login = async credentials => {
 			};
 		}
 
-		// создание и подпись токена
 		const payload = { sub: user.id };
 		const options = {
 			expiresIn: EXPIRES_IN,
@@ -96,7 +82,10 @@ const login = async credentials => {
 
 		return jwt.sign(payload, SECRET, options);
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
@@ -129,16 +118,23 @@ const authenticate = async authHeader => {
 
 		return user;
 	} catch (err) {
-		if (err.name) {
-			throw {
-				status: 401,
-				message:
-					err.name === 'TokenExpiredError'
-						? 'Token has expired'
-						: 'Invalid token format'
-			};
+		let status;
+		let message;
+		switch (err.name) {
+			case 'TokenExpiredError':
+				status = 401;
+				message = 'Token has expired';
+				break;
+			case 'JsonWebTokenError':
+				status = 401;
+				message = 'Invalid token format';
+				break;
+			default:
+				status = err.status ?? 500;
+				message = err.message ?? err;
 		}
-		throw { status: err.status ?? 500, message: err.message ?? err };
+
+		throw { status, message };
 	}
 };
 

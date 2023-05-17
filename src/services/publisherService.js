@@ -14,7 +14,10 @@ const createOne = async publisherData => {
 	try {
 		return await Publisher.create(publisherData);
 	} catch (err) {
-		throw { status: err.status ?? 500, message: err.message ?? err };
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 
