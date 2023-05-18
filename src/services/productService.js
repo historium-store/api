@@ -9,10 +9,10 @@ const createOne = async productData => {
 			: '100000';
 		productData.code = code;
 
-		// TODO: сделать поле количества опциональным
+		// TODO: сделать поле количества опциональным ✔
 		productData.quantity = 1;
 
-		// TODO: создать модель ProductType
+		// TODO: создать модель ProductType ✔
 		// let type = await ProductType.findOne({name: productData.type});
 		// if (!type) {
 		// 	throw {
@@ -22,7 +22,7 @@ const createOne = async productData => {
 		// }
 		// productData.type = type.id;
 
-		// TODO: создать модель Section
+		// TODO: создать модель Section ✔
 		// let sections = [];
 		// for (let section of productData.sections) {
 		// 	sections.push(
@@ -37,10 +37,10 @@ const createOne = async productData => {
 		// }
 		// productData.sections = sections.map(s => s.id);
 
-		// TODO: создать модель Review
+		// TODO: создать модель Review ✔
 		// productData.reviews = [];
 
-		// TODO: добавить свойства type, sections и reviews для модели продукта
+		// TODO: добавить свойства type ✔, sections ✔ и reviews ✔ для модели продукта
 		return await Product.create(productData);
 	} catch (err) {
 		throw {
