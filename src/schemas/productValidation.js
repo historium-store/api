@@ -1,7 +1,9 @@
 import { body, param } from 'express-validator';
 
 export const validateId = [
-	param('id').isMongoId().withMessage('Invalid product id format')
+	param('id')
+		.isMongoId()
+		.withMessage('Product id must be a valid mongo id')
 ];
 
 export const validateCreate = [
@@ -10,9 +12,10 @@ export const validateCreate = [
 		.notEmpty()
 		.withMessage('Product name is required'),
 	body('type')
-		.trim()
-		.notEmpty()
-		.withMessage('Product type is required'),
+		.exists()
+		.withMessage('Product type is required')
+		.isMongoId()
+		.withMessage('Invalid product type format'),
 	body('price')
 		.isCurrency({
 			allow_negatives: false,
@@ -29,8 +32,8 @@ export const validateCreate = [
 			'Product description must be between 50 and 10000 characters'
 		),
 	body('images')
-		.isArray({ min: 1, max: 8 })
-		.withMessage('Product must have between 1 and 8 images'),
+		.isArray({ min: 1, max: 3 })
+		.withMessage('Product must have between 1 and 3 images'),
 	body('quantity')
 		.optional()
 		.isInt({ min: 0 })
@@ -49,9 +52,8 @@ export const validateUpdate = [
 		.withMessage("Product name can't be empty"),
 	body('type')
 		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Product type can't be empty"),
+		.isMongoId()
+		.withMessage('Product type must be a valid mongo id'),
 	body('price')
 		.optional()
 		.isCurrency({
@@ -75,8 +77,8 @@ export const validateUpdate = [
 		.withMessage('Product quantity must be a positive integer'),
 	body('images')
 		.optional()
-		.isArray({ min: 1, max: 8 })
-		.withMessage('Product must have between 1 and 8 images'),
+		.isArray({ min: 1, max: 3 })
+		.withMessage('Product must have between 1 and 3 images'),
 	body('sections')
 		.optional()
 		.isArray({ min: 1 })
