@@ -14,7 +14,7 @@ const bookSchema = new Schema(
 			ref: 'Publisher',
 			required: true
 		},
-		language: [
+		languages: [
 			{
 				type: String,
 				required: true

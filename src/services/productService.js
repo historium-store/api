@@ -1,4 +1,4 @@
-import { Product } from '../models/index.js';
+import { Product, ProductType, Section } from '../models/index.js';
 
 const createOne = async productData => {
 	try {
@@ -9,38 +9,24 @@ const createOne = async productData => {
 			: '100000';
 		productData.code = code;
 
-		// TODO: сделать поле количества опциональным ✔
-		productData.quantity = 1;
+		if (!(await ProductType.findById(productData.type))) {
+			throw {
+				status: 404,
+				message: `Product type with id '${productData.type}' not found`
+			};
+		}
 
-		// TODO: создать модель ProductType ✔
-		// let type = await ProductType.findOne({name: productData.type});
-		// if (!type) {
-		// 	throw {
-		// 		status: 404,
-		// 		message: `Product type '${productData.type}' not found`
-		// 	}
-		// }
-		// productData.type = type.id;
+		for (let sectionId of productData.sections) {
+			if (!(await Section.findById(sectionId))) {
+				throw {
+					status: 404,
+					message: `Section with id '${sectionId}' not found`
+				};
+			}
+		}
 
-		// TODO: создать модель Section ✔
-		// let sections = [];
-		// for (let section of productData.sections) {
-		// 	sections.push(
-		// 		await Section.findOneAndUpdate(
-		// 			{
-		// 				name: section
-		// 			},
-		// 			{ name: section },
-		// 			{ upsert: true, new: true }
-		// 		)
-		// 	);
-		// }
-		// productData.sections = sections.map(s => s.id);
+		productData.reviews = [];
 
-		// TODO: создать модель Review ✔
-		// productData.reviews = [];
-
-		// TODO: добавить свойства type ✔, sections ✔ и reviews ✔ для модели продукта
 		return await Product.create(productData);
 	} catch (err) {
 		throw {
@@ -52,7 +38,10 @@ const createOne = async productData => {
 
 const getOne = async id => {
 	try {
-		const product = await Product.findById(id);
+		const product = await Product.findById(id).populate([
+			'type',
+			'sections'
+		]);
 
 		if (!product) {
 			throw {
@@ -72,7 +61,7 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await Product.find({});
+		return await Product.find({}).populate(['type', 'sections']);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

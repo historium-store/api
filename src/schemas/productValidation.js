@@ -15,7 +15,7 @@ export const validateCreate = [
 		.exists()
 		.withMessage('Product type is required')
 		.isMongoId()
-		.withMessage('Invalid product type format'),
+		.withMessage('Product type must be a valid mongo id'),
 	body('price')
 		.isCurrency({
 			allow_negatives: false,

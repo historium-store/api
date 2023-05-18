@@ -2,9 +2,7 @@ import { Book, Publisher } from '../models/index.js';
 import productService from './productService.js';
 
 const createOne = async bookData => {
-	const publisher = await Publisher.findOne({
-		name: bookData.publisher
-	});
+	const publisher = await Publisher.findById(bookData.publisher);
 
 	if (!publisher) {
 		throw {
@@ -13,9 +11,6 @@ const createOne = async bookData => {
 		};
 	}
 	bookData.publisher = publisher.id;
-
-	//TODO: сделать возможным указывать несколько языков книги ✔
-	bookData.language = bookData.languages[0];
 
 	try {
 		const product = await productService.createOne(bookData.product);
@@ -32,10 +27,12 @@ const createOne = async bookData => {
 
 const getOne = async id => {
 	try {
-		const book = await Book.findById(id).populate([
-			'product',
-			'publisher'
-		]);
+		const book = await Book.findById(id)
+			.populate({
+				path: 'product',
+				populate: [{ path: 'type' }, { path: 'sections' }]
+			})
+			.populate('publisher');
 
 		if (!book) {
 			throw {
@@ -55,7 +52,13 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await Book.find({}).populate(['product', 'publisher']);
+		const books = await Book.find({})
+			.populate({
+				path: 'product',
+				populate: [{ path: 'type' }, { path: 'sections' }]
+			})
+			.populate('publisher');
+		return books;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -94,14 +97,14 @@ const updateOne = async (id, changes) => {
 			changes.publisher = publisher.id;
 		}
 
-		//TODO: сделать возможным указывать несколько языков книги ✔
-		if (changes.languages) {
-			changes.language = bookData.languages[0];
-		}
-
 		return await Book.findByIdAndUpdate(id, changes, {
 			new: true
-		}).populate(['product', 'publisher']);
+		})
+			.populate({
+				path: 'product',
+				populate: [{ path: 'type' }, { path: 'sections' }]
+			})
+			.populate('publisher');
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -112,10 +115,12 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const book = await Book.findByIdAndDelete(id).populate([
-			'product',
-			'publisher'
-		]);
+		const book = await Book.findByIdAndDelete(id)
+			.populate({
+				path: 'product',
+				populate: [{ path: 'type' }, { path: 'sections' }]
+			})
+			.populate('publisher');
 
 		if (!book) {
 			throw {

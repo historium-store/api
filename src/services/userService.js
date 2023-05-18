@@ -15,7 +15,7 @@ const createOne = async userData => {
 		userData.password = hashedPassword.toString('hex');
 		userData.salt = salt.toString('hex');
 
-		// productData.reviews = [];
+		userData.reviews = [];
 
 		return await User.create(userData);
 	} catch (err) {

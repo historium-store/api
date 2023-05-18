@@ -12,4 +12,4 @@ const productTypeSchema = new Schema(
 	}
 );
 
-export default model('ProdcutType', productTypeSchema);
+export default model('ProductType', productTypeSchema);
