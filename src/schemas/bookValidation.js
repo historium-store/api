@@ -1,7 +1,9 @@
 import { body, param } from 'express-validator';
 
 export const validateId = [
-	param('id').isMongoId().withMessage('Invalid book id format')
+	param('id')
+		.isMongoId()
+		.withMessage('Book id must be a valid mongo id')
 ];
 
 export const validateCreate = [
@@ -10,9 +12,10 @@ export const validateCreate = [
 		.notEmpty()
 		.withMessage('Product name is required'),
 	body('product.type')
-		.trim()
-		.notEmpty()
-		.withMessage('Product type is required'),
+		.exists()
+		.withMessage('Product type is required')
+		.isMongoId()
+		.withMessage('Product type must be a valid mongo id'),
 	body('product.price')
 		.isCurrency({
 			allow_negatives: false,
@@ -29,8 +32,8 @@ export const validateCreate = [
 			'Product description must be between 50 and 10000 characters'
 		),
 	body('product.images')
-		.isArray({ min: 1, max: 8 })
-		.withMessage('Product must have between 1 and 8 images'),
+		.isArray({ min: 1, max: 3 })
+		.withMessage('Product must have between 1 and 3 images'),
 	body('product.quantity')
 		.optional()
 		.isInt({ min: 0 })
@@ -43,17 +46,33 @@ export const validateCreate = [
 		.isArray({ min: 1 })
 		.withMessage('Book must have at least 1 language'),
 	body('publisher')
-		.trim()
-		.notEmpty()
-		.withMessage('Publisher name is required')
-		.bail()
-		.isLength({ min: 1, max: 100 })
-		.withMessage(
-			'Publisher name must be between 1 and 100 characters'
-		),
+		.exists()
+		.withMessage('Book publisher is required')
+		.isMongoId()
+		.withMessage('Book publisher must be a valid mongo id'),
 	body('publishedIn')
 		.isInt({ allow_negatives: false, min: 1400 })
-		.withMessage('Invalid book publication year')
+		.withMessage('Invalid book publication year'),
+	body('authors')
+		.optional()
+		.isArray()
+		.withMessage('Book author(s) must be an array'),
+	body('composers')
+		.optional()
+		.isArray()
+		.withMessage('Book composer(s) must be an array'),
+	body('translators')
+		.optional()
+		.isArray()
+		.withMessage('Book translator(s) must be an array'),
+	body('illustrators')
+		.optional()
+		.isArray()
+		.withMessage('Book illustrator(s) must be an array'),
+	body('editors')
+		.optional()
+		.isArray()
+		.withMessage('Book editor(s) must be an array')
 ];
 
 export const validateUpdate = [
@@ -65,9 +84,8 @@ export const validateUpdate = [
 		.withMessage("Product name can't be empty"),
 	body('product.type')
 		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Product type can't be empty"),
+		.isMongoId()
+		.withMessage('Product type must be a valid mongo id'),
 	body('product.price')
 		.optional()
 		.isCurrency({
@@ -87,8 +105,8 @@ export const validateUpdate = [
 		),
 	body('product.images')
 		.optional()
-		.isArray({ min: 1, max: 8 })
-		.withMessage('Product must have between 1 and 8 images'),
+		.isArray({ min: 1, max: 3 })
+		.withMessage('Product must have between 1 and 3 images'),
 	body('product.quantity')
 		.optional()
 		.isInt({ min: 0 })
@@ -108,13 +126,30 @@ export const validateUpdate = [
 		.withMessage('Book must have at least 1 language'),
 	body('publisher')
 		.optional()
-		.trim()
-		.isLength({ min: 1, max: 100 })
-		.withMessage(
-			'Book publisher name must be between 1 and 100 characters'
-		),
+		.isMongoId()
+		.withMessage('Book publisher must be a valid mongo id'),
 	body('publishedIn')
 		.optional()
 		.isInt({ allow_negatives: false, min: 1400 })
-		.withMessage('Invalid book publication year')
+		.withMessage('Invalid book publication year'),
+	body('authors')
+		.optional()
+		.isArray()
+		.withMessage('Book author(s) must be an array'),
+	body('composers')
+		.optional()
+		.isArray()
+		.withMessage('Book composer(s) must be an array'),
+	body('translators')
+		.optional()
+		.isArray()
+		.withMessage('Book translator(s) must be an array'),
+	body('illustrators')
+		.optional()
+		.isArray()
+		.withMessage('Book illustrator(s) must be an array'),
+	body('editors')
+		.optional()
+		.isArray()
+		.withMessage('Book editor(s) must be an array')
 ];
