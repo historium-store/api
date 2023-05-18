@@ -1,31 +1,18 @@
 import { body, param } from 'express-validator';
-import validator from 'validator';
 
-export const validateId = param('id')
-	.isMongoId()
-	.withMessage('Invalid user id format');
+export const validateId = [
+	param('id')
+		.isMongoId()
+		.withMessage('User id must be a valid mongo id')
+];
 
 export const validateUpdate = [
-	validateId,
+	...validateId,
 	body('firstName')
 		.optional()
 		.trim()
 		.notEmpty()
 		.withMessage("User first name can't be empty")
-		.bail()
-		.custom(value => {
-			const valueCopy = value.slice().replace(' ', '');
-
-			if (
-				validator.isAlpha(valueCopy, 'uk-UA') ||
-				validator.isAlpha(valueCopy, 'ru-RU') ||
-				validator.isAlpha(valueCopy, 'en-US')
-			) {
-				return true;
-			}
-
-			throw 'User first name can only contain letters';
-		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
 		.withMessage(
@@ -36,20 +23,6 @@ export const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("User last name can't be empty")
-		.bail()
-		.custom(value => {
-			const valueCopy = value.slice().replace(' ', '');
-
-			if (
-				validator.isAlpha(valueCopy, 'uk-UA') ||
-				validator.isAlpha(valueCopy, 'ru-RU') ||
-				validator.isAlpha(valueCopy, 'en-US')
-			) {
-				return true;
-			}
-
-			throw 'User last name can only contain letters';
-		})
 		.bail()
 		.isLength({ min: 2, max: 50 })
 		.withMessage(
