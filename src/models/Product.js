@@ -1,5 +1,7 @@
 import { Schema, model } from 'mongoose';
 
+const { ObjectId } = Schema.Types;
+
 const productSchema = new Schema(
 	{
 		name: {
@@ -18,16 +20,32 @@ const productSchema = new Schema(
 		},
 		quantity: {
 			type: Number,
-			required: true,
+			required: false,
 			min: 0
 		},
 		type: {
-			type: String
+			type: ObjectId,
+			ref: 'ProductType',
+			required: true
 		},
+		sections: [
+			{
+				type: ObjectId,
+				ref: 'Section',
+				required: true
+			}
+		],
 		description: {
 			type: String,
 			required: false
 		},
+		reviews: [
+			{
+				type: ObjectId,
+				ref: 'Review',
+				required: false
+			}
+		],
 		images: [
 			{
 				type: String,

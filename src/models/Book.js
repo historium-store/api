@@ -14,10 +14,12 @@ const bookSchema = new Schema(
 			ref: 'Publisher',
 			required: true
 		},
-		language: {
-			type: String,
-			required: true
-		},
+		language: [
+			{
+				type: String,
+				required: true
+			}
+		],
 		publishedIn: {
 			type: Number,
 			required: true

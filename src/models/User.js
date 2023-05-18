@@ -1,5 +1,7 @@
 import { Schema, model } from 'mongoose';
 
+const { ObjectId } = Schema.Types;
+
 const userSchema = new Schema(
 	{
 		firstName: {
@@ -31,7 +33,14 @@ const userSchema = new Schema(
 		role: {
 			type: String,
 			required: true
-		}
+		},
+		reviews: [
+			{
+				type: ObjectId,
+				ref: 'Review',
+				required: false
+			}
+		]
 	},
 	{
 		versionKey: false

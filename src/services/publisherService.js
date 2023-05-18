@@ -11,11 +11,11 @@ const createOne = async publisherData => {
 		};
 	}
 
-	// TODO: создать модель BookSeries
+	// TODO: создать модель BookSeries ✔
 	publisherData.bookSeries = [];
 
 	try {
-		// TODO: добавить свойство bookSeries для модели издателя
+		// TODO: добавить свойство bookSeries для модели издателя ✔
 		return await Publisher.create(publisherData);
 	} catch (err) {
 		throw {

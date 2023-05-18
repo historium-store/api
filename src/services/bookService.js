@@ -14,7 +14,7 @@ const createOne = async bookData => {
 	}
 	bookData.publisher = publisher.id;
 
-	//TODO: сделать возможным указывать несколько языков книги
+	//TODO: сделать возможным указывать несколько языков книги ✔
 	bookData.language = bookData.languages[0];
 
 	try {
@@ -94,7 +94,7 @@ const updateOne = async (id, changes) => {
 			changes.publisher = publisher.id;
 		}
 
-		//TODO: сделать возможным указывать несколько языков книги
+		//TODO: сделать возможным указывать несколько языков книги ✔
 		if (changes.languages) {
 			changes.language = bookData.languages[0];
 		}
