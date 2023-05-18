@@ -12,12 +12,12 @@ const createOne = async userData => {
 			32,
 			'sha256'
 		);
+		userData.password = hashedPassword.toString('hex');
+		userData.salt = salt.toString('hex');
 
-		return await User.create({
-			...userData,
-			password: hashedPassword.toString('hex'),
-			salt: salt.toString('hex')
-		});
+		// productData.reviews = [];
+
+		return await User.create(userData);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

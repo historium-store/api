@@ -37,7 +37,10 @@ const createOne = async productData => {
 		// }
 		// productData.sections = sections.map(s => s.id);
 
-		// TODO: добавить свойства type и sections для модели продукта
+		// TODO: создать модель Review
+		// productData.reviews = [];
+
+		// TODO: добавить свойства type, sections и reviews для модели продукта
 		return await Product.create(productData);
 	} catch (err) {
 		throw {
