@@ -1,39 +1,39 @@
 import { Router } from 'express';
 import { authenticate } from '../controllers/authController.js';
-import publisherController from '../controllers/publisherController.js';
+import bookSeriesController from '../controllers/bookSeriesController.js';
 import { checkRole } from '../middleware/index.js';
 import {
 	validateCreate,
 	validateId,
 	validateUpdate
-} from '../schemas/publisherValidation.js';
+} from '../schemas/bookSeriesValidation.js';
 
 const router = new Router();
 
 router
 	.route('/')
-	.get(publisherController.getAll)
+	.get(bookSeriesController.getAll)
 	.post(
 		authenticate,
 		checkRole(['admin', 'seller']),
 		validateCreate,
-		publisherController.createOne
+		bookSeriesController.createOne
 	);
 
 router
 	.route('/:id')
-	.get(validateId, publisherController.getOne)
+	.get(validateId, bookSeriesController.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin', 'seller']),
 		validateUpdate,
-		publisherController.updateOne
+		bookSeriesController.updateOne
 	)
 	.delete(
 		authenticate,
 		checkRole(['admin', 'seller']),
 		validateId,
-		publisherController.deleteOne
+		bookSeriesController.deleteOne
 	);
 
 export default router;
