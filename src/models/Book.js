@@ -23,7 +23,42 @@ const bookSchema = new Schema(
 		publishedIn: {
 			type: Number,
 			required: true
-		}
+		},
+		authors: [
+			{
+				type: ObjectId,
+				ref: 'Author',
+				required: false
+			}
+		],
+		composers: [
+			{
+				type: ObjectId,
+				ref: 'Composer',
+				required: false
+			}
+		],
+		translators: [
+			{
+				type: ObjectId,
+				ref: 'Translator',
+				required: false
+			}
+		],
+		illustrators: [
+			{
+				type: ObjectId,
+				ref: 'Illustrator',
+				required: false
+			}
+		],
+		editors: [
+			{
+				type: ObjectId,
+				ref: 'Editor',
+				required: false
+			}
+		]
 	},
 	{
 		versionKey: false
