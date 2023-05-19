@@ -1,4 +1,4 @@
-import { Section } from '../models/index.js';
+import { Product, Section } from '../models/index.js';
 
 const createOne = async sectionData => {
 	const exists =
@@ -66,9 +66,7 @@ const updateOne = async (id, changes) => {
 	}
 
 	try {
-		const section = await Section.findByIdAndUpdate(id, changes, {
-			new: true
-		});
+		const section = await Section.findById(id);
 
 		if (!section) {
 			throw {
@@ -77,7 +75,41 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		return section;
+		if (changes.products) {
+			const products = [];
+			for (const productId of changes.products) {
+				const product = await Product.findById(productId);
+
+				if (!product) {
+					throw {
+						status: 404,
+						message: `Product with id '${productId}' not found`
+					};
+				}
+
+				products.push(product);
+			}
+
+			const added = products.filter(
+				p => !section.products.includes(p.id)
+			);
+			await Product.updateMany(
+				{ _id: added },
+				{ $addToSet: { sections: section.id } }
+			);
+
+			const removed = section.products
+				.map(s => `${s}`)
+				.filter(p => !products.map(p => p.id).includes(p));
+			await Product.updateMany(
+				{ _id: removed },
+				{ $pull: { sections: section.id } }
+			);
+		}
+
+		return await Section.findByIdAndUpdate(id, changes, {
+			new: true
+		});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -88,7 +120,7 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const section = await Section.findByIdAndDelete(id);
+		const section = await Section.findById(id);
 
 		if (!section) {
 			throw {
@@ -96,6 +128,15 @@ const deleteOne = async id => {
 				message: `Section with id '${id}' not found`
 			};
 		}
+
+		if (section.products.length) {
+			throw {
+				status: 400,
+				message: `Can't delete a section with products in it`
+			};
+		}
+
+		await section.deleteOne();
 
 		return section;
 	} catch (err) {

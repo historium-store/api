@@ -94,8 +94,22 @@ const updateOne = async (id, changes) => {
 		}
 
 		if (changes.sections) {
-			const added = changes.sections.filter(
-				s => !product.sections.map(s => `${s}`).includes(s)
+			const sections = [];
+			for (const sectionId of changes.sections) {
+				const section = await Section.findById(sectionId);
+
+				if (!section) {
+					throw {
+						status: 404,
+						message: `Section with id '${sectionId}' not found`
+					};
+				}
+
+				sections.push(section);
+			}
+
+			const added = sections.filter(
+				s => !product.sections.includes(s.id)
 			);
 			await Section.updateMany(
 				{ _id: added },
@@ -104,16 +118,16 @@ const updateOne = async (id, changes) => {
 
 			const removed = product.sections
 				.map(s => `${s}`)
-				.filter(s => !changes.sections.includes(s));
+				.filter(s => !sections.map(s => s.id).includes(s));
 			await Section.updateMany(
 				{ _id: removed },
 				{ $pull: { products: product.id } }
 			);
 		}
 
-		await product.updateOne(changes);
-
-		return product;
+		return await Product.findByIdAndUpdate(id, changes, {
+			new: true
+		});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

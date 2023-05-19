@@ -22,5 +22,13 @@ export const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Section name can't be empty")
+		.withMessage("Section name can't be empty"),
+	body('products')
+		.optional()
+		.isArray()
+		.withMessage('Section product(s) must be an array'),
+	body('sections')
+		.optional()
+		.isArray()
+		.withMessage('Section section(s) must be an array')
 ];
