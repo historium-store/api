@@ -25,7 +25,7 @@ export const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Book series name is required'),
+		.withMessage("Book series name can't be empty"),
 	body('publisher')
 		.optional()
 		.isMongoId()

@@ -24,7 +24,7 @@ export const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Publisher name can\t be empty')
+		.withMessage("Publisher name can't be empty")
 		.bail()
 		.isLength({ min: 1, max: 100 })
 		.withMessage(

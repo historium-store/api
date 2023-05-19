@@ -33,7 +33,7 @@ export const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Author full name can\t be empty'),
+		.withMessage("Author full name can't be empty"),
 	body('biography')
 		.optional()
 		.trim()
