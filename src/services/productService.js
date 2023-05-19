@@ -1,4 +1,9 @@
-import { Product, ProductType, Section } from '../models/index.js';
+import {
+	Book,
+	Product,
+	ProductType,
+	Section
+} from '../models/index.js';
 
 const createOne = async productData => {
 	try {
@@ -151,6 +156,8 @@ const deleteOne = async id => {
 			{ _id: product.sections },
 			{ $pull: { products: product.id } }
 		);
+
+		await Book.deleteOne({ product: product.id });
 
 		return product;
 	} catch (err) {

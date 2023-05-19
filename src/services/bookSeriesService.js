@@ -1,4 +1,4 @@
-import { BookSeries } from '../models/index.js';
+import { Book, BookSeries } from '../models/index.js';
 
 const createOne = async bookSeriesData => {
 	const { name, publisher } = bookSeriesData;
@@ -8,12 +8,19 @@ const createOne = async bookSeriesData => {
 	if (exists) {
 		throw {
 			status: 409,
-			message: `Book series with name '${name}' & publisher '${publisher}' already exists`
+			message: `Publisher '${publisher}' already has book series named '${name}'`
 		};
 	}
 
 	try {
-		return await BookSeries.create(bookSeriesData);
+		const newBookSeries = await BookSeries.create(bookSeriesData);
+
+		await Book.updateMany(
+			{ _id: newBookSeries.books },
+			{ $set: { series: newBookSeries.id } }
+		);
+
+		return newBookSeries;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

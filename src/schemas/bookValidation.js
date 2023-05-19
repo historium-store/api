@@ -1,4 +1,5 @@
 import { body, param } from 'express-validator';
+import validator from 'validator';
 
 export const validateId = [
 	param('id')
@@ -14,6 +15,7 @@ export const validateCreate = [
 	body('product.type')
 		.exists()
 		.withMessage('Product type is required')
+		.bail()
 		.isMongoId()
 		.withMessage('Product type must be a valid mongo id'),
 	body('product.price')
@@ -48,6 +50,7 @@ export const validateCreate = [
 	body('publisher')
 		.exists()
 		.withMessage('Book publisher is required')
+		.bail()
 		.isMongoId()
 		.withMessage('Book publisher must be a valid mongo id'),
 	body('publishedIn')
@@ -72,7 +75,57 @@ export const validateCreate = [
 	body('editors')
 		.optional()
 		.isArray()
-		.withMessage('Book editor(s) must be an array')
+		.withMessage('Book editor(s) must be an array'),
+	body('series')
+		.optional()
+		.isMongoId()
+		.withMessage('Book series must be a valid mongo id'),
+	body('copies')
+		.optional()
+		.isInt({ allow_negatives: false })
+		.withMessage('Book copies must be a positive integer'),
+	body('isbns')
+		.optional()
+		.custom(value => {
+			if (!Array.isArray(value)) {
+				throw 'Book ISBN(s) must be an array';
+			}
+
+			value.forEach(i => {
+				if (!validator.isISBN(i)) {
+					throw 'Invalid book ISBN format';
+				}
+			});
+
+			return true;
+		}),
+	body('firstPublishedIn')
+		.optional()
+		.isInt({ allow_negatives: false, min: 1400 })
+		.withMessage('Invalid book first publication year'),
+	body('originalName')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book original name can't be empty"),
+	body('font')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book font can't be empty"),
+	body('format')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book format can't be empty"),
+	body('pages')
+		.optional()
+		.isInt({ allow_negatives: false })
+		.withMessage('Book pages must be a positive integer'),
+	body('weight')
+		.optional()
+		.isInt({ allow_negatives: false })
+		.withMessage('Book weight must be a positive integer')
 ];
 
 export const validateUpdate = [
@@ -151,5 +204,58 @@ export const validateUpdate = [
 	body('editors')
 		.optional()
 		.isArray()
-		.withMessage('Book editor(s) must be an array')
+		.withMessage('Book editor(s) must be an array'),
+	body('series')
+		.optional()
+		.isMongoId()
+		.withMessage('Book series must be a valid mongo id'),
+	body('copies')
+		.optional()
+		.isInt({ allow_negatives: false })
+		.withMessage('Book copies must be a positive integer'),
+	body('isbns')
+		.optional()
+		.custom(value => {
+			const isArray = validator.isArray(value);
+			if (!isArray) {
+				throw 'Book ISBN(s) must be an array';
+			}
+
+			let isISBN;
+			value.forEach(i => {
+				isISBN = validator.isISBN(i);
+				if (!isISBN) {
+					throw 'Invalid book ISBN format';
+				}
+			});
+
+			return true;
+		}),
+	body('firstPublishedIn')
+		.optional()
+		.isInt({ allow_negatives: false, min: 1400 })
+		.withMessage('Invalid book first publication year'),
+	body('originalName')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book original name can't be empty"),
+	body('font')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book font can't be empty"),
+	body('format')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book format can't be empty"),
+	body('format')
+		.optional()
+		.isInt({ allow_negatives: false })
+		.withMessage('Book pages must be a positive integer'),
+	body('weight')
+		.optional()
+		.isInt({ allow_negatives: false })
+		.withMessage('Book weight must be a positive integer')
 ];

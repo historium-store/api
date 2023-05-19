@@ -15,7 +15,7 @@ router
 	.get(bookController.getAll)
 	.post(
 		authenticate,
-		checkRole(['seller', 'admin']),
+		checkRole(['admin', 'seller']),
 		validateCreate,
 		bookController.createOne
 	);
@@ -25,13 +25,13 @@ router
 	.get(validateId, bookController.getOne)
 	.patch(
 		authenticate,
-		checkRole(['seller', 'admin']),
+		checkRole(['admin', 'seller']),
 		validateUpdate,
 		bookController.updateOne
 	)
 	.delete(
 		authenticate,
-		checkRole(['seller', 'admin']),
+		checkRole(['admin', 'seller']),
 		validateId,
 		bookController.deleteOne
 	);
