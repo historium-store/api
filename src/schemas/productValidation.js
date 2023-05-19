@@ -14,6 +14,7 @@ export const validateCreate = [
 	body('type')
 		.exists()
 		.withMessage('Product type is required')
+		.bail()
 		.isMongoId()
 		.withMessage('Product type must be a valid mongo id'),
 	body('price')
