@@ -1,7 +1,7 @@
 import { matchedData, validationResult } from 'express-validator';
-import createHttpError from 'http-errors';
 import validator from 'validator';
 import authService from '../services/authService.js';
+import createError from '../utils/createError.js';
 
 export const signup = async (req, res, next) => {
 	try {
@@ -15,12 +15,7 @@ export const signup = async (req, res, next) => {
 			.status(201)
 			.json({ status: 'OK', data: await authService.signup(data) });
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -44,12 +39,7 @@ export const login = async (req, res, next) => {
 			data: { token: await authService.login(credentials) }
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -61,7 +51,7 @@ export const authenticate = async (req, res, next) => {
 
 		next();
 	} catch (err) {
-		next(createHttpError(err.status ?? 500, err.message ?? err));
+		next(createError(err));
 	}
 };
 

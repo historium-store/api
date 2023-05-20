@@ -1,6 +1,6 @@
 import { matchedData, validationResult } from 'express-validator';
-import createHttpError from 'http-errors';
 import bookSeriesService from '../services/bookSeriesService.js';
+import createError from '../utils/createError.js';
 
 const createOne = async (req, res, next) => {
 	try {
@@ -15,12 +15,7 @@ const createOne = async (req, res, next) => {
 			data: await bookSeriesService.createOne(data)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -37,12 +32,7 @@ const getOne = async (req, res, next) => {
 			data: await bookSeriesService.getOne(id)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -53,7 +43,7 @@ const getAll = async (req, res, next) => {
 			data: await bookSeriesService.getAll()
 		});
 	} catch (err) {
-		next(createHttpError(err.status ?? 500, err.message ?? err));
+		next(createError(err));
 	}
 };
 
@@ -70,12 +60,7 @@ const updateOne = async (req, res, next) => {
 			data: await bookSeriesService.updateOne(id, changes)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -92,12 +77,7 @@ const deleteOne = async (req, res, next) => {
 			data: await bookSeriesService.deleteOne(id)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 

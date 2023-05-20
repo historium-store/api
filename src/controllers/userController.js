@@ -1,6 +1,6 @@
 import { matchedData, validationResult } from 'express-validator';
-import createHttpError from 'http-errors';
 import userService from '../services/userService.js';
+import createError from '../utils/createError.js';
 
 const createOne = async (req, res, next) => {
 	try {
@@ -15,12 +15,7 @@ const createOne = async (req, res, next) => {
 			data: await userService.createOne(data)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -34,12 +29,7 @@ const getOne = async (req, res, next) => {
 
 		res.json({ status: 'OK', data: await userService.getOne(id) });
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -47,7 +37,7 @@ const getAll = async (req, res, next) => {
 	try {
 		res.json({ status: 'OK', data: await userService.getAll() });
 	} catch (err) {
-		next(createHttpError(err.status, JSON.stringify(err.message)));
+		next(createError(err));
 	}
 };
 
@@ -64,12 +54,7 @@ const updateOne = async (req, res, next) => {
 			data: await userService.updateOne(id, changes)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -86,12 +71,7 @@ const deleteOne = async (req, res, next) => {
 			data: await userService.deleteOne(id)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status,
-				JSON.stringify(err.array ? err.array() : err.message)
-			)
-		);
+		next(createError(err));
 	}
 };
 

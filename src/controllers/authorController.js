@@ -1,6 +1,6 @@
 import { matchedData, validationResult } from 'express-validator';
-import createHttpError from 'http-errors';
 import authorService from '../services/authorService.js';
+import createError from '../utils/createError.js';
 
 const createOne = async (req, res, next) => {
 	try {
@@ -15,12 +15,7 @@ const createOne = async (req, res, next) => {
 			data: await authorService.createOne(data)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -37,12 +32,7 @@ const getOne = async (req, res, next) => {
 			data: await authorService.getOne(id)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -50,7 +40,7 @@ const getAll = async (req, res, next) => {
 	try {
 		res.json({ status: 'OK', data: await authorService.getAll() });
 	} catch (err) {
-		next(createHttpError(err.status ?? 500, err.message ?? err));
+		next(createError(err));
 	}
 };
 
@@ -67,12 +57,7 @@ const updateOne = async (req, res, next) => {
 			data: await authorService.updateOne(id, changes)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 
@@ -89,12 +74,7 @@ const deleteOne = async (req, res, next) => {
 			data: await authorService.deleteOne(id)
 		});
 	} catch (err) {
-		next(
-			createHttpError(
-				err.array ? 400 : err.status ?? 500,
-				err.array ? JSON.stringify(err.array()) : err.message ?? err
-			)
-		);
+		next(createError(err));
 	}
 };
 
