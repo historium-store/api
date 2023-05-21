@@ -31,7 +31,7 @@ app.use('/author', authorRoutes);
 app.use('/file', fileRoutes);
 
 app.use((req, res, next) =>
-	next(createHttpError(404, JSON.stringify('Endpoint not found')))
+	next(createHttpError(404, 'Endpoint not found'))
 );
 
 app.use(errorHandler);

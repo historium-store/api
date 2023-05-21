@@ -1,11 +1,11 @@
-const upload = (req, res, next) => {
+const upload = (req, res) => {
 	res.json({
 		status: 'OK',
 		data: { files: req.files.map(f => f.filename) }
 	});
 };
 
-const send = (req, res, next) => {
+const send = (req, res) => {
 	const { fileName } = req.params;
 
 	res.sendFile(fileName, { root: 'uploads' });

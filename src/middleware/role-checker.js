@@ -5,7 +5,7 @@ const checkRole = roles => (req, res, next) => {
 		return next();
 	}
 
-	next(createHttpError(403, JSON.stringify('Forbidden')));
+	next(createHttpError(403, 'No permission to use this endpoint'));
 };
 
 export default checkRole;
