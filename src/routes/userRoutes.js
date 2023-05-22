@@ -7,7 +7,7 @@ import {
 	validateUpdate
 } from '../schemas/userValidation.js';
 
-const router = new Router();
+const router = Router();
 
 router
 	.route('/:id')
