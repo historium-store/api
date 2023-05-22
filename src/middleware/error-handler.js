@@ -1,5 +1,6 @@
 const errorHandler = (err, req, res, next) => {
 	let error;
+
 	try {
 		error = JSON.parse(err.message);
 	} catch {

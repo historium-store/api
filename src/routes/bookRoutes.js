@@ -8,7 +8,7 @@ import {
 	validateUpdate
 } from '../schemas/bookValidation.js';
 
-const router = new Router();
+const router = Router();
 
 router
 	.route('/')

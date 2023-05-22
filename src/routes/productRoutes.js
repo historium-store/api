@@ -8,32 +8,19 @@ import {
 	validateUpdate
 } from '../schemas/productValidation.js';
 
-const router = new Router();
+const router = Router();
+
+router.use(authenticate, checkRole(['admin']));
 
 router
 	.route('/')
 	.get(productController.getAll)
-	.post(
-		authenticate,
-		checkRole(['admin']),
-		validateCreate,
-		productController.createOne
-	);
+	.post(validateCreate, productController.createOne);
 
 router
 	.route('/:id')
 	.get(validateId, productController.getOne)
-	.patch(
-		authenticate,
-		checkRole(['admin']),
-		validateUpdate,
-		productController.updateOne
-	)
-	.delete(
-		authenticate,
-		checkRole(['admin']),
-		validateId,
-		productController.deleteOne
-	);
+	.patch(validateUpdate, productController.updateOne)
+	.delete(validateId, productController.deleteOne);
 
 export default router;

@@ -38,7 +38,10 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
 	try {
-		res.json({ status: 'OK', data: await sectionService.getAll() });
+		res.json({
+			status: 'OK',
+			data: await sectionService.getAll()
+		});
 	} catch (err) {
 		next(createError(err));
 	}

@@ -27,7 +27,10 @@ const getOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json({ status: 'OK', data: await userService.getOne(id) });
+		res.json({
+			status: 'OK',
+			data: await userService.getOne(id)
+		});
 	} catch (err) {
 		next(createError(err));
 	}
@@ -35,7 +38,10 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
 	try {
-		res.json({ status: 'OK', data: await userService.getAll() });
+		res.json({
+			status: 'OK',
+			data: await userService.getAll()
+		});
 	} catch (err) {
 		next(createError(err));
 	}
@@ -64,7 +70,7 @@ const deleteOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const id = matchedData(req).id;
+		const { id } = matchedData(req);
 
 		res.json({
 			status: 'OK',

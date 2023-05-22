@@ -5,7 +5,7 @@ import {
 	validateSignup
 } from '../schemas/authValidation.js';
 
-const router = new Router();
+const router = Router();
 
 router.post('/signup', validateSignup, authController.signup);
 
