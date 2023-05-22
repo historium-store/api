@@ -2,23 +2,6 @@ import { matchedData, validationResult } from 'express-validator';
 import userService from '../services/userService.js';
 import createError from '../utils/createError.js';
 
-const createOne = async (req, res, next) => {
-	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
-
-		const data = matchedData(req);
-
-		res.status(201).json({
-			status: 'OK',
-			data: await userService.createOne(data)
-		});
-	} catch (err) {
-		next(createError(err));
-	}
-};
-
 const getOne = async (req, res, next) => {
 	try {
 		validationResult(req)
@@ -81,4 +64,4 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+export default { getOne, getAll, updateOne, deleteOne };

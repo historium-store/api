@@ -1,20 +1,23 @@
 import { Product, Section } from '../models/index.js';
+import productService from './productService.js';
 
 const createOne = async sectionData => {
-	const exists =
-		(await Section.findOne({ name: sectionData.name })) !== null;
+	const { name } = sectionData;
 
-	if (exists) {
+	if (await Section.exists({ name })) {
 		throw {
 			status: 409,
-			message: `Section with name '${sectionData.name}' already exists`
+			message: `Section with name '${name}' already exists`
 		};
 	}
 
-	sectionData.products = [];
-
 	try {
-		return await Section.create(sectionData);
+		return await Section.create(sectionData)
+			.populate('sections')
+			.populate({
+				path: 'products',
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -34,7 +37,10 @@ const getOne = async id => {
 			};
 		}
 
-		return section;
+		return section.populate('sections').populate({
+			path: 'products',
+			populate: ['type', 'sections']
+		});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -45,7 +51,12 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await Section.find({});
+		return await Section.find()
+			.populate('sections')
+			.populate({
+				path: 'products',
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -55,55 +66,45 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	const exists =
-		(await Section.findOne({ name: changes.name })) !== null;
-
-	if (exists) {
-		throw {
-			status: 409,
-			message: `Section with name '${changes.name}' already exists`
-		};
-	}
-
 	try {
-		const section = await Section.findById(id);
+		const sectionToUpdate = await Section.findById(id);
 
-		if (!section) {
+		if (!sectionToUpdate) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
 			};
 		}
 
+		const { name } = changes;
+
+		if (await Section.exists({ name })) {
+			throw {
+				status: 409,
+				message: `Section with name '${name}' already exists`
+			};
+		}
+
 		if (changes.products) {
 			const products = [];
-			for (const productId of changes.products) {
-				const product = await Product.findById(productId);
-
-				if (!product) {
-					throw {
-						status: 404,
-						message: `Product with id '${productId}' not found`
-					};
-				}
-
-				products.push(product);
-			}
+			changes.products.forEach(p =>
+				products.push(productService.getOne(p))
+			);
 
 			const added = products.filter(
-				p => !section.products.includes(p.id)
+				p => !sectionToUpdate.products.includes(p.id)
 			);
 			await Product.updateMany(
 				{ _id: added },
-				{ $addToSet: { sections: section.id } }
+				{ $addToSet: { sections: sectionToUpdate.id } }
 			);
 
-			const removed = section.products
+			const removed = sectionToUpdate.products
 				.map(s => `${s}`)
 				.filter(p => !products.map(p => p.id).includes(p));
 			await Product.updateMany(
 				{ _id: removed },
-				{ $pull: { sections: section.id } }
+				{ $pull: { sections: sectionToUpdate.id } }
 			);
 		}
 
@@ -132,7 +133,7 @@ const deleteOne = async id => {
 		if (section.products.length) {
 			throw {
 				status: 400,
-				message: `Can't delete a section with products in it`
+				message: "Can't delete a section with products in it"
 			};
 		}
 

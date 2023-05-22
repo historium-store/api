@@ -4,29 +4,7 @@ import { User } from '../models/index.js';
 import { hashPassword, verifyJWT } from '../utils/promisified.js';
 import userService from './userService.js';
 
-const EXPIRES_IN = process.env.JWT_EXPIRATION;
-const SECRET = process.env.SECRET;
-
 const signup = async userData => {
-	const user = await User.findOne({
-		$or: [
-			{ phoneNumber: userData.phoneNumber },
-			{ email: userData.email }
-		]
-	});
-
-	if (user) {
-		throw {
-			status: 409,
-			message:
-				'User with ' +
-				(user.phoneNumber === userData.phoneNumber
-					? `phone number '${userData.phoneNumber}'`
-					: `email '${userData.email}'`) +
-				' already exists'
-		};
-	}
-
 	try {
 		return await userService.createOne(userData);
 	} catch (err) {
@@ -41,11 +19,11 @@ const login = async credentials => {
 	const { phoneNumber, email, password } = credentials;
 
 	try {
-		const user = await User.findOne(
-			phoneNumber ? { phoneNumber } : { email }
-		);
+		const foundUser = await User.findOne({
+			$or: [{ phoneNumber }, { email }]
+		});
 
-		if (!user) {
+		if (!foundUser) {
 			throw {
 				status: 404,
 				message:
@@ -59,13 +37,13 @@ const login = async credentials => {
 
 		const hashedPassword = await hashPassword(
 			password,
-			Buffer.from(user.salt, 'hex'),
+			Buffer.from(foundUser.salt, 'hex'),
 			310000,
 			32,
 			'sha256'
 		);
 
-		const savedPassword = Buffer.from(user.password, 'hex');
+		const savedPassword = Buffer.from(foundUser.password, 'hex');
 
 		if (!timingSafeEqual(savedPassword, hashedPassword)) {
 			throw {
@@ -74,13 +52,13 @@ const login = async credentials => {
 			};
 		}
 
-		const payload = { sub: user.id };
+		const payload = { sub: foundUser.id };
 		const options = {
-			expiresIn: EXPIRES_IN,
+			expiresIn: process.env.JWT_EXPIRATION,
 			noTimestamp: true
 		};
 
-		return jwt.sign(payload, SECRET, options);
+		return jwt.sign(payload, process.env.SECRET, options);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -106,7 +84,7 @@ const authenticate = async authHeader => {
 	}
 
 	try {
-		const { sub: id } = await verifyJWT(token, SECRET);
+		const { sub: id } = await verifyJWT(token, process.env.SECRET);
 		const user = await User.findById(id);
 
 		if (!user) {
@@ -120,6 +98,7 @@ const authenticate = async authHeader => {
 	} catch (err) {
 		let status;
 		let message;
+
 		switch (err.name) {
 			case 'TokenExpiredError':
 				status = 401;

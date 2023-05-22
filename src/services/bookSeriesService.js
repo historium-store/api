@@ -1,14 +1,12 @@
-import { Book, BookSeries } from '../models/index.js';
+import { Book, BookSeries, Publisher } from '../models/index.js';
 
 const createOne = async bookSeriesData => {
 	const { name, publisher } = bookSeriesData;
-	const exists =
-		(await BookSeries.findOne({ name, publisher })) !== null;
 
-	if (exists) {
+	if (await BookSeries.exists({ name, publisher })) {
 		throw {
 			status: 409,
-			message: `Publisher '${publisher}' already has book series named '${name}'`
+			message: `Publisher with id '${publisher}' already has book series named '${name}'`
 		};
 	}
 
@@ -51,7 +49,7 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await BookSeries.find({});
+		return await BookSeries.find();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -61,34 +59,46 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	const { name, publisher } = changes;
-	const exists =
-		(await BookSeries.findOne({ name, publisher })) !== null;
-
-	if (exists) {
-		throw {
-			status: 409,
-			message: `Book series with name '${name}' & publisher '${publisher}' already exists`
-		};
-	}
-
 	try {
-		const bookSeries = await BookSeries.findByIdAndUpdate(
-			id,
-			changes,
-			{
-				new: true
-			}
-		);
+		const bookSeriesToUpdate = await BookSeries.findById(id);
 
-		if (!bookSeries) {
+		if (!bookSeriesToUpdate) {
 			throw {
 				status: 404,
 				message: `Book series with id '${id}' not found`
 			};
 		}
 
-		return bookSeries;
+		const { name, publisher, books } = changes;
+
+		if (await BookSeries.exists({ name, publisher })) {
+			throw {
+				status: 409,
+				message: `Publisher with id '${publisher}' already has book series named '${name}'`
+			};
+		}
+
+		if (books) {
+			const added = books.filter(
+				b => !bookSeriesToUpdate.books.map(b => `${b}`).includes(b)
+			);
+			await Book.updateMany(
+				{ _id: added },
+				{ $set: { series: bookSeriesToUpdate.id } }
+			);
+
+			const removed = bookSeriesToUpdate.books
+				.map(b => `${b}`)
+				.filter(b => !books.includes(b));
+			await Book.updateMany(
+				{ _id: removed },
+				{ $unset: { series: true } }
+			);
+		}
+
+		return await BookSeries.findByIdAndUpdate(id, changes, {
+			new: true
+		});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -99,16 +109,21 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const bookSeries = await BookSeries.findByIdAndDelete(id);
+		const deletedBookSeries = await BookSeries.findByIdAndDelete(id);
 
-		if (!bookSeries) {
+		if (!deletedBookSeries) {
 			throw {
 				status: 404,
 				message: `Book series with id '${id}' not found`
 			};
 		}
 
-		return bookSeries;
+		await Book.updateMany(
+			{ _id: deletedBookSeries.books },
+			{ $unset: { series: true } }
+		);
+
+		return deletedBookSeries;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

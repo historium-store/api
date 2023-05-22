@@ -1,14 +1,12 @@
 import { ProductType } from '../models/index.js';
 
 const createOne = async productTypeData => {
-	const exists =
-		(await ProductType.findOne({ name: productTypeData.name })) !==
-		null;
+	const { name } = productTypeData;
 
-	if (exists) {
+	if (await ProductType.exists({ name })) {
 		throw {
 			status: 409,
-			message: `Product type with name '${productTypeData.name}' already exists`
+			message: `Product type with name '${name}' already exists`
 		};
 	}
 
@@ -24,16 +22,16 @@ const createOne = async productTypeData => {
 
 const getOne = async id => {
 	try {
-		const author = await ProductType.findById(id);
+		const productType = await ProductType.findById(id);
 
-		if (!author) {
+		if (!productType) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
 			};
 		}
 
-		return author;
+		return productType;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -44,7 +42,7 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await ProductType.find({});
+		return await ProductType.find();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -54,29 +52,28 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	const exists =
-		(await ProductType.findOne({ name: changes.name })) !== null;
-
-	if (exists) {
-		throw {
-			status: 409,
-			message: `Product type with name '${changes.name}' already exists`
-		};
-	}
-
 	try {
-		const author = await ProductType.findByIdAndUpdate(id, changes, {
-			new: true
-		});
+		const productType = await ProductType.findById(id);
 
-		if (!author) {
+		if (!productType) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
 			};
 		}
 
-		return author;
+		const { name } = changes;
+
+		if (await ProductType.exists({ name })) {
+			throw {
+				status: 409,
+				message: `Product type with name '${name}' already exists`
+			};
+		}
+
+		return await ProductType.findByIdAndUpdate(id, changes, {
+			new: true
+		});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -87,16 +84,18 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const author = await ProductType.findByIdAndDelete(id);
+		const productType = await ProductType.findById(id);
 
-		if (!author) {
+		if (!productType) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
 			};
 		}
 
-		return author;
+		productType.deleteOne();
+
+		return productType;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

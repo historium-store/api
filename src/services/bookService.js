@@ -1,68 +1,47 @@
-import {
-	Author,
-	Book,
-	BookSeries,
-	Publisher
-} from '../models/index.js';
+import { Author, Book, BookSeries } from '../models/index.js';
+import authorService from './authorService.js';
+import bookSeriesService from './bookSeriesService.js';
 import productService from './productService.js';
+import publisherService from './publisherService.js';
 
 const createOne = async bookData => {
 	try {
-		const publisherExists =
-			(await Publisher.findById(bookData.publisher)) !== null;
-
-		if (!publisherExists) {
-			throw {
-				status: 404,
-				message: `Publisher with id '${bookData.publisher}' not found`
-			};
-		}
+		const publisher = await publisherService.getOne(
+			bookData.publisher
+		);
 
 		let bookSeries;
 		if (bookData.series) {
-			bookSeries = await BookSeries.findById(bookData.series);
-
-			if (!bookSeries) {
-				throw {
-					status: 404,
-					message: `Book series with id '${bookData.series}' not found`
-				};
-			}
+			bookSeries = await bookSeriesService.getOne(bookData.series);
 		}
 
 		const authors = [];
-		for (const authorId of bookData.authors) {
-			const author = await Author.findById(authorId);
-
-			if (!author) {
-				throw {
-					status: 404,
-					message: `Author with id '${authorId}' not found`
-				};
-			}
-
-			authors.push(author);
-		}
-
-		const newProduct = await productService.createOne(
-			bookData.product
+		bookData.authors.forEach(async a =>
+			authors.push(await authorService.getOne(a))
 		);
-		bookData.product = newProduct.id;
+
+		bookData.product = await productService.createOne(
+			bookData.product
+		).id;
 
 		const newBook = await Book.create(bookData);
+
+		// await publisher.updateOne({ $push: { books: newBook.id } });
 
 		if (bookSeries) {
 			await bookSeries.updateOne({ $push: { books: newBook.id } });
 		}
 
-		// if (authors.length) {
-		// 	authors.forEach(a => {
-		// 		a.books.push(newBook.id);
-		// 		a.save();
-		// 	});
-		// }
+		authors.forEach(
+			async a => await a.updateOne({ $push: { books: newBook.id } })
+		);
 
-		return newBook;
+		return newBook
+			.populate(['publisher', 'series', 'authors'])
+			.populate({
+				path: 'product',
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -73,12 +52,7 @@ const createOne = async bookData => {
 
 const getOne = async id => {
 	try {
-		const book = await Book.findById(id)
-			.populate({
-				path: 'product',
-				populate: [{ path: 'type' }, { path: 'sections' }]
-			})
-			.populate('publisher');
+		const book = await Book.findById(id);
 
 		if (!book) {
 			throw {
@@ -87,7 +61,12 @@ const getOne = async id => {
 			};
 		}
 
-		return book;
+		return book
+			.populate(['publisher', 'series', 'authors'])
+			.populate({
+				path: 'product',
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -98,13 +77,12 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		const books = await Book.find({})
+		return await Book.find()
+			.populate(['publisher', 'series', 'authors'])
 			.populate({
 				path: 'product',
-				populate: [{ path: 'type' }, { path: 'sections' }]
-			})
-			.populate('publisher');
-		return books;
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -129,81 +107,64 @@ const updateOne = async (id, changes) => {
 				bookToUpdate.product,
 				changes.product
 			);
+
 			delete changes.product;
 		}
 
 		if (changes.publisher) {
-			const publisher = await Publisher.findById(changes.publisher);
+			const foundPublisher = await publisherService.getOne(
+				changes.publisher
+			);
 
-			if (!publisher) {
-				throw {
-					status: 404,
-					message: `Publisher with id '${changes.publisher}' not found`
-				};
+			if (changes.publisher !== bookToUpdate.publisher) {
+				changes.publisher = foundPublisher.id;
 			}
-
-			changes.publisher = publisher.id;
 		}
 
 		if (changes.series) {
-			const bookSeries = await BookSeries.findById(changes.series);
+			const foundBookSeries = await bookSeriesService.getOne(
+				changes.series
+			);
 
-			if (!bookSeries) {
-				throw {
-					status: 404,
-					message: `Book series with id '${changes.series}' not found`
-				};
-			}
-
-			if (bookSeries.id !== bookToUpdate.series) {
+			if (foundBookSeries.id !== bookToUpdate.series) {
 				await BookSeries.findByIdAndUpdate(bookToUpdate.series, {
 					$pull: { books: bookToUpdate.id }
 				});
-				await bookSeries.updateOne({
+				await foundBookSeries.updateOne({
 					$push: { books: bookToUpdate.id }
 				});
 			}
 		}
 
-		// if (changes.authors) {
-		// 	const authors = [];
+		if (changes.authors) {
+			const newAuthors = [];
+			changes.authors.forEach(async a =>
+				newAuthors.push(await authorService.getOne(a))
+			);
 
-		// 	for (const authorId of changes.authors) {
-		// 		const author = await Author.findById(authorId);
+			const added = newAuthors.filter(
+				a => !bookToUpdate.authors.includes(a.id)
+			);
+			await Author.updateMany(
+				{ _id: added },
+				{ $addToSet: { books: bookToUpdate.id } }
+			);
 
-		// 		if (!author) {
-		// 			throw {
-		// 				status: 404,
-		// 				message: `Author with id '${authorId}' not found`
-		// 			};
-		// 		}
-
-		// 		authors.push(author);
-		// 	}
-
-		// 	const added = authors.filter(
-		// 		a => !bookToUpdate.authors.includes(a.id)
-		// 	);
-		// 	await Author.updateMany(
-		// 		{ _id: added },
-		// 		{ $addToSet: { books: bookToUpdate.id } }
-		// 	);
-
-		// 	const removed = bookToUpdate.authors
-		// 		.map(a => `${a}`)
-		// 		.filter(a => !authors.map(s => s.id).includes(a));
-		// 	await Author.updateMany(
-		// 		{ _id: removed },
-		// 		{ $pull: { books: bookToUpdate.id } }
-		// 	);
-		// }
+			const removed = bookToUpdate.authors
+				.map(a => `${a}`)
+				.filter(a => !newAuthors.map(s => s.id).includes(a));
+			await Author.updateMany(
+				{ _id: removed },
+				{ $pull: { books: bookToUpdate.id } }
+			);
+		}
 
 		return await Book.findByIdAndUpdate(id, changes, { new: true })
+			.populate(['publisher', 'series', 'authors'])
 			.populate({
 				path: 'product',
-				populate: [{ path: 'type' }, { path: 'sections' }]
-			})
-			.populate('publisher');
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -214,12 +175,7 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const deletedBook = await Book.findByIdAndDelete(id)
-			.populate({
-				path: 'product',
-				populate: [{ path: 'type' }, { path: 'sections' }]
-			})
-			.populate('publisher');
+		const deletedBook = await Book.findByIdAndDelete(id);
 
 		if (!deletedBook) {
 			throw {
@@ -227,6 +183,11 @@ const deleteOne = async id => {
 				message: `Book with id '${id}' not found`
 			};
 		}
+
+		// await Publisher.updateOne(
+		// 	{ _id: deletedBook.publisher },
+		// 	{ $pull: { books: deletedBook.id } }
+		// );
 
 		await productService.deleteOne(deletedBook.product);
 
@@ -237,16 +198,21 @@ const deleteOne = async id => {
 			);
 		}
 
-		// if (deletedBook.authors) {
-		// 	await Author.updateMany(
-		// 		{ _id: deletedBook.authors },
-		// 		{
-		// 			$pull: { books: deletedBook.id }
-		// 		}
-		// 	);
-		// }
+		if (deletedBook.authors) {
+			await Author.updateMany(
+				{ _id: deletedBook.authors },
+				{
+					$pull: { books: deletedBook.id }
+				}
+			);
+		}
 
-		return deletedBook;
+		return deletedBook
+			.populate(['publisher', 'series', 'authors'])
+			.populate({
+				path: 'product',
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

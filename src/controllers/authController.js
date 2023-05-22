@@ -11,9 +11,10 @@ export const signup = async (req, res, next) => {
 
 		const data = matchedData(req);
 
-		res
-			.status(201)
-			.json({ status: 'OK', data: await authService.signup(data) });
+		res.status(201).json({
+			status: 'OK',
+			data: await authService.signup(data)
+		});
 	} catch (err) {
 		next(createError(err));
 	}

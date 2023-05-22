@@ -1,18 +1,14 @@
-import { Author } from '../models/index.js';
+import { Author, Book } from '../models/index.js';
 
 const createOne = async authorData => {
-	const exists =
-		(await Author.findOne({ fullName: authorData.fullName })) !==
-		null;
+	const { fullName } = authorData;
 
-	if (exists) {
+	if (await Author.exists({ fullName })) {
 		throw {
 			status: 409,
-			message: `Author with full name '${authorData.fullName}' already exists`
+			message: `Author with full name '${fullName}' already exists`
 		};
 	}
-
-	authorData.books = [];
 
 	try {
 		return await Author.create(authorData);
@@ -46,7 +42,7 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await Author.find({});
+		return await Author.find();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -56,29 +52,44 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	const exists =
-		(await Author.findOne({ fullName: changes.fullName })) !== null;
-
-	if (exists) {
-		throw {
-			status: 409,
-			message: `Author with full name '${changes.fullName}' already exists`
-		};
-	}
-
 	try {
-		const author = await Author.findByIdAndUpdate(id, changes, {
-			new: true
-		});
+		const oldAuthor = await Author.findById(id);
 
-		if (!author) {
+		if (!oldAuthor) {
 			throw {
 				status: 404,
 				message: `Author with id '${id}' not found`
 			};
 		}
 
-		return author;
+		const { fullName, books } = changes;
+
+		if (await Author.exists({ fullName })) {
+			throw {
+				status: 409,
+				message: `Author with full name '${fullName}' already exists`
+			};
+		}
+
+		if (books) {
+			const added = books.filter(
+				b => !oldAuthor.books.map(b => `${b}`).includes(b)
+			);
+			await Book.updateMany(
+				{ _id: added },
+				{ $push: { authors: oldAuthor.id } }
+			);
+
+			const removed = oldAuthor.books
+				.map(b => `${b}`)
+				.filter(b => !books.includes(b));
+			await Book.updateMany(
+				{ _id: removed },
+				{ $pull: { authors: oldAuthor.id } }
+			);
+		}
+
+		return await Author.findByIdAndUpdate(id, changes, { new: true });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -89,16 +100,21 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const author = await Author.findByIdAndDelete(id);
+		const deletedAuthor = await Author.findByIdAndDelete(id);
 
-		if (!author) {
+		if (!deletedAuthor) {
 			throw {
 				status: 404,
 				message: `Author with id '${id}' not found`
 			};
 		}
 
-		return author;
+		await Book.updateMany(
+			{ _id: deletedAuthor.books },
+			{ $pull: { authors: deletedAuthor.id } }
+		);
+
+		return deletedAuthor;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

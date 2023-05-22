@@ -1,20 +1,21 @@
-import { Publisher } from '../models/index.js';
+import { Book, Publisher } from '../models/index.js';
+import bookService from './bookService.js';
 
 const createOne = async publisherData => {
-	const exists =
-		(await Publisher.findOne({ name: publisherData.name })) !== null;
+	const { name } = publisherData;
 
-	if (exists) {
+	if (await Publisher.exists({ name })) {
 		throw {
 			status: 409,
-			message: `Publisher with name '${publisherData.name}' already exists`
+			message: `Publisher with name '${name}' already exists`
 		};
 	}
 
-	publisherData.bookSeries = [];
-
 	try {
-		return await Publisher.create(publisherData);
+		return await Publisher.create(publisherData).populate([
+			/* 'books', */
+			'bookSeries'
+		]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -34,7 +35,7 @@ const getOne = async id => {
 			};
 		}
 
-		return publisher;
+		return publisher.populate([/* 'books', */ 'bookSeries']);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -45,7 +46,9 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await Publisher.find({});
+		return await Publisher.find().populate([
+			/* 'books', */ 'bookSeries'
+		]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -55,29 +58,52 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	const exists =
-		(await Publisher.findOne({ name: changes.name })) !== null;
-
-	if (exists) {
-		throw {
-			status: 409,
-			message: `Publisher with name '${changes.name}' already exists`
-		};
-	}
-
 	try {
-		const publisher = await Publisher.findByIdAndUpdate(id, changes, {
-			new: true
-		});
+		const publisherToUpdate = await Publisher.findById(id);
 
-		if (!publisher) {
+		if (!publisherToUpdate) {
 			throw {
 				status: 404,
 				message: `Publisher with id '${id}' not found`
 			};
 		}
 
-		return publisher;
+		const { name } = changes;
+
+		if (await Publisher.exists({ name })) {
+			throw {
+				status: 409,
+				message: `Publisher with name '${name}' already exists`
+			};
+		}
+
+		if (changes.books) {
+			const books = [];
+			changes.books.forEach(async b =>
+				books.push(await bookService.getOne(b))
+			);
+
+			const added = books.filter(
+				b => !publisherToUpdate.books.map(b => `${b}`).includes(b)
+			);
+			await Book.updateMany(
+				{ _id: added },
+				{ $set: { publisher: publisherToUpdate.id } }
+			);
+
+			const removed = publisherToUpdate.books
+				.map(b => `${b}`)
+				.filter(b => !books.includes(b));
+			await Book.updateMany(
+				{ _id: removed },
+				{ $unset: { publisher: true } }
+			);
+		}
+
+		return await Publisher.findByIdAndUpdate(id, changes).populate([
+			/* 'books', */
+			'bookSeries'
+		]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -88,7 +114,7 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const publisher = await Publisher.findByIdAndDelete(id);
+		const publisher = await Publisher.findById(id);
 
 		if (!publisher) {
 			throw {
@@ -97,7 +123,16 @@ const deleteOne = async id => {
 			};
 		}
 
-		return publisher;
+		if (publisher.books.length) {
+			throw {
+				status: 400,
+				message: "Can't delete publisher with books published"
+			};
+		}
+
+		await publisher.deleteOne();
+
+		return publisher.populate([/* 'books', */ 'bookSeries']);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

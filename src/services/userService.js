@@ -3,7 +3,25 @@ import { User } from '../models/index.js';
 import { hashPassword } from '../utils/promisified.js';
 
 const createOne = async userData => {
+	const { phoneNumber, email } = userData;
+
 	try {
+		const foundUser = await User.findOne({
+			$or: [{ phoneNumber }, { email }]
+		});
+
+		if (foundUser) {
+			throw {
+				status: 409,
+				message:
+					'User with ' +
+					(foundUser.phoneNumber === phoneNumber
+						? `phone number '${phoneNumber}'`
+						: `email '${email}'`) +
+					' already exists'
+			};
+		}
+
 		const salt = randomBytes(16);
 		const hashedPassword = await hashPassword(
 			userData.password,
@@ -14,8 +32,6 @@ const createOne = async userData => {
 		);
 		userData.password = hashedPassword.toString('hex');
 		userData.salt = salt.toString('hex');
-
-		userData.reviews = [];
 
 		return await User.create(userData);
 	} catch (err) {
@@ -48,7 +64,7 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await User.find({});
+		return await User.find();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -59,6 +75,13 @@ const getAll = async () => {
 
 const updateOne = async (id, changes) => {
 	try {
+		if (!(await User.exists({ _id: id }))) {
+			throw {
+				status: 404,
+				message: `User with id '${id}' not found`
+			};
+		}
+
 		if (changes.password) {
 			const salt = randomBytes(16);
 			const hashedPassword = await hashPassword(
@@ -73,18 +96,7 @@ const updateOne = async (id, changes) => {
 			changes.salt = salt.toString('hex');
 		}
 
-		const user = await User.findByIdAndUpdate(id, changes, {
-			new: true
-		});
-
-		if (!user) {
-			throw {
-				status: 404,
-				message: `User with id '${id}' not found`
-			};
-		}
-
-		return user;
+		return await User.findByIdAndUpdate(id, changes, { new: true });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -95,7 +107,7 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const user = await User.findByIdAndDelete(id);
+		const user = await User.findById(id);
 
 		if (!user) {
 			throw {
@@ -103,6 +115,8 @@ const deleteOne = async id => {
 				message: `User with id '${id}' not found`
 			};
 		}
+
+		await user.deleteOne();
 
 		return user;
 	} catch (err) {
