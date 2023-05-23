@@ -74,11 +74,29 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
+	const { phoneNumber, email } = changes;
+
 	try {
 		if (!(await User.exists({ _id: id }))) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`
+			};
+		}
+
+		const foundUser = await User.findOne({
+			$or: [{ phoneNumber }, { email }]
+		});
+
+		if (foundUser) {
+			throw {
+				status: 409,
+				message:
+					'User with ' +
+					(foundUser.phoneNumber === phoneNumber
+						? `phone number '${phoneNumber}'`
+						: `email '${email}'`) +
+					' already exists'
 			};
 		}
 

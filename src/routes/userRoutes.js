@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import createHttpError from 'http-errors';
 import { authenticate } from '../controllers/authController.js';
 import userController from '../controllers/userController.js';
-import { checkRole } from '../middleware/index.js';
+import { checkRole, checkSameIdOrRole } from '../middleware/index.js';
 import {
 	validateId,
 	validateUpdate
@@ -25,31 +24,13 @@ router
 	.patch(
 		authenticate,
 		validateUpdate,
-		(req, res, next) => {
-			if (
-				req.user.id === req.params.id ||
-				req.user.role === 'admin'
-			) {
-				return next();
-			}
-
-			next(createHttpError(403));
-		},
+		checkSameIdOrRole(['admin']),
 		userController.updateOne
 	)
 	.delete(
 		authenticate,
 		validateId,
-		(req, res, next) => {
-			if (
-				req.user.id === req.params.id ||
-				req.user.role === 'admin'
-			) {
-				return next();
-			}
-
-			next(createHttpError(403));
-		},
+		checkSameIdOrRole(['admin']),
 		userController.deleteOne
 	);
 

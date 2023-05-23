@@ -1,4 +1,4 @@
 import errorHandler from './error-handler.js';
-import checkRole from './role-checker.js';
+import { checkRole, checkSameIdOrRole } from './role-checker.js';
 
-export { errorHandler, checkRole };
+export { errorHandler, checkRole, checkSameIdOrRole };

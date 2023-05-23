@@ -16,8 +16,8 @@ const signup = async userData => {
 	}
 };
 
-const login = async credentials => {
-	const { phoneNumber, email, password } = credentials;
+const login = async loginData => {
+	const { phoneNumber, email, password } = loginData;
 
 	try {
 		const foundUser = await User.findOne({
@@ -76,26 +76,34 @@ const authenticate = async authHeader => {
 		};
 	}
 
-	const token = authHeader.split(' ')[1];
-	if (!token) {
+	const tokenParts = authHeader.split(' ');
+
+	if (tokenParts[0] !== 'Bearer') {
 		throw {
 			status: 401,
-			message: 'Token not provided'
+			message: "Authorization scheme 'Bearer' required"
 		};
 	}
 
-	try {
-		const { sub: id } = await verifyJWT(token, process.env.SECRET);
-		const user = await User.findById(id);
+	if (!tokenParts[1]) {
+		throw { status: 401, message: 'Token not provided' };
+	}
 
-		if (!user) {
+	try {
+		const { sub: id } = await verifyJWT(
+			tokenParts[1],
+			process.env.SECRET
+		);
+		const foundUser = await User.findById(id);
+
+		if (!foundUser) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`
 			};
 		}
 
-		return user;
+		return foundUser;
 	} catch (err) {
 		let status;
 		let message;
@@ -194,12 +202,11 @@ const verifyRestorationToken = async resetData => {
 		// }
 
 		// if (restorationToken !== foundUser.restorationToken) {
-		if (restorationToken !== 'f7c8a168') {
-			throw {
-				status: 400,
-				message: 'Incorrect restoration token'
-			};
-		}
+		// 	throw {
+		// 		status: 400,
+		// 		message: 'Incorrect restoration token'
+		// 	};
+		// }
 
 		// await foundUser.updateOne({ $unset: { restorationToken: true } });
 

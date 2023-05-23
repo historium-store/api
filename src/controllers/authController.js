@@ -1,7 +1,7 @@
 import { matchedData, validationResult } from 'express-validator';
 import validator from 'validator';
 import authService from '../services/authService.js';
-import createError from '../utils/createError.js';
+import createError from '../utils/create-error.js';
 
 export const signup = async (req, res, next) => {
 	try {
@@ -9,11 +9,11 @@ export const signup = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const data = matchedData(req);
+		const userData = matchedData(req);
 
 		res.status(201).json({
 			status: 'OK',
-			data: await authService.signup(data)
+			data: await authService.signup(userData)
 		});
 	} catch (err) {
 		next(createError(err));
@@ -26,18 +26,18 @@ export const login = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const data = matchedData(req);
+		const { login, password } = matchedData(req);
 
-		const credentials = {
-			...(validator.isMobilePhone(data.login, 'uk-UA')
-				? { phoneNumber: data.login }
-				: { email: data.login }),
-			password: data.password
+		const loginData = {
+			...(validator.isMobilePhone(login, 'uk-UA')
+				? { phoneNumber: login }
+				: { email: login }),
+			password
 		};
 
 		res.json({
 			status: 'OK',
-			data: { token: await authService.login(credentials) }
+			data: { token: await authService.login(loginData) }
 		});
 	} catch (err) {
 		next(createError(err));
@@ -47,7 +47,7 @@ export const login = async (req, res, next) => {
 export const authenticate = async (req, res, next) => {
 	try {
 		req.user = await authService.authenticate(
-			req.headers.authorization
+			req.get('Authorization')
 		);
 
 		next();
@@ -85,7 +85,7 @@ export const verifyRestorationToken = async (req, res, next) => {
 
 		const { login, restorationToken } = matchedData(req);
 
-		const resetData = {
+		const dataToVerify = {
 			...(validator.isMobilePhone(login, 'uk-UA')
 				? { phoneNumber: login }
 				: { email: login }),
@@ -93,7 +93,7 @@ export const verifyRestorationToken = async (req, res, next) => {
 		};
 
 		const userId = await authService.verifyRestorationToken(
-			resetData
+			dataToVerify
 		);
 
 		await res.json({ status: 'OK', userId });
