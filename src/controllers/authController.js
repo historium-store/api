@@ -56,4 +56,56 @@ export const authenticate = async (req, res, next) => {
 	}
 };
 
-export default { signup, login, authenticate };
+export const restorePassword = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { login } = matchedData(req);
+		const restorationData = {
+			...(validator.isMobilePhone(login, 'uk-UA')
+				? { phoneNumber: login }
+				: { email: login })
+		};
+
+		await authService.restorePassword(restorationData);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+export const verifyRestorationToken = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { login, restorationToken } = matchedData(req);
+
+		const resetData = {
+			...(validator.isMobilePhone(login, 'uk-UA')
+				? { phoneNumber: login }
+				: { email: login }),
+			restorationToken
+		};
+
+		const userId = await authService.verifyRestorationToken(
+			resetData
+		);
+
+		await res.json({ status: 'OK', userId });
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+export default {
+	signup,
+	login,
+	authenticate,
+	restorePassword,
+	verifyRestorationToken
+};

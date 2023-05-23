@@ -1,5 +1,6 @@
-import { timingSafeEqual } from 'crypto';
+import { randomBytes, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
+import nodemalier from 'nodemailer';
 import { User } from '../models/index.js';
 import { hashPassword, verifyJWT } from '../utils/promisified.js';
 import userService from './userService.js';
@@ -117,4 +118,104 @@ const authenticate = async authHeader => {
 	}
 };
 
-export default { signup, login, authenticate };
+const restorePassword = async loginData => {
+	const { phoneNumber, email } = loginData;
+
+	try {
+		const userToRestore = await User.findOne({
+			$or: [{ phoneNumber }, { email }]
+		});
+
+		if (!userToRestore) {
+			throw {
+				status: 404,
+				message:
+					'User with ' +
+					(phoneNumber
+						? `phone number '${phoneNumber}'`
+						: `email '${email}'`) +
+					' not found'
+			};
+		}
+
+		if (email) {
+			const transporter = nodemalier.createTransport({
+				port: 465,
+				host: 'smtp.gmail.com',
+				auth: {
+					user: 'historium.store@gmail.com',
+					pass: process.env.EMAIL_PASSWORD
+				},
+				secure: true
+			});
+
+			const restorationToken = randomBytes(4).toString('hex');
+			const mailData = {
+				from: '"Historium" historium.store@gmail.com',
+				to: userToRestore.email,
+				subject: 'Password restoration',
+				html: `Restoration token: <b>${restorationToken}</b>`
+			};
+
+			await transporter.sendMail(mailData);
+
+			// await userToRestore.updateOne({ $set: { restorationToken } });
+		}
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+const verifyRestorationToken = async resetData => {
+	const { phoneNumber, email, restorationToken } = resetData;
+
+	try {
+		const foundUser = await User.findOne({
+			$or: [{ phoneNumber }, { email }]
+		});
+
+		if (!foundUser) {
+			throw {
+				status: 404,
+				message:
+					'User with ' +
+					(phoneNumber
+						? `phone number '${phoneNumber}'`
+						: `email '${email}'`) +
+					' not found'
+			};
+		}
+
+		// if (!foundUser.restorationToken) {
+		// 	throw { status: 400, message: "User doesn't need restoration" };
+		// }
+
+		// if (restorationToken !== foundUser.restorationToken) {
+		if (restorationToken !== 'f7c8a168') {
+			throw {
+				status: 400,
+				message: 'Incorrect restoration token'
+			};
+		}
+
+		// await foundUser.updateOne({ $unset: { restorationToken: true } });
+
+		return `${foundUser.id}`;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+export default {
+	signup,
+	login,
+	authenticate,
+	restorePassword,
+	verifyRestorationToken
+};

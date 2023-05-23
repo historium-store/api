@@ -75,3 +75,51 @@ export const validateLogin = [
 		.isLength({ min: 8, max: 50 })
 		.withMessage('User password must be between 8 and 50 characters')
 ];
+
+export const validatePasswordRestore = [
+	body('login')
+		.trim()
+		.notEmpty()
+		.withMessage('User phone number or email is required')
+		.bail()
+		.custom(value => {
+			const isPhoneNumber = validator.isMobilePhone(value, 'uk-UA');
+			const isEmail = validator.isEmail(value);
+
+			if (isPhoneNumber || isEmail) {
+				return true;
+			}
+
+			throw 'Invalid user phone number or email format';
+		})
+		.if(body('login').isEmail())
+		.normalizeEmail({
+			gmail_remove_dots: false
+		})
+];
+
+export const validateVerifyRestorationToken = [
+	body('login')
+		.trim()
+		.notEmpty()
+		.withMessage('User phone number or email is required')
+		.bail()
+		.custom(value => {
+			const isPhoneNumber = validator.isMobilePhone(value, 'uk-UA');
+			const isEmail = validator.isEmail(value);
+
+			if (isPhoneNumber || isEmail) {
+				return true;
+			}
+
+			throw 'Invalid user phone number or email format';
+		})
+		.if(body('login').isEmail())
+		.normalizeEmail({
+			gmail_remove_dots: false
+		}),
+	body('restorationToken')
+		.trim()
+		.notEmpty()
+		.withMessage('Password restoration token is required')
+];

@@ -26,7 +26,10 @@ router
 		authenticate,
 		validateUpdate,
 		(req, res, next) => {
-			if (req.user.id === req.params.id) {
+			if (
+				req.user.id === req.params.id ||
+				req.user.role === 'admin'
+			) {
 				return next();
 			}
 
@@ -38,7 +41,10 @@ router
 		authenticate,
 		validateId,
 		(req, res, next) => {
-			if (req.user.id === req.params.id) {
+			if (
+				req.user.id === req.params.id ||
+				req.user.role === 'admin'
+			) {
 				return next();
 			}
 

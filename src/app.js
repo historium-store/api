@@ -3,7 +3,6 @@ import createHttpError from 'http-errors';
 import logger from 'morgan';
 import { errorHandler } from './middleware/index.js';
 
-import { authenticate } from './controllers/authController.js';
 import authRoutes from './routes/authRoutes.js';
 import authorRoutes from './routes/authorRoutes.js';
 import bookRoutes from './routes/bookRoutes.js';
