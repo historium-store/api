@@ -11,21 +11,23 @@ const createOne = async productData => {
 			: '100000';
 		productData.code = code;
 
-		await productTypeService.getOne(productData.product.type);
+		await productTypeService.getOne(productData.type);
 
 		const sections = [];
-		productData.sections.forEach(async s =>
-			sections.push(await sectionService.getOne(s))
-		);
+		for (let section of productData.sections) {
+			sections.push(await sectionService.getOne(section));
+		}
 
 		const newProduct = await Product.create(productData);
 
-		sections.forEach(
-			async s =>
-				await s.updateOne({ $push: { products: newProduct.id } })
-		);
+		for (let section of sections) {
+			await section.updateOne({ $push: { products: newProduct.id } });
+		}
 
-		return newProduct.populate(['type', 'sections']);
+		return await Product.findById(newProduct.id).populate([
+			'type',
+			'sections'
+		]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -126,7 +128,8 @@ const deleteOne = async id => {
 			{ $pull: { products: deletedProduct.id } }
 		);
 
-		await Book.deleteOne({ product: deletedProduct.id });
+		// TODO (мне): нужно продумать как при удалении товара
+		// удалять и связанный с ним конкретный товар
 
 		return deletedProduct.populate(['type', 'sections']);
 	} catch (err) {
@@ -137,4 +140,39 @@ const deleteOne = async id => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+const deleteAll = async () => {
+	try {
+		const productsToDelete = await Product.find().populate([
+			'type',
+			'sections'
+		]);
+
+		for (let product of productsToDelete) {
+			await Section.updateMany(
+				{ _id: product.sections },
+				{ $pull: { products: product.id } }
+			);
+
+			// TODO (мне): нужно продумать как при удалении товара
+			// удалять и связанный с ним конкретный товар
+
+			await product.deleteOne();
+		}
+
+		return productsToDelete;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne,
+	deleteAll
+};

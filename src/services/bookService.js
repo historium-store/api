@@ -16,27 +16,26 @@ const createOne = async bookData => {
 		}
 
 		const authors = [];
-		bookData.authors.forEach(async a =>
-			authors.push(await authorService.getOne(a))
-		);
+		for (let authorId of bookData.authors) {
+			authors.push(await authorService.getOne(authorId));
+		}
 
-		bookData.product = await productService.createOne(
-			bookData.product
+		bookData.product = (
+			await productService.createOne(bookData.product)
 		).id;
 
 		const newBook = await Book.create(bookData);
-
 		// await publisher.updateOne({ $push: { books: newBook.id } });
 
 		if (bookSeries) {
 			await bookSeries.updateOne({ $push: { books: newBook.id } });
 		}
 
-		authors.forEach(
-			async a => await a.updateOne({ $push: { books: newBook.id } })
-		);
+		for (let author of authors) {
+			await author.updateOne({ $push: { books: newBook.id } });
+		}
 
-		return newBook
+		return Book.findById(newBook.id)
 			.populate(['publisher', 'series', 'authors'])
 			.populate({
 				path: 'product',
@@ -52,16 +51,14 @@ const createOne = async bookData => {
 
 const getOne = async id => {
 	try {
-		const book = await Book.findById(id);
-
-		if (!book) {
+		if (!Book.exists({ _id: id })) {
 			throw {
 				status: 404,
 				message: `Book with id '${id}' not found`
 			};
 		}
 
-		return book
+		return Book.findById(id)
 			.populate(['publisher', 'series', 'authors'])
 			.populate({
 				path: 'product',
@@ -175,9 +172,9 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const deletedBook = await Book.findByIdAndDelete(id);
+		const bookToDelete = await Book.findById(id);
 
-		if (!deletedBook) {
+		if (!bookToDelete) {
 			throw {
 				status: 404,
 				message: `Book with id '${id}' not found`
@@ -189,25 +186,25 @@ const deleteOne = async id => {
 		// 	{ $pull: { books: deletedBook.id } }
 		// );
 
-		await productService.deleteOne(deletedBook.product);
+		await productService.deleteOne(bookToDelete.product);
 
-		if (deletedBook.series) {
+		if (bookToDelete.series) {
 			await BookSeries.updateOne(
-				{ _id: deletedBook.series },
-				{ $pull: { books: deletedBook.id } }
+				{ _id: bookToDelete.series },
+				{ $pull: { books: bookToDelete.id } }
 			);
 		}
 
-		if (deletedBook.authors) {
+		if (bookToDelete.authors) {
 			await Author.updateMany(
-				{ _id: deletedBook.authors },
+				{ _id: bookToDelete.authors },
 				{
-					$pull: { books: deletedBook.id }
+					$pull: { books: bookToDelete.id }
 				}
 			);
 		}
 
-		return deletedBook
+		return await Book.findByIdAndDelete(id)
 			.populate(['publisher', 'series', 'authors'])
 			.populate({
 				path: 'product',

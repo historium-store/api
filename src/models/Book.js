@@ -70,7 +70,7 @@ const bookSchema = new Schema(
 			type: Number,
 			required: false
 		},
-		isbn: [
+		isbns: [
 			{
 				type: String,
 				required: false
@@ -97,7 +97,7 @@ const bookSchema = new Schema(
 			required: false
 		},
 		weight: {
-			type: String,
+			type: Number,
 			required: false
 		},
 

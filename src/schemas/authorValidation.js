@@ -11,6 +11,9 @@ export const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Author full name is required'),
+	body('books')
+		.isArray()
+		.withMessage('Author books must be an array'),
 	body('biography')
 		.optional()
 		.trim()
@@ -34,6 +37,10 @@ export const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Author full name can't be empty"),
+	body('books')
+		.optional()
+		.isArray()
+		.withMessage('Author books must be an array'),
 	body('biography')
 		.optional()
 		.trim()

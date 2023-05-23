@@ -81,4 +81,28 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+const deleteAll = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { id } = matchedData(req);
+
+		res.json({
+			status: 'OK',
+			data: await productService.deleteAll()
+		});
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne,
+	deleteAll
+};

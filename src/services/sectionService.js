@@ -12,7 +12,9 @@ const createOne = async sectionData => {
 	}
 
 	try {
-		return await Section.create(sectionData)
+		const newSection = await Section.create(sectionData);
+
+		return await Section.findById(newSection.id)
 			.populate('sections')
 			.populate({
 				path: 'products',
@@ -28,19 +30,19 @@ const createOne = async sectionData => {
 
 const getOne = async id => {
 	try {
-		const section = await Section.findById(id);
-
-		if (!section) {
+		if (!Section.exists({ _id: id })) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
 			};
 		}
 
-		return section.populate('sections').populate({
-			path: 'products',
-			populate: ['type', 'sections']
-		});
+		return Section.findById(id)
+			.populate('sections')
+			.populate({
+				path: 'products',
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -110,7 +112,12 @@ const updateOne = async (id, changes) => {
 
 		return await Section.findByIdAndUpdate(id, changes, {
 			new: true
-		});
+		})
+			.populate('sections')
+			.populate({
+				path: 'products',
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -121,25 +128,28 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const section = await Section.findById(id);
+		const sectionToDelete = await Section.findById(id);
 
-		if (!section) {
+		if (!sectionToDelete) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
 			};
 		}
 
-		if (section.products.length) {
+		if (sectionToDelete.products.length) {
 			throw {
 				status: 400,
 				message: "Can't delete a section with products in it"
 			};
 		}
 
-		await section.deleteOne();
-
-		return section;
+		return await Section.findByIdAndDelete(id)
+			.populate('sections')
+			.populate({
+				path: 'products',
+				populate: ['type', 'sections']
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
