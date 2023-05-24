@@ -1,25 +1,11 @@
 import { body, param } from 'express-validator';
-import validator from 'validator';
+import { isArrayOfMongoIds } from '../utils.js';
 
 export const validateId = [
 	param('id')
 		.isMongoId()
 		.withMessage('Book series id must be a valid mongo id')
 ];
-
-const isArrayOfMongoIds = value => {
-	const isArray = Array.isArray(value);
-
-	if (!isArray) {
-		throw 'Book series book(s) must be an array';
-	}
-
-	if (value.every(id => validator.isMongoId(id))) {
-		return true;
-	}
-
-	throw 'Invalid book id format';
-};
 
 export const validateCreate = [
 	body('name')

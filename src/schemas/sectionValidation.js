@@ -11,6 +11,9 @@ export const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Section name is required'),
+	body('products')
+		.isArray()
+		.withMessage('Section product(s) must be an array'),
 	body('sections')
 		.isArray()
 		.withMessage('Section section(s) must be an array')

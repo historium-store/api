@@ -23,6 +23,10 @@ export const validateCreate = [
 			digits_after_decimal: [1, 2]
 		})
 		.withMessage('Product price must be a valid currency value'),
+	body('quantity')
+		.optional()
+		.isInt({ min: 0 })
+		.withMessage('Product quantity must be a positive integer'),
 	body('description')
 		.trim()
 		.notEmpty()
@@ -35,10 +39,7 @@ export const validateCreate = [
 	body('images')
 		.isArray({ min: 1, max: 3 })
 		.withMessage('Product must have between 1 and 3 images'),
-	body('quantity')
-		.optional()
-		.isInt({ min: 0 })
-		.withMessage('Product quantity must be a positive integer'),
+
 	body('sections')
 		.isArray({ min: 1 })
 		.withMessage('Product must be in at least 1 section')
@@ -62,6 +63,10 @@ export const validateUpdate = [
 			digits_after_decimal: [1, 2]
 		})
 		.withMessage('Product price must be a valid currency value'),
+	body('quantity')
+		.optional()
+		.isInt({ min: 0 })
+		.withMessage('Product quantity must be a positive integer'),
 	body('description')
 		.optional()
 		.trim()
@@ -72,10 +77,6 @@ export const validateUpdate = [
 		.withMessage(
 			'Product description must be between 50 and 10000 characters'
 		),
-	body('quantity')
-		.optional()
-		.isInt({ min: 0 })
-		.withMessage('Product quantity must be a positive integer'),
 	body('images')
 		.optional()
 		.isArray({ min: 1, max: 3 })
