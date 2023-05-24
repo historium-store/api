@@ -25,7 +25,7 @@ const createOne = async publisherData => {
 		);
 
 		return await Publisher.findById(newPublisher.id).populate([
-			/* 'books', */
+			'books',
 			'bookSeries'
 		]);
 	} catch (err) {
@@ -46,7 +46,7 @@ const getOne = async id => {
 		}
 
 		return await Publisher.findById(id).populate([
-			/* 'books', */
+			'books',
 			'bookSeries'
 		]);
 	} catch (err) {
@@ -59,9 +59,7 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await Publisher.find().populate([
-			/* 'books', */ 'bookSeries'
-		]);
+		return await Publisher.find().populate(['books', 'bookSeries']);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -116,7 +114,7 @@ const updateOne = async (id, changes) => {
 				b.id.toString('hex')
 			);
 			const newBookSeriesIds = [];
-			for (let book of books) {
+			for (let book of bookSeries) {
 				newBookSeriesIds.push(
 					(await bookSeriesService.getOne(book)).id
 				);
@@ -148,10 +146,9 @@ const updateOne = async (id, changes) => {
 			{ $set: { publisher: publisherToUpdate.id } }
 		);
 
-		return await Publisher.findByIdAndUpdate(id, changes).populate([
-			/* 'books', */
-			'bookSeries'
-		]);
+		return await Publisher.findByIdAndUpdate(id, changes, {
+			new: true
+		}).populate(['books', 'bookSeries']);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

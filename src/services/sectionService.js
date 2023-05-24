@@ -96,8 +96,6 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		const addedProductIds = [];
-		const removedProductIds = [];
 		if (products) {
 			const oldProductIds = sectionToUpdate.products.map(p =>
 				p.id.toString('hex')
@@ -107,22 +105,22 @@ const updateOne = async (id, changes) => {
 				newProductIds.push((await productService.getOne(product)).id);
 			}
 
-			addedProductIds.push(
-				...newProductIds.filter(p => !oldProductIds.includes(p))
+			const addedProductIds = newProductIds.filter(
+				p => !oldProductIds.includes(p)
 			);
-			removedProductIds.push(
-				...oldProductIds.filter(p => !newProductIds.includes(p))
+			await Product.updateMany(
+				{ _id: addedProductIds },
+				{ $push: { sections: sectionToUpdate.id } }
+			);
+
+			const removedProductIds = oldProductIds.filter(
+				p => !newProductIds.includes(p)
+			);
+			await Product.updateMany(
+				{ _id: removedProductIds },
+				{ $pull: { sections: sectionToUpdate.id } }
 			);
 		}
-
-		await Product.updateMany(
-			{ _id: addedProductIds },
-			{ $push: { sections: sectionToUpdate.id } }
-		);
-		await Product.updateMany(
-			{ _id: removedProductIds },
-			{ $pull: { sections: sectionToUpdate.id } }
-		);
 
 		return await Section.findByIdAndUpdate(id, changes, {
 			new: true

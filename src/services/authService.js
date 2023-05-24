@@ -2,7 +2,7 @@ import { randomBytes, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import nodemalier from 'nodemailer';
 import { User } from '../models/index.js';
-import { hashPassword, verifyJWT } from '../utils/promisified.js';
+import { hashPassword, verifyJWT } from '../utils.js';
 import userService from './userService.js';
 
 const signup = async userData => {

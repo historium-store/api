@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import fileController from '../controllers/fileController.js';
-import upload from '../utils/upload.js';
+import { upload } from '../utils.js';
 
 const router = Router();
 

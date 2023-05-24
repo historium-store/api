@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import { User } from '../models/index.js';
-import { hashPassword } from '../utils/promisified.js';
+import { hashPassword } from '../utils.js';
 
 const createOne = async userData => {
 	const { phoneNumber, email } = userData;

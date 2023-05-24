@@ -1,6 +1,6 @@
 import { matchedData, validationResult } from 'express-validator';
 import userService from '../services/userService.js';
-import createError from '../utils/create-error.js';
+import { createError } from '../utils.js';
 
 const getOne = async (req, res, next) => {
 	try {

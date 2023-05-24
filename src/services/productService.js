@@ -84,8 +84,6 @@ const updateOne = async (id, changes) => {
 			await productTypeService.getOne(type);
 		}
 
-		const addedSectionIds = [];
-		const removedSectionIds = [];
 		if (sections) {
 			const oldSectionIds = productToUpdate.sections.map(s =>
 				s.id.toString('hex')
@@ -95,22 +93,22 @@ const updateOne = async (id, changes) => {
 				newSectionIds.push((await sectionService.getOne(section)).id);
 			}
 
-			addedSectionIds.push(
-				...newSectionIds.filter(s => !oldSectionIds.includes(s))
+			const addedSectionIds = newSectionIds.filter(
+				s => !oldSectionIds.includes(s)
 			);
-			removedSectionIds.push(
-				...oldSectionIds.filter(s => !newSectionIds.includes(s))
+			await Section.updateMany(
+				{ _id: addedSectionIds },
+				{ $push: { products: productToUpdate.id } }
+			);
+
+			const removedSectionIds = oldSectionIds.filter(
+				s => !newSectionIds.includes(s)
+			);
+			await Section.updateMany(
+				{ _id: removedSectionIds },
+				{ $pull: { products: productToUpdate.id } }
 			);
 		}
-
-		await Section.updateMany(
-			{ _id: addedSectionIds },
-			{ $push: { products: productToUpdate.id } }
-		);
-		await Section.updateMany(
-			{ _id: removedSectionIds },
-			{ $pull: { products: productToUpdate.id } }
-		);
 
 		return await Product.findByIdAndUpdate(id, changes, {
 			new: true

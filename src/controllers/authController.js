@@ -1,7 +1,7 @@
 import { matchedData, validationResult } from 'express-validator';
 import validator from 'validator';
 import authService from '../services/authService.js';
-import createError from '../utils/create-error.js';
+import { createError } from '../utils.js';
 
 export const signup = async (req, res, next) => {
 	try {

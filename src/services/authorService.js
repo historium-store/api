@@ -114,8 +114,6 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		const addedBookIds = [];
-		const removedBookIds = [];
 		if (books) {
 			const oldBookIds = authorToUpdate.books.map(b =>
 				b.id.toString('hex')
@@ -125,23 +123,22 @@ const updateOne = async (id, changes) => {
 				newBookIds.push((await bookService.getOne(book)).id);
 			}
 
-			addedBookIds.push(
-				...newBookIds.filter(b => !oldBookIds.includes(b))
+			const addedBookIds = newBookIds.filter(
+				b => !oldBookIds.includes(b)
+			);
+			await Book.updateMany(
+				{ _id: addedBookIds },
+				{ $push: { authors: authorToUpdate.id } }
 			);
 
-			removedBookIds.push(
-				...oldBookIds.filter(b => !newBookIds.includes(b))
+			const removedBookIds = oldBookIds.filter(
+				b => !newBookIds.includes(b)
+			);
+			await Book.updateMany(
+				{ _id: removedBookIds },
+				{ $pull: { authors: authorToUpdate.id } }
 			);
 		}
-
-		await Book.updateMany(
-			{ _id: addedBookIds },
-			{ $push: { authors: authorToUpdate.id } }
-		);
-		await Book.updateMany(
-			{ _id: removedBookIds },
-			{ $pull: { authors: authorToUpdate.id } }
-		);
 
 		return await Author.findByIdAndUpdate(id, changes, {
 			new: true
