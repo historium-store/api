@@ -2,7 +2,8 @@ import { Author, Book } from '../models/index.js';
 import bookService from './bookService.js';
 
 const createOne = async authorData => {
-	const { fullName, books } = authorData;
+	let { fullName, books } = authorData;
+	books = books ?? [];
 
 	try {
 		if (await Author.exists({ fullName })) {

@@ -1,4 +1,5 @@
 import { body, param } from 'express-validator';
+import { isArrayOfMongoIds } from '../utils.js';
 
 export const validateId = [
 	param('id')
@@ -39,10 +40,11 @@ export const validateCreate = [
 	body('images')
 		.isArray({ min: 1, max: 3 })
 		.withMessage('Product must have between 1 and 3 images'),
-
 	body('sections')
-		.isArray({ min: 1 })
+		.exists()
 		.withMessage('Product must be in at least 1 section')
+		.bail()
+		.custom(isArrayOfMongoIds)
 ];
 
 export const validateUpdate = [
@@ -85,4 +87,5 @@ export const validateUpdate = [
 		.optional()
 		.isArray({ min: 1 })
 		.withMessage('Product must be in at least 1 section')
+		.custom(isArrayOfMongoIds)
 ];

@@ -39,3 +39,17 @@ export const isArrayOfMongoIds = value => {
 
 	throw 'Invalid book id format';
 };
+
+export const isArrayOfIsbns = value => {
+	if (!Array.isArray(value)) {
+		throw 'Book ISBN(s) must be an array';
+	}
+
+	value.forEach(i => {
+		if (!validator.isISBN(i)) {
+			throw 'Invalid book ISBN format';
+		}
+	});
+
+	return true;
+};

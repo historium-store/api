@@ -1,4 +1,5 @@
 import { body, param } from 'express-validator';
+import { isArrayOfMongoIds } from '../utils.js';
 
 export const validateId = [
 	param('id')
@@ -16,12 +17,8 @@ export const validateCreate = [
 		.withMessage(
 			'Publisher name must be between 1 and 100 characters'
 		),
-	body('books')
-		.isArray()
-		.withMessage('Publisher books must be an array'),
-	body('bookSeries')
-		.isArray()
-		.withMessage('Publisher book series must be an array'),
+	body('books').optional().custom(isArrayOfMongoIds),
+	body('bookSeries').optional().custom(isArrayOfMongoIds),
 	body('description')
 		.optional()
 		.trim()
@@ -51,14 +48,8 @@ export const validateUpdate = [
 		.withMessage(
 			'Publisher name must be between 1 and 100 characters'
 		),
-	body('books')
-		.optional()
-		.isArray()
-		.withMessage('Publisher books must be an array'),
-	body('bookSeries')
-		.optional()
-		.isArray()
-		.withMessage('Publisher book series must be an array'),
+	body('books').optional().custom(isArrayOfMongoIds),
+	body('bookSeries').optional().custom(isArrayOfMongoIds),
 	body('description')
 		.optional()
 		.trim()

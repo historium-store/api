@@ -3,7 +3,8 @@ import bookSeriesService from './bookSeriesService.js';
 import bookService from './bookService.js';
 
 const createOne = async publisherData => {
-	const { name, books } = publisherData;
+	let { name, books } = publisherData;
+	books = books ?? [];
 
 	try {
 		if (await Publisher.exists({ name })) {

@@ -5,11 +5,12 @@ import productService from './productService.js';
 import publisherService from './publisherService.js';
 
 const createOne = async bookData => {
-	const {
+	let {
 		publisher: publisherId,
 		authors,
 		series: seriesId
 	} = bookData;
+	authors = authors ?? [];
 
 	try {
 		const publisher = await publisherService.getOne(publisherId);

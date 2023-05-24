@@ -1,5 +1,6 @@
 import { body, param } from 'express-validator';
 import validator from 'validator';
+import { isArrayOfIsbns, isArrayOfMongoIds } from '../utils.js';
 
 export const validateId = [
 	param('id')
@@ -41,8 +42,10 @@ export const validateCreate = [
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer'),
 	body('product.sections')
-		.isArray({ min: 1 })
-		.withMessage('Product must be in at least 1 section'),
+		.exists()
+		.withMessage('Product must be in at least 1 section')
+		.bail()
+		.custom(isArrayOfMongoIds),
 	body('type').trim().notEmpty().withMessage('Book type is required'),
 	body('languages')
 		.isArray({ min: 1 })
@@ -56,26 +59,11 @@ export const validateCreate = [
 	body('publishedIn')
 		.isInt({ allow_negatives: false, min: 1400 })
 		.withMessage('Invalid book publication year'),
-	body('authors')
-		.optional()
-		.isArray()
-		.withMessage('Book author(s) must be an array'),
-	body('composers')
-		.optional()
-		.isArray()
-		.withMessage('Book composer(s) must be an array'),
-	body('translators')
-		.optional()
-		.isArray()
-		.withMessage('Book translator(s) must be an array'),
-	body('illustrators')
-		.optional()
-		.isArray()
-		.withMessage('Book illustrator(s) must be an array'),
-	body('editors')
-		.optional()
-		.isArray()
-		.withMessage('Book editor(s) must be an array'),
+	body('authors').optional().custom(isArrayOfMongoIds),
+	body('composers').optional().custom(isArrayOfMongoIds),
+	body('translators').optional().custom(isArrayOfMongoIds),
+	body('illustrators').optional().custom(isArrayOfMongoIds),
+	body('editors').optional().custom(isArrayOfMongoIds),
 	body('series')
 		.optional()
 		.isMongoId()
@@ -84,21 +72,7 @@ export const validateCreate = [
 		.optional()
 		.isInt({ allow_negatives: false })
 		.withMessage('Book copies must be a positive integer'),
-	body('isbns')
-		.optional()
-		.custom(value => {
-			if (!Array.isArray(value)) {
-				throw 'Book ISBN(s) must be an array';
-			}
-
-			value.forEach(i => {
-				if (!validator.isISBN(i)) {
-					throw 'Invalid book ISBN format';
-				}
-			});
-
-			return true;
-		}),
+	body('isbns').optional().custom(isArrayOfIsbns),
 	body('firstPublishedIn')
 		.optional()
 		.isInt({ allow_negatives: false, min: 1400 })
@@ -164,10 +138,7 @@ export const validateUpdate = [
 		.optional()
 		.isInt({ min: 0 })
 		.withMessage('Product quantity must be a positive integer'),
-	body('product.sections')
-		.optional()
-		.isArray({ min: 1 })
-		.withMessage('Product must be in at least 1 section'),
+	body('product.sections').optional().custom(isArrayOfMongoIds),
 	body('type')
 		.optional()
 		.trim()
@@ -185,26 +156,11 @@ export const validateUpdate = [
 		.optional()
 		.isInt({ allow_negatives: false, min: 1400 })
 		.withMessage('Invalid book publication year'),
-	body('authors')
-		.optional()
-		.isArray()
-		.withMessage('Book author(s) must be an array'),
-	body('composers')
-		.optional()
-		.isArray()
-		.withMessage('Book composer(s) must be an array'),
-	body('translators')
-		.optional()
-		.isArray()
-		.withMessage('Book translator(s) must be an array'),
-	body('illustrators')
-		.optional()
-		.isArray()
-		.withMessage('Book illustrator(s) must be an array'),
-	body('editors')
-		.optional()
-		.isArray()
-		.withMessage('Book editor(s) must be an array'),
+	body('authors').optional().custom(isArrayOfMongoIds),
+	body('composers').optional().custom(isArrayOfMongoIds),
+	body('translators').optional().custom(isArrayOfMongoIds),
+	body('illustrators').optional().custom(isArrayOfMongoIds),
+	body('editors').optional().custom(isArrayOfMongoIds),
 	body('series')
 		.optional()
 		.isMongoId()
@@ -213,24 +169,7 @@ export const validateUpdate = [
 		.optional()
 		.isInt({ allow_negatives: false })
 		.withMessage('Book copies must be a positive integer'),
-	body('isbns')
-		.optional()
-		.custom(value => {
-			const isArray = validator.isArray(value);
-			if (!isArray) {
-				throw 'Book ISBN(s) must be an array';
-			}
-
-			let isISBN;
-			value.forEach(i => {
-				isISBN = validator.isISBN(i);
-				if (!isISBN) {
-					throw 'Invalid book ISBN format';
-				}
-			});
-
-			return true;
-		}),
+	body('isbns').optional().custom(isArrayOfIsbns),
 	body('firstPublishedIn')
 		.optional()
 		.isInt({ allow_negatives: false, min: 1400 })

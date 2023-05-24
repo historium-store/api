@@ -2,7 +2,8 @@ import { Product, Section } from '../models/index.js';
 import productService from './productService.js';
 
 const createOne = async sectionData => {
-	const { name, products } = sectionData;
+	let { name, products } = sectionData;
+	products = products ?? [];
 
 	try {
 		if (await Section.exists({ name })) {

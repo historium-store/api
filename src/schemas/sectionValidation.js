@@ -1,4 +1,5 @@
 import { body, param } from 'express-validator';
+import { isArrayOfMongoIds } from '../utils.js';
 
 export const validateId = [
 	param('id')
@@ -11,12 +12,8 @@ export const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Section name is required'),
-	body('products')
-		.isArray()
-		.withMessage('Section product(s) must be an array'),
-	body('sections')
-		.isArray()
-		.withMessage('Section section(s) must be an array')
+	body('products').optional().custom(isArrayOfMongoIds),
+	body('sections').optional().custom(isArrayOfMongoIds)
 ];
 
 export const validateUpdate = [
@@ -26,12 +23,6 @@ export const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Section name can't be empty"),
-	body('products')
-		.optional()
-		.isArray()
-		.withMessage('Section product(s) must be an array'),
-	body('sections')
-		.optional()
-		.isArray()
-		.withMessage('Section section(s) must be an array')
+	body('products').optional().custom(isArrayOfMongoIds),
+	body('sections').optional().custom(isArrayOfMongoIds)
 ];

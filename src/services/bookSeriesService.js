@@ -3,7 +3,8 @@ import bookService from './bookService.js';
 import publisherService from './publisherService.js';
 
 const createOne = async bookSeriesData => {
-	const { name, publisher: publisherId, books } = bookSeriesData;
+	let { name, publisher: publisherId, books } = bookSeriesData;
+	books = books ?? [];
 
 	try {
 		const publisher = await publisherService.getOne(publisherId);

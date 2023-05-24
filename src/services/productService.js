@@ -3,7 +3,8 @@ import productTypeService from './productTypeService.js';
 import sectionService from './sectionService.js';
 
 const createOne = async productData => {
-	const { type, sections } = productData;
+	let { type, sections } = productData;
+	sections = sections ?? [];
 
 	try {
 		// TODO: хранить последний использованный код в базе (триггер)
