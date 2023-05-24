@@ -167,7 +167,7 @@ const restorePassword = async loginData => {
 
 			await transporter.sendMail(mailData);
 
-			// await userToRestore.updateOne({ $set: { restorationToken } });
+			await userToRestore.updateOne({ $set: { restorationToken } });
 		}
 	} catch (err) {
 		throw {
@@ -197,18 +197,18 @@ const verifyRestorationToken = async resetData => {
 			};
 		}
 
-		// if (!foundUser.restorationToken) {
-		// 	throw { status: 400, message: "User doesn't need restoration" };
-		// }
+		if (!foundUser.restorationToken) {
+			throw { status: 400, message: "User doesn't need restoration" };
+		}
 
-		// if (restorationToken !== foundUser.restorationToken) {
-		// 	throw {
-		// 		status: 400,
-		// 		message: 'Incorrect restoration token'
-		// 	};
-		// }
+		if (restorationToken !== foundUser.restorationToken) {
+			throw {
+				status: 400,
+				message: 'Incorrect restoration token'
+			};
+		}
 
-		// await foundUser.updateOne({ $unset: { restorationToken: true } });
+		await foundUser.updateOne({ $unset: { restorationToken: true } });
 
 		return `${foundUser.id}`;
 	} catch (err) {
