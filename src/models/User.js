@@ -40,7 +40,11 @@ const userSchema = new Schema(
 				ref: 'Review',
 				required: false
 			}
-		]
+		],
+		restorationToken: {
+			type: String,
+			required: false
+		}
 	},
 	{
 		versionKey: false

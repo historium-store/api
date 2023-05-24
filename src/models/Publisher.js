@@ -15,6 +15,13 @@ const publisherSchema = new Schema(
 				required: false
 			}
 		],
+		books: [
+			{
+				type: ObjectId,
+				ref: 'Book',
+				required: false
+			}
+		],
 		description: {
 			type: String,
 			required: false
