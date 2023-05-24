@@ -149,9 +149,9 @@ const restorePassword = async loginData => {
 		if (email) {
 			const transporter = nodemalier.createTransport({
 				port: 465,
-				host: 'smtp.gmail.com',
+				host: 'smtp.privateemail.com',
 				auth: {
-					user: 'historium.store@gmail.com',
+					user: 'noreply@historium.store',
 					pass: process.env.EMAIL_PASSWORD
 				},
 				secure: true
@@ -159,7 +159,7 @@ const restorePassword = async loginData => {
 
 			const restorationToken = randomBytes(4).toString('hex');
 			const mailData = {
-				from: '"Historium" historium.store@gmail.com',
+				from: '"Historium" noreply@historium.store',
 				to: userToRestore.email,
 				subject: 'Password restoration',
 				html: `Restoration token: <b>${restorationToken}</b>`
