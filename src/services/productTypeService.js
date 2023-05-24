@@ -3,14 +3,14 @@ import { ProductType } from '../models/index.js';
 const createOne = async productTypeData => {
 	const { name } = productTypeData;
 
-	if (await ProductType.exists({ name })) {
-		throw {
-			status: 409,
-			message: `Product type with name '${name}' already exists`
-		};
-	}
-
 	try {
+		if (await ProductType.exists({ name })) {
+			throw {
+				status: 409,
+				message: `Product type with name '${name}' already exists`
+			};
+		}
+
 		return await ProductType.create(productTypeData);
 	} catch (err) {
 		throw {
@@ -52,6 +52,8 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
+	const { name } = changes;
+
 	try {
 		const productType = await ProductType.findById(id);
 
@@ -61,8 +63,6 @@ const updateOne = async (id, changes) => {
 				message: `Product type with id '${id}' not found`
 			};
 		}
-
-		const { name } = changes;
 
 		if (await ProductType.exists({ name })) {
 			throw {

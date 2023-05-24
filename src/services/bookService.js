@@ -5,19 +5,19 @@ import productService from './productService.js';
 import publisherService from './publisherService.js';
 
 const createOne = async bookData => {
+	const {
+		publisher: publisherId,
+		authors,
+		series: seriesId
+	} = bookData;
+
 	try {
-		const publisher = await publisherService.getOne(
-			bookData.publisher
-		);
+		const publisher = await publisherService.getOne(publisherId);
 
-		let bookSeries;
-		if (bookData.series) {
-			bookSeries = await bookSeriesService.getOne(bookData.series);
-		}
+		const series = await bookSeriesService.getOne(seriesId);
 
-		const authors = [];
-		for (let authorId of bookData.authors) {
-			authors.push(await authorService.getOne(authorId));
+		for (let author of authors) {
+			await authorService.getOne(author);
 		}
 
 		bookData.product = (
@@ -25,17 +25,17 @@ const createOne = async bookData => {
 		).id;
 
 		const newBook = await Book.create(bookData);
+
 		// await publisher.updateOne({ $push: { books: newBook.id } });
 
-		if (bookSeries) {
-			await bookSeries.updateOne({ $push: { books: newBook.id } });
-		}
+		await series.updateOne({ $push: { books: newBook.id } });
 
-		for (let author of authors) {
-			await author.updateOne({ $push: { books: newBook.id } });
-		}
+		await Author.updateMany(
+			{ _id: authors },
+			{ $push: { books: newBook.id } }
+		);
 
-		return Book.findById(newBook.id)
+		return await Book.findById(newBook.id)
 			.populate(['publisher', 'series', 'authors'])
 			.populate({
 				path: 'product',
@@ -51,14 +51,14 @@ const createOne = async bookData => {
 
 const getOne = async id => {
 	try {
-		if (!Book.exists({ _id: id })) {
+		if (!(await Book.exists({ _id: id }))) {
 			throw {
 				status: 404,
 				message: `Book with id '${id}' not found`
 			};
 		}
 
-		return Book.findById(id)
+		return await Book.findById(id)
 			.populate(['publisher', 'series', 'authors'])
 			.populate({
 				path: 'product',
@@ -89,6 +89,8 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
+	const { product, publisher, authors, series } = changes;
+
 	try {
 		const bookToUpdate = await Book.findById(id);
 
@@ -99,61 +101,78 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		if (changes.product) {
-			await productService.updateOne(
-				bookToUpdate.product,
-				changes.product
-			);
+		if (product) {
+			await productService.updateOne(bookToUpdate.product, product);
 
 			delete changes.product;
 		}
 
-		if (changes.publisher) {
-			const foundPublisher = await publisherService.getOne(
-				changes.publisher
+		let oldPublisher;
+		let newPublisher;
+		if (publisher) {
+			oldPublisher = await publisherService.getOne(
+				bookToUpdate.publisher
 			);
+			newPublisher = await publisherService.getOne(publisher);
+		}
 
-			if (changes.publisher !== bookToUpdate.publisher) {
-				changes.publisher = foundPublisher.id;
+		let oldBookSeries;
+		let newBookSeries;
+		if (series) {
+			oldBookSeries = await bookSeriesService.getOne(
+				bookToUpdate.series
+			);
+			newBookSeries = await bookSeriesService.getOne(series);
+
+			if (!oldBookSeries) {
+				oldBookSeries = newBookSeries;
 			}
 		}
 
-		if (changes.series) {
-			const foundBookSeries = await bookSeriesService.getOne(
-				changes.series
+		const addedAuthorIds = [];
+		const removedAuthorIds = [];
+		if (authors) {
+			const oldAuthorIds = bookToUpdate.authors.map(a =>
+				a.id.toString('hex')
 			);
-
-			if (foundBookSeries.id !== bookToUpdate.series) {
-				await BookSeries.findByIdAndUpdate(bookToUpdate.series, {
-					$pull: { books: bookToUpdate.id }
-				});
-				await foundBookSeries.updateOne({
-					$push: { books: bookToUpdate.id }
-				});
+			const newAuthorIds = [];
+			for (let author of authors) {
+				newAuthorIds.push((await authorService.getOne(author)).id);
 			}
+
+			addedAuthorIds.push(
+				...newAuthorIds.filter(a => !oldAuthorIds.includes(a))
+			);
+			removedAuthorIds.push(
+				...oldAuthorIds.filter(a => !newAuthorIds.includes(a))
+			);
 		}
 
-		if (changes.authors) {
-			const newAuthors = [];
-			changes.authors.forEach(async a =>
-				newAuthors.push(await authorService.getOne(a))
-			);
+		if (publisher && newPublisher.id !== oldPublisher.id) {
+			await newPublisher.updateOne({
+				$push: { books: bookToUpdate.id }
+			});
+			await oldPublisher.updateOne({
+				$pull: { books: bookToUpdate.id }
+			});
+		}
 
-			const added = newAuthors.filter(
-				a => !bookToUpdate.authors.includes(a.id)
-			);
-			await Author.updateMany(
-				{ _id: added },
-				{ $addToSet: { books: bookToUpdate.id } }
-			);
+		await Author.updateMany(
+			{ _id: addedAuthorIds },
+			{ $push: { books: bookToUpdate.id } }
+		);
+		await Author.updateMany(
+			{ _id: removedAuthorIds },
+			{ $pull: { books: bookToUpdate.id } }
+		);
 
-			const removed = bookToUpdate.authors
-				.map(a => `${a}`)
-				.filter(a => !newAuthors.map(s => s.id).includes(a));
-			await Author.updateMany(
-				{ _id: removed },
-				{ $pull: { books: bookToUpdate.id } }
-			);
+		if (series && newBookSeries.id !== oldBookSeries.id) {
+			await newBookSeries.updateOne({
+				$push: { books: bookToUpdate.id }
+			});
+			await oldBookSeries.updateOne({
+				$pull: { books: bookToUpdate.id }
+			});
 		}
 
 		return await Book.findByIdAndUpdate(id, changes, { new: true })

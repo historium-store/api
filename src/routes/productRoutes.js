@@ -17,14 +17,14 @@ router
 	.get(productController.getAll)
 	.post(validateCreate, productController.createOne);
 
-if (process.env.NODE_ENV === 'development') {
-	router.delete('/', productController.deleteAll);
-}
+// if (process.env.NODE_ENV === 'development') {
+// 	router.delete('/', productController.deleteAll);
+// }
 
 router
 	.route('/:id')
 	.get(validateId, productController.getOne)
-	.patch(validateUpdate, productController.updateOne)
-	.delete(validateId, productController.deleteOne);
+	.patch(validateUpdate, productController.updateOne);
+// .delete(validateId, productController.deleteOne);
 
 export default router;

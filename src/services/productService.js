@@ -1,8 +1,10 @@
-import { Book, Product, Section } from '../models/index.js';
+import { Product, Section } from '../models/index.js';
 import productTypeService from './productTypeService.js';
 import sectionService from './sectionService.js';
 
 const createOne = async productData => {
+	const { type, sections } = productData;
+
 	try {
 		// TODO: хранить последний использованный код в базе (триггер)
 		const codes = (await Product.find({})).map(p => +p.code);
@@ -11,18 +13,18 @@ const createOne = async productData => {
 			: '100000';
 		productData.code = code;
 
-		await productTypeService.getOne(productData.type);
+		await productTypeService.getOne(type);
 
-		const sections = [];
-		for (let section of productData.sections) {
-			sections.push(await sectionService.getOne(section));
+		for (let section of sections) {
+			await sectionService.getOne(section);
 		}
 
 		const newProduct = await Product.create(productData);
 
-		for (let section of sections) {
-			await section.updateOne({ $push: { products: newProduct.id } });
-		}
+		await Section.updateMany(
+			{ _id: sections },
+			{ $push: { products: newProduct.id } }
+		);
 
 		return await Product.findById(newProduct.id).populate([
 			'type',
@@ -38,16 +40,14 @@ const createOne = async productData => {
 
 const getOne = async id => {
 	try {
-		const product = await Product.findById(id);
-
-		if (!product) {
+		if (!(await Product.exists({ _id: id }))) {
 			throw {
 				status: 404,
 				message: `Product with id '${id}' not found`
 			};
 		}
 
-		return product.populate(['type', 'sections']);
+		return await Product.findById(id).populate(['type', 'sections']);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -68,6 +68,8 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
+	const { type, sections } = changes;
+
 	try {
 		const productToUpdate = await Product.findById(id);
 
@@ -78,28 +80,37 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		if (changes.sections) {
-			const sections = [];
-			changes.sections.forEach(async s =>
-				sections.push(await sectionService.getOne(s))
-			);
+		if (type) {
+			await productTypeService.getOne(type);
+		}
 
-			const added = sections.filter(
-				s => !productToUpdate.sections.includes(s.id)
+		const addedSectionIds = [];
+		const removedSectionIds = [];
+		if (sections) {
+			const oldSectionIds = productToUpdate.sections.map(s =>
+				s.id.toString('hex')
 			);
-			await Section.updateMany(
-				{ _id: added },
-				{ $addToSet: { products: productToUpdate.id } }
-			);
+			const newSectionIds = [];
+			for (let section of sections) {
+				newSectionIds.push((await sectionService.getOne(section)).id);
+			}
 
-			const removed = productToUpdate.sections
-				.map(s => `${s}`)
-				.filter(s => !sections.map(s => s.id).includes(s));
-			await Section.updateMany(
-				{ _id: removed },
-				{ $pull: { products: productToUpdate.id } }
+			addedSectionIds.push(
+				...newSectionIds.filter(s => !oldSectionIds.includes(s))
+			);
+			removedSectionIds.push(
+				...oldSectionIds.filter(s => !newSectionIds.includes(s))
 			);
 		}
+
+		await Section.updateMany(
+			{ _id: addedSectionIds },
+			{ $push: { products: productToUpdate.id } }
+		);
+		await Section.updateMany(
+			{ _id: removedSectionIds },
+			{ $pull: { products: productToUpdate.id } }
+		);
 
 		return await Product.findByIdAndUpdate(id, changes, {
 			new: true
@@ -140,39 +151,36 @@ const deleteOne = async id => {
 	}
 };
 
-const deleteAll = async () => {
-	try {
-		const productsToDelete = await Product.find().populate([
-			'type',
-			'sections'
-		]);
+// const deleteAll = async () => {
+// 	try {
+// 		const productsToDelete = await Product.find().populate([
+// 			'type',
+// 			'sections'
+// 		]);
 
-		for (let product of productsToDelete) {
-			await Section.updateMany(
-				{ _id: product.sections },
-				{ $pull: { products: product.id } }
-			);
+// 		for (let product of productsToDelete) {
+// 			await Section.updateMany(
+// 				{ _id: product.sections },
+// 				{ $pull: { products: product.id } }
+// 			);
 
-			// TODO (мне): нужно продумать как при удалении товара
-			// удалять и связанный с ним конкретный товар
+// 			await product.deleteOne();
+// 		}
 
-			await product.deleteOne();
-		}
-
-		return productsToDelete;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
-	}
-};
+// 		return productsToDelete;
+// 	} catch (err) {
+// 		throw {
+// 			status: err.status ?? 500,
+// 			message: err.message ?? err
+// 		};
+// 	}
+// };
 
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne,
-	deleteAll
+	deleteOne /* ,
+	deleteAll */
 };

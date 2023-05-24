@@ -2,17 +2,26 @@ import { Product, Section } from '../models/index.js';
 import productService from './productService.js';
 
 const createOne = async sectionData => {
-	const { name } = sectionData;
-
-	if (await Section.exists({ name })) {
-		throw {
-			status: 409,
-			message: `Section with name '${name}' already exists`
-		};
-	}
+	const { name, products } = sectionData;
 
 	try {
+		if (await Section.exists({ name })) {
+			throw {
+				status: 409,
+				message: `Section with name '${name}' already exists`
+			};
+		}
+
+		for (let product of products) {
+			await productService.getOne(product);
+		}
+
 		const newSection = await Section.create(sectionData);
+
+		await Product.updateMany(
+			{ _id: products },
+			{ $push: { sections: newSection.id } }
+		);
 
 		return await Section.findById(newSection.id)
 			.populate('sections')
@@ -30,14 +39,14 @@ const createOne = async sectionData => {
 
 const getOne = async id => {
 	try {
-		if (!Section.exists({ _id: id })) {
+		if (!(await Section.exists({ _id: id }))) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
 			};
 		}
 
-		return Section.findById(id)
+		return await Section.findById(id)
 			.populate('sections')
 			.populate({
 				path: 'products',
@@ -68,6 +77,8 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
+	const { name, products } = changes;
+
 	try {
 		const sectionToUpdate = await Section.findById(id);
 
@@ -78,8 +89,6 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		const { name } = changes;
-
 		if (await Section.exists({ name })) {
 			throw {
 				status: 409,
@@ -87,28 +96,33 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		if (changes.products) {
-			const products = [];
-			changes.products.forEach(p =>
-				products.push(productService.getOne(p))
+		const addedProductIds = [];
+		const removedProductIds = [];
+		if (products) {
+			const oldProductIds = sectionToUpdate.products.map(p =>
+				p.id.toString('hex')
 			);
+			const newProductIds = [];
+			for (let product of products) {
+				newProductIds.push((await productService.getOne(product)).id);
+			}
 
-			const added = products.filter(
-				p => !sectionToUpdate.products.includes(p.id)
+			addedProductIds.push(
+				...newProductIds.filter(p => !oldProductIds.includes(p))
 			);
-			await Product.updateMany(
-				{ _id: added },
-				{ $addToSet: { sections: sectionToUpdate.id } }
-			);
-
-			const removed = sectionToUpdate.products
-				.map(s => `${s}`)
-				.filter(p => !products.map(p => p.id).includes(p));
-			await Product.updateMany(
-				{ _id: removed },
-				{ $pull: { sections: sectionToUpdate.id } }
+			removedProductIds.push(
+				...oldProductIds.filter(p => !newProductIds.includes(p))
 			);
 		}
+
+		await Product.updateMany(
+			{ _id: addedProductIds },
+			{ $push: { sections: sectionToUpdate.id } }
+		);
+		await Product.updateMany(
+			{ _id: removedProductIds },
+			{ $pull: { sections: sectionToUpdate.id } }
+		);
 
 		return await Section.findByIdAndUpdate(id, changes, {
 			new: true

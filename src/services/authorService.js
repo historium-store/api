@@ -1,17 +1,40 @@
 import { Author, Book } from '../models/index.js';
+import bookService from './bookService.js';
 
 const createOne = async authorData => {
-	const { fullName } = authorData;
-
-	if (await Author.exists({ fullName })) {
-		throw {
-			status: 409,
-			message: `Author with full name '${fullName}' already exists`
-		};
-	}
+	const { fullName, books } = authorData;
 
 	try {
-		return await Author.create(authorData);
+		if (await Author.exists({ fullName })) {
+			throw {
+				status: 409,
+				message: `Author with full name '${fullName}' already exists`
+			};
+		}
+
+		for (let book of books) {
+			await bookService.getOne(book);
+		}
+
+		const newAuthor = await Author.create(authorData);
+
+		await Book.updateMany(
+			{ _id: books },
+			{ $push: { authors: newAuthor.id } }
+		);
+
+		return await Author.findById(newAuthor.id)
+			.populate({
+				path: 'books',
+				populate: ['publisher', 'series']
+			})
+			.populate({
+				path: 'books',
+				populate: {
+					path: 'product',
+					populate: ['type', 'sections']
+				}
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -22,16 +45,25 @@ const createOne = async authorData => {
 
 const getOne = async id => {
 	try {
-		const author = await Author.findById(id);
-
-		if (!author) {
+		if (!(await Author.exists({ _id: id }))) {
 			throw {
 				status: 404,
 				message: `Author with id '${id}' not found`
 			};
 		}
 
-		return author;
+		return await Author.findById(id)
+			.populate({
+				path: 'books',
+				populate: ['publisher', 'series']
+			})
+			.populate({
+				path: 'books',
+				populate: {
+					path: 'product',
+					populate: ['type', 'sections']
+				}
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -42,7 +74,18 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await Author.find();
+		return await Author.find()
+			.populate({
+				path: 'books',
+				populate: ['publisher', 'series']
+			})
+			.populate({
+				path: 'books',
+				populate: {
+					path: 'product',
+					populate: ['type', 'sections']
+				}
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -52,17 +95,17 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	try {
-		const oldAuthor = await Author.findById(id);
+	const { fullName, books } = changes;
 
-		if (!oldAuthor) {
+	try {
+		const authorToUpdate = await Author.findById(id);
+
+		if (!authorToUpdate) {
 			throw {
 				status: 404,
 				message: `Author with id '${id}' not found`
 			};
 		}
-
-		const { fullName, books } = changes;
 
 		if (await Author.exists({ fullName })) {
 			throw {
@@ -71,25 +114,46 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
+		const addedBookIds = [];
+		const removedBookIds = [];
 		if (books) {
-			const added = books.filter(
-				b => !oldAuthor.books.map(b => `${b}`).includes(b)
+			const oldBookIds = authorToUpdate.books.map(b =>
+				b.id.toString('hex')
 			);
-			await Book.updateMany(
-				{ _id: added },
-				{ $push: { authors: oldAuthor.id } }
+			const newBookIds = [];
+			for (let book of books) {
+				newBookIds.push((await bookService.getOne(book)).id);
+			}
+
+			addedBookIds.push(
+				...newBookIds.filter(b => !oldBookIds.includes(b))
 			);
 
-			const removed = oldAuthor.books
-				.map(b => `${b}`)
-				.filter(b => !books.includes(b));
-			await Book.updateMany(
-				{ _id: removed },
-				{ $pull: { authors: oldAuthor.id } }
+			removedBookIds.push(
+				...oldBookIds.filter(b => !newBookIds.includes(b))
 			);
 		}
 
-		return await Author.findByIdAndUpdate(id, changes, { new: true });
+		await Book.updateMany(
+			{ _id: addedBookIds },
+			{ $push: { authors: authorToUpdate.id } }
+		);
+		await Book.updateMany(
+			{ _id: removedBookIds },
+			{ $pull: { authors: authorToUpdate.id } }
+		);
+
+		return await Author.findByIdAndUpdate(id, changes, {
+			new: true
+		})
+			.populate({ path: 'books', populate: ['publisher', 'series'] })
+			.populate({
+				path: 'books',
+				populate: {
+					path: 'product',
+					populate: ['type', 'sections']
+				}
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -100,9 +164,9 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const deletedAuthor = await Author.findByIdAndDelete(id);
+		const authorToDelete = await Author.findById(id);
 
-		if (!deletedAuthor) {
+		if (!authorToDelete) {
 			throw {
 				status: 404,
 				message: `Author with id '${id}' not found`
@@ -110,11 +174,13 @@ const deleteOne = async id => {
 		}
 
 		await Book.updateMany(
-			{ _id: deletedAuthor.books },
-			{ $pull: { authors: deletedAuthor.id } }
+			{ _id: authorToDelete.books },
+			{ $pull: { authors: authorToDelete.id } }
 		);
 
-		return deletedAuthor;
+		await authorToDelete.deleteOne();
+
+		return authorToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

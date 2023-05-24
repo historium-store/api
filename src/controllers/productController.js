@@ -64,45 +64,45 @@ const updateOne = async (req, res, next) => {
 	}
 };
 
-const deleteOne = async (req, res, next) => {
-	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
+// const deleteOne = async (req, res, next) => {
+// 	try {
+// 		validationResult(req)
+// 			.formatWith(e => e.msg)
+// 			.throw();
 
-		const { id } = matchedData(req);
+// 		const { id } = matchedData(req);
 
-		res.json({
-			status: 'OK',
-			data: await productService.deleteOne(id)
-		});
-	} catch (err) {
-		next(createError(err));
-	}
-};
+// 		res.json({
+// 			status: 'OK',
+// 			data: await productService.deleteOne(id)
+// 		});
+// 	} catch (err) {
+// 		next(createError(err));
+// 	}
+// };
 
-const deleteAll = async (req, res, next) => {
-	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
+// const deleteAll = async (req, res, next) => {
+// 	try {
+// 		validationResult(req)
+// 			.formatWith(e => e.msg)
+// 			.throw();
 
-		const { id } = matchedData(req);
+// 		const { id } = matchedData(req);
 
-		res.json({
-			status: 'OK',
-			data: await productService.deleteAll()
-		});
-	} catch (err) {
-		next(createError(err));
-	}
-};
+// 		res.json({
+// 			status: 'OK',
+// 			data: await productService.deleteAll()
+// 		});
+// 	} catch (err) {
+// 		next(createError(err));
+// 	}
+// };
 
 export default {
 	createOne,
 	getOne,
 	getAll,
-	updateOne,
+	updateOne /* ,
 	deleteOne,
-	deleteAll
+	deleteAll */
 };
