@@ -11,8 +11,7 @@ const createOne = async (req, res, next) => {
 		const data = matchedData(req);
 
 		res.status(201).json({
-			status: 'OK',
-			data: await publisherService.createOne(data)
+			publisher: await publisherService.createOne(data)
 		});
 	} catch (err) {
 		next(createError(err));
@@ -28,8 +27,7 @@ const getOne = async (req, res, next) => {
 		const { id } = matchedData(req);
 
 		res.json({
-			status: 'OK',
-			data: await publisherService.getOne(id)
+			publisher: await publisherService.getOne(id)
 		});
 	} catch (err) {
 		next(createError(err));
@@ -39,8 +37,7 @@ const getOne = async (req, res, next) => {
 const getAll = async (req, res, next) => {
 	try {
 		res.json({
-			status: 'OK',
-			data: await publisherService.getAll()
+			publishers: await publisherService.getAll()
 		});
 	} catch (err) {
 		next(createError(err));
@@ -56,8 +53,7 @@ const updateOne = async (req, res, next) => {
 		const { id, ...changes } = matchedData(req);
 
 		res.json({
-			status: 'OK',
-			data: await publisherService.updateOne(id, changes)
+			publisher: await publisherService.updateOne(id, changes)
 		});
 	} catch (err) {
 		next(createError(err));
@@ -73,8 +69,7 @@ const deleteOne = async (req, res, next) => {
 		const { id } = matchedData(req);
 
 		res.json({
-			status: 'OK',
-			data: await publisherService.deleteOne(id)
+			publisher: await publisherService.deleteOne(id)
 		});
 	} catch (err) {
 		next(createError(err));

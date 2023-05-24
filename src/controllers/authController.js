@@ -12,8 +12,7 @@ export const signup = async (req, res, next) => {
 		const userData = matchedData(req);
 
 		res.status(201).json({
-			status: 'OK',
-			data: await authService.signup(userData)
+			user: await authService.signup(userData)
 		});
 	} catch (err) {
 		next(createError(err));
@@ -35,10 +34,7 @@ export const login = async (req, res, next) => {
 			password
 		};
 
-		res.json({
-			status: 'OK',
-			data: { token: await authService.login(loginData) }
-		});
+		res.json({ token: await authService.login(loginData) });
 	} catch (err) {
 		next(createError(err));
 	}
@@ -92,11 +88,9 @@ export const verifyRestorationToken = async (req, res, next) => {
 			restorationToken
 		};
 
-		const userId = await authService.verifyRestorationToken(
-			dataToVerify
-		);
-
-		await res.json({ status: 'OK', userId });
+		res.json({
+			id: await authService.verifyRestorationToken(dataToVerify)
+		});
 	} catch (err) {
 		next(createError(err));
 	}

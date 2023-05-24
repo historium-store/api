@@ -11,8 +11,7 @@ const createOne = async (req, res, next) => {
 		const data = matchedData(req);
 
 		res.status(201).json({
-			status: 'OK',
-			data: await productService.createOne(data)
+			product: await productService.createOne(data)
 		});
 	} catch (err) {
 		next(createError(err));
@@ -28,8 +27,7 @@ const getOne = async (req, res, next) => {
 		const { id } = matchedData(req);
 
 		res.json({
-			status: 'OK',
-			data: await productService.getOne(id)
+			product: await productService.getOne(id)
 		});
 	} catch (err) {
 		next(createError(err));
@@ -39,8 +37,7 @@ const getOne = async (req, res, next) => {
 const getAll = async (req, res, next) => {
 	try {
 		res.json({
-			status: 'OK',
-			data: await productService.getAll()
+			products: await productService.getAll()
 		});
 	} catch (err) {
 		next(createError(err));
@@ -56,8 +53,7 @@ const updateOne = async (req, res, next) => {
 		const { id, ...changes } = matchedData(req);
 
 		res.json({
-			status: 'OK',
-			data: await productService.updateOne(id, changes)
+			product: await productService.updateOne(id, changes)
 		});
 	} catch (err) {
 		next(createError(err));
