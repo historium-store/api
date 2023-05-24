@@ -12,6 +12,7 @@ import productRoutes from './routes/productRoutes.js';
 import productTypeRoutes from './routes/productTypeRoutes.js';
 import publisherRoutes from './routes/publisherRoutes.js';
 import sectionRoutes from './routes/sectionRoutes.js';
+import translatorRoutes from './routes/translatorRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 
 const app = express();
@@ -26,8 +27,9 @@ app.use('/product-type', productTypeRoutes);
 app.use('/product', productRoutes);
 app.use('/publisher', publisherRoutes);
 app.use('/book', bookRoutes);
-app.use('/book-series', bookSeriesRoutes);
 app.use('/author', authorRoutes);
+app.use('/translator', translatorRoutes);
+app.use('/book-series', bookSeriesRoutes);
 app.use('/file', fileRoutes);
 
 app.use((req, res, next) =>
