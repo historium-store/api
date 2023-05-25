@@ -5,6 +5,7 @@ import { errorHandler } from './middleware.js';
 
 import authRouter from './components/auth/router.js';
 import authorRouter from './components/author/router.js';
+import bookSeriesRouter from './components/book-series/router.js';
 import fileRouter from './components/file/router.js';
 import productTypeRouter from './components/product-type/router.js';
 import productRouter from './components/product/router.js';
@@ -26,6 +27,7 @@ app.use('/product', productRouter);
 app.use('/publisher', publisherRouter);
 app.use('/author', authorRouter);
 app.use('/translator', translatorRouter);
+app.use('book-series', bookSeriesRouter);
 app.use('/file', fileRouter);
 
 app.use((req, res, next) =>
