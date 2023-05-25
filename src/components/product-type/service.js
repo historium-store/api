@@ -1,4 +1,4 @@
-import { ProductType } from '../models/index.js';
+import ProductType from './model.js';
 
 const createOne = async productTypeData => {
 	const { name } = productTypeData;
@@ -55,9 +55,9 @@ const updateOne = async (id, changes) => {
 	const { name } = changes;
 
 	try {
-		const productType = await ProductType.findById(id);
+		const productTypeToUpdate = await ProductType.findById(id);
 
-		if (!productType) {
+		if (!productTypeToUpdate) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
@@ -84,18 +84,18 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const productType = await ProductType.findById(id);
+		const productTypeToDelete = await ProductType.findById(id);
 
-		if (!productType) {
+		if (!productTypeToDelete) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
 			};
 		}
 
-		productType.deleteOne();
+		productTypeToDelete.deleteOne();
 
-		return productType;
+		return productTypeToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

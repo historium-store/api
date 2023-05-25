@@ -1,6 +1,6 @@
 import { matchedData, validationResult } from 'express-validator';
-import authorService from '../services/authorService.js';
-import { createError } from '../utils.js';
+import { createError } from '../../utils.js';
+import service from './service.js';
 
 const createOne = async (req, res, next) => {
 	try {
@@ -10,7 +10,7 @@ const createOne = async (req, res, next) => {
 
 		const data = matchedData(req);
 
-		res.status(201).json(await authorService.createOne(data));
+		res.status(201).json(await service.createOne(data));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -24,7 +24,7 @@ const getOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json(await authorService.getOne(id));
+		res.json(await service.getOne(id));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -32,7 +32,7 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
 	try {
-		res.json(await authorService.getAll());
+		res.json(await service.getAll());
 	} catch (err) {
 		next(createError(err));
 	}
@@ -46,7 +46,7 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
-		res.json(await authorService.updateOne(id, changes));
+		res.json(await service.updateOne(id, changes));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -60,7 +60,7 @@ const deleteOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json(await authorService.deleteOne(id));
+		res.json(await service.deleteOne(id));
 	} catch (err) {
 		next(createError(err));
 	}

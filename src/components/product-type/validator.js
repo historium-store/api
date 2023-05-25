@@ -1,19 +1,19 @@
 import { body, param } from 'express-validator';
 
-export const validateId = [
+const validateId = [
 	param('id')
 		.isMongoId()
 		.withMessage('Product type id must be a valid mongo id')
 ];
 
-export const validateCreate = [
+const validateCreate = [
 	body('name')
 		.trim()
 		.notEmpty()
 		.withMessage('Product type name is required')
 ];
 
-export const validateUpdate = [
+const validateUpdate = [
 	...validateId,
 	body('name')
 		.optional()
@@ -21,3 +21,7 @@ export const validateUpdate = [
 		.notEmpty()
 		.withMessage("Product type name can't be empty")
 ];
+
+const validator = { validateId, validateCreate, validateUpdate };
+
+export default validator;
