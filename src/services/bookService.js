@@ -1,4 +1,9 @@
-import { Author, Book, BookSeries } from '../models/index.js';
+import {
+	Author,
+	Book,
+	BookSeries,
+	Publisher
+} from '../models/index.js';
 import authorService from './authorService.js';
 import bookSeriesService from './bookSeriesService.js';
 import productService from './productService.js';
@@ -27,7 +32,7 @@ const createOne = async bookData => {
 
 		const newBook = await Book.create(bookData);
 
-		// await publisher.updateOne({ $push: { books: newBook.id } });
+		await publisher.updateOne({ $push: { books: newBook.id } });
 
 		await series.updateOne({ $push: { books: newBook.id } });
 
@@ -201,10 +206,10 @@ const deleteOne = async id => {
 			};
 		}
 
-		// await Publisher.updateOne(
-		// 	{ _id: deletedBook.publisher },
-		// 	{ $pull: { books: deletedBook.id } }
-		// );
+		await Publisher.updateOne(
+			{ _id: bookToDelete.publisher },
+			{ $pull: { books: bookToDelete.id } }
+		);
 
 		await productService.deleteOne(bookToDelete.product);
 
