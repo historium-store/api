@@ -8,6 +8,10 @@ const sectionSchema = new Schema(
 			type: String,
 			required: true
 		},
+		key: {
+			type: String,
+			required: true
+		},
 		products: [
 			{
 				type: ObjectId,
