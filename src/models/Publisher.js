@@ -36,4 +36,6 @@ const publisherSchema = new Schema(
 	}
 );
 
-export default model('Publisher', publisherSchema);
+const Publisher = model('Publisher', publisherSchema);
+
+export default Publisher;

@@ -49,4 +49,6 @@ const reviewSchema = new Schema(
 	}
 );
 
-export default model('Review', reviewSchema);
+const Review = model('Review', reviewSchema);
+
+export default Review;

@@ -32,4 +32,6 @@ const sectionSchema = new Schema(
 	}
 );
 
-export default model('Section', sectionSchema);
+const Section = model('Section', sectionSchema);
+
+export default Section;

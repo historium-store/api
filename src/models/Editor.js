@@ -1,10 +1,26 @@
 import { Schema, model } from 'mongoose';
 
-const editorSchema = new Schema({
-	fullName: {
-		type: String,
-		required: true
-	}
-});
+const { ObjectId } = Schema.Types;
 
-export default model('Editor', editorSchema);
+const editorSchema = new Schema(
+	{
+		fullName: {
+			type: String,
+			required: true
+		},
+		books: [
+			{
+				type: ObjectId,
+				ref: 'Book',
+				required: false
+			}
+		]
+	},
+	{
+		versionKey: false
+	}
+);
+
+const Editor = model('Editor', editorSchema);
+
+export default Editor;

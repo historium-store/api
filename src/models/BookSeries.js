@@ -26,4 +26,6 @@ const bookSeriesSchema = new Schema(
 	}
 );
 
-export default model('BookSeries', bookSeriesSchema);
+const BookSeries = model('BookSeries', bookSeriesSchema);
+
+export default BookSeries;

@@ -173,4 +173,6 @@ const bookSchema = new Schema(
 	}
 );
 
-export default model('Book', bookSchema);
+const Book = model('Book', bookSchema);
+
+export default Book;

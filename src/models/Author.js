@@ -31,4 +31,6 @@ const authorSchema = new Schema(
 	}
 );
 
-export default model('Author', authorSchema);
+const Author = model('Author', authorSchema);
+
+export default Author;

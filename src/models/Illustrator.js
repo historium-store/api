@@ -1,10 +1,26 @@
 import { Schema, model } from 'mongoose';
 
-const illustratorSchema = new Schema({
-	fullName: {
-		type: String,
-		required: true
-	}
-});
+const { ObjectId } = Schema.Types;
 
-export default model('Illustrator', illustratorSchema);
+const illustratorSchema = new Schema(
+	{
+		fullName: {
+			type: String,
+			required: true
+		},
+		books: [
+			{
+				type: ObjectId,
+				ref: 'Book',
+				required: false
+			}
+		]
+	},
+	{
+		versionKey: false
+	}
+);
+
+const Illustrator = model('Illustrator', illustratorSchema);
+
+export default Illustrator;
