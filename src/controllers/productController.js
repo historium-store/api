@@ -10,9 +10,7 @@ const createOne = async (req, res, next) => {
 
 		const data = matchedData(req);
 
-		res.status(201).json({
-			product: await productService.createOne(data)
-		});
+		res.status(201).json(await productService.createOne(data));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -26,9 +24,7 @@ const getOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json({
-			product: await productService.getOne(id)
-		});
+		res.json(await productService.getOne(id));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -36,9 +32,7 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
 	try {
-		res.json({
-			products: await productService.getAll()
-		});
+		res.json(await productService.getAll());
 	} catch (err) {
 		next(createError(err));
 	}
@@ -52,9 +46,7 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
-		res.json({
-			product: await productService.updateOne(id, changes)
-		});
+		res.json(await productService.updateOne(id, changes));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -68,10 +60,7 @@ const updateOne = async (req, res, next) => {
 
 // 		const { id } = matchedData(req);
 
-// 		res.json({
-// 			status: 'OK',
-// 			data: await productService.deleteOne(id)
-// 		});
+// 		res.json(await productService.deleteOne(id));
 // 	} catch (err) {
 // 		next(createError(err));
 // 	}
@@ -85,10 +74,9 @@ const updateOne = async (req, res, next) => {
 
 // 		const { id } = matchedData(req);
 
-// 		res.json({
-// 			status: 'OK',
-// 			data: await productService.deleteAll()
-// 		});
+// 		res.json(
+// 			await productService.deleteAll()
+// 		);
 // 	} catch (err) {
 // 		next(createError(err));
 // 	}

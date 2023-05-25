@@ -10,9 +10,7 @@ const createOne = async (req, res, next) => {
 
 		const data = matchedData(req);
 
-		res.status(201).json({
-			bookSeries: await bookSeriesService.createOne(data)
-		});
+		res.status(201).json(bookSeriesService.createOne(data));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -26,9 +24,7 @@ const getOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json({
-			bookSeries: await bookSeriesService.getOne(id)
-		});
+		res.json(await bookSeriesService.getOne(id));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -36,9 +32,7 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
 	try {
-		res.json({
-			bookSeries: await bookSeriesService.getAll()
-		});
+		res.json(await bookSeriesService.getAll());
 	} catch (err) {
 		next(createError(err));
 	}
@@ -52,9 +46,7 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
-		res.json({
-			bookSeries: await bookSeriesService.updateOne(id, changes)
-		});
+		res.json(await bookSeriesService.updateOne(id, changes));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -68,9 +60,7 @@ const deleteOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json({
-			bookSeries: await bookSeriesService.deleteOne(id)
-		});
+		res.json(await bookSeriesService.deleteOne(id));
 	} catch (err) {
 		next(createError(err));
 	}

@@ -10,9 +10,7 @@ const getOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json({
-			user: await userService.getOne(id)
-		});
+		res.json(await userService.getOne(id));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -20,9 +18,7 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
 	try {
-		res.json({
-			users: await userService.getAll()
-		});
+		res.json(await userService.getAll());
 	} catch (err) {
 		next(createError(err));
 	}
@@ -36,9 +32,7 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
-		res.json({
-			user: await userService.updateOne(id, changes)
-		});
+		res.json(await userService.updateOne(id, changes));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -52,9 +46,7 @@ const deleteOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json({
-			user: await userService.deleteOne(id)
-		});
+		res.json(await userService.deleteOne(id));
 	} catch (err) {
 		next(createError(err));
 	}

@@ -1,5 +1,5 @@
 const upload = (req, res) => {
-	res.json({ urls: req.files.map(f => f.filename) });
+	res.json(req.files.map(f => f.filename));
 };
 
 const send = (req, res) => {

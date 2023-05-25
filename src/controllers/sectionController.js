@@ -10,9 +10,7 @@ const createOne = async (req, res, next) => {
 
 		const data = matchedData(req);
 
-		res.status(201).json({
-			section: await sectionService.createOne(data)
-		});
+		res.status(201).json(await sectionService.createOne(data));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -26,9 +24,7 @@ const getOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json({
-			section: await sectionService.getOne(id)
-		});
+		res.json(await sectionService.getOne(id));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -36,9 +32,7 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
 	try {
-		res.json({
-			sections: await sectionService.getAll()
-		});
+		res.json(await sectionService.getAll());
 	} catch (err) {
 		next(createError(err));
 	}
@@ -52,9 +46,7 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
-		res.json({
-			section: await sectionService.updateOne(id, changes)
-		});
+		res.json(await sectionService.updateOne(id, changes));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -68,9 +60,7 @@ const deleteOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json({
-			section: await sectionService.deleteOne(id)
-		});
+		res.json(await sectionService.deleteOne(id));
 	} catch (err) {
 		next(createError(err));
 	}

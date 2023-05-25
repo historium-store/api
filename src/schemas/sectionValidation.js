@@ -12,6 +12,10 @@ export const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Section name is required'),
+	body('key')
+		.trim()
+		.notEmpty()
+		.withMessage('Section key is required'),
 	body('products').optional().custom(isArrayOfMongoIds),
 	body('sections').optional().custom(isArrayOfMongoIds)
 ];
@@ -23,6 +27,11 @@ export const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Section name can't be empty"),
+	body('key')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Section key can't be empty"),
 	body('products').optional().custom(isArrayOfMongoIds),
 	body('sections').optional().custom(isArrayOfMongoIds)
 ];
