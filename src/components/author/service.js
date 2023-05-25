@@ -13,13 +13,13 @@ const createOne = async authorData => {
 			};
 		}
 
-		const unexistingBookIndex = (
-			await Book.find({ _id: books })
-		).findIndex(b => b === null);
-		if (unexistingBookIndex > -1) {
+		const notFoundIndex = (await Book.find({ _id: books })).findIndex(
+			b => !b
+		);
+		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
-				message: `Book with id '${books[unexistingBookIndex]}' not found`
+				message: `Book with id '${books[notFoundIndex]}' not found`
 			};
 		}
 
@@ -146,13 +146,13 @@ const updateOne = async (id, changes) => {
 		}
 
 		if (books) {
-			const unexistingBookIndex = (
+			const notFoundIndex = (
 				await Book.find({ _id: books })
-			).findIndex(b => b === null);
-			if (unexistingBookIndex > -1) {
+			).findIndex(b => !b);
+			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
-					message: `Book with id '${books[unexistingBookIndex]}' not found`
+					message: `Book with id '${books[notFoundIndex]}' not found`
 				};
 			}
 

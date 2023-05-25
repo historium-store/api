@@ -14,7 +14,7 @@ const createOne = async translatorData => {
 		}
 
 		const notFoundIndex = (await Book.find({ _id: books })).findIndex(
-			p => !p
+			b => !b
 		);
 		if (notFoundIndex > -1) {
 			throw {
