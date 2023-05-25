@@ -26,30 +26,43 @@ export const hashPassword = promisify(pbkdf2);
 
 export const verifyJWT = promisify(jwt.verify);
 
-export const isArrayOfMongoIds = value => {
-	const isArray = Array.isArray(value);
+export const isEmailOrPhoneNumber = value => {
+	const isPhoneNumber = validator.isMobilePhone(value, 'uk-UA');
+	const isEmail = validator.isEmail(value);
 
-	if (!isArray) {
-		throw 'Book series book(s) must be an array';
-	}
-
-	if (value.every(id => validator.isMongoId(id))) {
+	if (isPhoneNumber || isEmail) {
 		return true;
 	}
 
-	throw 'Invalid book id format';
+	throw 'Invalid user phone number or email';
+};
+
+export const isArrayOfMongoIds = (entity, field) => value => {
+	const isArray = Array.isArray(value);
+
+	if (!isArray) {
+		throw `${entity} ${field} must be an array`;
+	}
+
+	const invalidIdIndex = value.findIndex(
+		id => !validator.isMongoId(id)
+	);
+	if (invalidIdIndex > -1) {
+		throw `Invalid ${field} id at index ${invalidIdIndex}`;
+	}
+
+	return true;
 };
 
 export const isArrayOfIsbns = value => {
 	if (!Array.isArray(value)) {
-		throw 'Book ISBN(s) must be an array';
+		throw 'Book isbns must be an array';
 	}
 
-	value.forEach(i => {
-		if (!validator.isISBN(i)) {
-			throw 'Invalid book ISBN format';
-		}
-	});
+	const invalidIsbnIndex = value.findIndex(i => !validator.isISBN(i));
+	if (invalidIsbnIndex > -1) {
+		throw `Invalid isbn at index ${invalidIsbnIndex}`;
+	}
 
 	return true;
 };

@@ -1,36 +1,26 @@
 import express from 'express';
 import createHttpError from 'http-errors';
 import logger from 'morgan';
-import { errorHandler } from './middleware/index.js';
+import { errorHandler } from './middleware.js';
 
-import authRoutes from './routes/authRoutes.js';
-import authorRoutes from './routes/authorRoutes.js';
-import bookRoutes from './routes/bookRoutes.js';
-import bookSeriesRoutes from './routes/bookSeriesRoutes.js';
-import fileRoutes from './routes/fileRoutes.js';
-import productRoutes from './routes/productRoutes.js';
-import productTypeRoutes from './routes/productTypeRoutes.js';
-import publisherRoutes from './routes/publisherRoutes.js';
-import sectionRoutes from './routes/sectionRoutes.js';
-import translatorRoutes from './routes/translatorRoutes.js';
-import userRoutes from './routes/userRoutes.js';
+import authRouter from './components/auth/router.js';
+import authorRouter from './components/author/router.js';
+import fileRouter from './components/file/router.js';
+import sectionRouter from './components/section/router.js';
+import translatorRouter from './components/translator/router.js';
+import userRouter from './components/user/router.js';
 
 const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
 
-app.use(authRoutes);
-app.use('/user', userRoutes);
-app.use('/section', sectionRoutes);
-app.use('/product-type', productTypeRoutes);
-app.use('/product', productRoutes);
-app.use('/publisher', publisherRoutes);
-app.use('/book', bookRoutes);
-app.use('/author', authorRoutes);
-app.use('/translator', translatorRoutes);
-app.use('/book-series', bookSeriesRoutes);
-app.use('/file', fileRoutes);
+app.use(authRouter);
+app.use('/user', userRouter);
+app.use('/section', sectionRouter);
+app.use('/author', authorRouter);
+app.use('/translator', translatorRouter);
+app.use('/file', fileRouter);
 
 app.use((req, res, next) =>
 	next(createHttpError(404, 'Endpoint not found'))

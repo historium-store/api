@@ -1,5 +1,24 @@
 import createHttpError from 'http-errors';
 
+export const errorHandler = (err, req, res, next) => {
+	let message;
+
+	try {
+		message = JSON.parse(err.message);
+	} catch {
+		if (!err.status || err.status == 500) {
+			console.log(err.message);
+			message = 'Internal server error';
+		} else {
+			message = err.message ?? err;
+		}
+	}
+
+	res.status(err.status ?? 500).json({
+		message
+	});
+};
+
 export const checkRole = roles => (req, res, next) => {
 	if (roles.includes(req.user.role)) {
 		return next();
