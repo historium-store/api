@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import ProductType from '../product-type/model.js';
 import Review from '../review/model.js';
 import Section from '../section/model.js';
@@ -10,11 +11,11 @@ const createOne = async productData => {
 
 	try {
 		// TODO: хранить последний использованный код в базе (триггер)
-		const codes = (await Product.find({})).map(p => +p.code);
-		const code = codes.length
-			? `${Math.max(...codes) + 1}`
-			: '100000';
-		productData.code = code;
+		// const codes = (await Product.find({})).map(p => +p.code);
+		// const code = codes.length
+		// 	? `${Math.max(...codes) + 1}`
+		// 	: '100000';
+		// productData.code = code;
 
 		if (!(await ProductType.exists({ _id: type }))) {
 			throw {

@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import setProductCode from '../../triggers/setProductCode.js';
 
 const { ObjectId } = Schema.Types;
 
@@ -10,7 +11,7 @@ const productSchema = new Schema(
 		},
 		code: {
 			type: String,
-			required: true,
+			required: false,
 			unique: true
 		},
 		price: {
@@ -57,6 +58,11 @@ const productSchema = new Schema(
 		versionKey: false
 	}
 );
+
+productSchema.pre('save', async function (next) {
+	await setProductCode(this);
+	next();
+});
 
 const Product = model('Product', productSchema);
 
