@@ -18,6 +18,12 @@ translatorRouter
 
 translatorRouter
 	.route('/:id')
-	.get(validator.validateId, controller.getOne);
+	.get(validator.validateId, controller.getOne)
+	.patch(
+		authController.authenticate,
+		checkRole(['admin', 'seller']),
+		validator.validateUpdate,
+		controller.updateOne
+	);
 
 export default translatorRouter;

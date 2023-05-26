@@ -38,4 +38,18 @@ const getAll = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne, getAll };
+const updateOne = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { id, ...changes } = matchedData(req);
+
+		res.json(await service.updateOne(id, changes));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+export default { createOne, getOne, getAll, updateOne };
