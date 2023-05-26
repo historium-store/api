@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const productCodeTrigger = async doc => {
+const setProductCode = async doc => {
 	try {
 		const productCodeCounter = await mongoose.connection
 			.collection('productCodeCounter')
@@ -8,7 +8,7 @@ const productCodeTrigger = async doc => {
 
 		console.log('currentCode:', productCodeCounter.currentCode);
 
-		doc.set('code', productCodeCounter.currentCode);
+		await doc.set('code', productCodeCounter.currentCode);
 
 		await mongoose.connection
 			.collection('productCodeCounter')
@@ -18,4 +18,4 @@ const productCodeTrigger = async doc => {
 	}
 };
 
-export default productCodeTrigger;
+export default setProductCode;

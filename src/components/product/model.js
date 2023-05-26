@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import productCodeTrigger from '../../triggers/productCodeTrigger.js';
+import setProductCode from '../../triggers/setProductCode.js';
 
 const { ObjectId } = Schema.Types;
 
@@ -60,12 +60,7 @@ const productSchema = new Schema(
 );
 
 productSchema.pre('save', async function (next) {
-	try {
-		await productCodeTrigger(this);
-	} catch (err) {
-		console.log(err);
-	}
-
+	await setProductCode(this);
 	next();
 });
 
