@@ -94,7 +94,7 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	const { product, user } = reviewData;
+	const { product, user } = changes;
 
 	try {
 		const reviewToUpdate = await Review.findById(id);
@@ -152,7 +152,9 @@ const updateOne = async (id, changes) => {
 			});
 		}
 
-		return await Review.findByIdAndUpdate(id, changes).populate([
+		return await Review.findByIdAndUpdate(id, changes, {
+			new: true
+		}).populate([
 			{
 				path: 'product',
 				populate: ['type', 'sections']
