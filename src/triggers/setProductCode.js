@@ -6,15 +6,16 @@ const setProductCode = async doc => {
 			.collection('productCodeCounter')
 			.findOne();
 
-		console.log('currentCode:', productCodeCounter.currentCode);
-
 		await doc.set('code', productCodeCounter.currentCode);
 
 		await mongoose.connection
 			.collection('productCodeCounter')
 			.updateOne({}, { $inc: { currentCode: 1 } });
 	} catch (err) {
-		console.error(err);
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
 	}
 };
 

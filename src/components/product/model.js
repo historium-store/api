@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import deleteProduct from '../../triggers/deleteProduct.js';
 import setProductCode from '../../triggers/setProductCode.js';
 
 const { ObjectId } = Schema.Types;
@@ -52,10 +53,18 @@ const productSchema = new Schema(
 				type: String,
 				required: true
 			}
-		]
+		],
+		createdAt: {
+			type: Number
+		},
+		updatedAt: {
+			type: Number
+		}
 	},
 	{
-		versionKey: false
+		versionKey: false,
+		strict: false,
+		timestamps: true
 	}
 );
 
@@ -63,6 +72,10 @@ productSchema.pre('save', async function (next) {
 	await setProductCode(this);
 	next();
 });
+
+productSchema.methods.deleteOne = async function () {
+	await deleteProduct(this);
+};
 
 const Product = model('Product', productSchema);
 

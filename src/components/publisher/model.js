@@ -29,10 +29,17 @@ const publisherSchema = new Schema(
 		logo: {
 			type: String,
 			required: false
+		},
+		createdAt: {
+			type: Number
+		},
+		updatedAt: {
+			type: Number
 		}
 	},
 	{
-		versionKey: false
+		versionKey: false,
+		timestamps: true
 	}
 );
 

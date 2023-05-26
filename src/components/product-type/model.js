@@ -5,10 +5,17 @@ const productTypeSchema = new Schema(
 		name: {
 			type: String,
 			required: true
+		},
+		createdAt: {
+			type: Number
+		},
+		updatedAt: {
+			type: Number
 		}
 	},
 	{
-		versionKey: false
+		versionKey: false,
+		timestamps: true
 	}
 );
 

@@ -34,13 +34,13 @@ const reviewSchema = new Schema(
 			type: Number,
 			required: true
 		},
-		date: {
-			type: Number,
-			required: true
+		createdAt: {
+			type: Number
 		}
 	},
 	{
-		versionKey: false
+		versionKey: false,
+		timestamps: true
 	}
 );
 

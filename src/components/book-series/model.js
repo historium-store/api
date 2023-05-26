@@ -19,10 +19,17 @@ const bookSeriesSchema = new Schema(
 				ref: 'Book',
 				required: false
 			}
-		]
+		],
+		createdAt: {
+			type: Number
+		},
+		updatedAt: {
+			type: Number
+		}
 	},
 	{
-		versionKey: false
+		versionKey: false,
+		timestamps: true
 	}
 );
 

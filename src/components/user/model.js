@@ -44,10 +44,17 @@ const userSchema = new Schema(
 		restorationToken: {
 			type: String,
 			required: false
+		},
+		createdAt: {
+			type: Number
+		},
+		updatedAt: {
+			type: Number
 		}
 	},
 	{
-		versionKey: false
+		versionKey: false,
+		timestamps: true
 	}
 );
 
