@@ -10,13 +10,6 @@ const createOne = async productData => {
 	reviews = reviews ?? [];
 
 	try {
-		// TODO: хранить последний использованный код в базе (триггер)
-		// const codes = (await Product.find({})).map(p => +p.code);
-		// const code = codes.length
-		// 	? `${Math.max(...codes) + 1}`
-		// 	: '100000';
-		// productData.code = code;
-
 		if (!(await ProductType.exists({ _id: type }))) {
 			throw {
 				status: 404,
