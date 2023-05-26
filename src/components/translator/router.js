@@ -13,7 +13,8 @@ translatorRouter
 		checkRole(['admin', 'seller']),
 		validator.validateCreate,
 		controller.createOne
-	);
+	)
+	.get(controller.getAll);
 
 translatorRouter
 	.route('/:id')

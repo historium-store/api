@@ -87,4 +87,30 @@ const getOne = async id => {
 	}
 };
 
-export default { createOne, getOne };
+const getAll = async () => {
+	try {
+		return await Translator.find().populate({
+			path: 'books',
+			populate: [
+				'publisher',
+				'series',
+				'authors',
+				'composers',
+				'translators',
+				'illustrators',
+				'editors',
+				{
+					path: 'product',
+					populate: ['type', 'sections']
+				}
+			]
+		});
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+export default { createOne, getOne, getAll };

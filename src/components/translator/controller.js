@@ -30,4 +30,12 @@ const getOne = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne };
+const getAll = async (req, res, next) => {
+	try {
+		res.json(await service.getAll());
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+export default { createOne, getOne, getAll };
