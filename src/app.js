@@ -8,6 +8,7 @@ import authorRouter from './components/author/router.js';
 import bookSeriesRouter from './components/book-series/router.js';
 import bookRouter from './components/book/router.js';
 import compilerRouter from './components/compiler/router.js';
+import editorRouter from './components/editor/router.js';
 import fileRouter from './components/file/router.js';
 import productTypeRouter from './components/product-type/router.js';
 import productRouter from './components/product/router.js';
@@ -31,6 +32,7 @@ app.use('/book', bookRouter);
 app.use('/author', authorRouter);
 app.use('/compiler', compilerRouter);
 app.use('/translator', translatorRouter);
+app.use('/editor', editorRouter);
 app.use('book-series', bookSeriesRouter);
 app.use('/file', fileRouter);
 
