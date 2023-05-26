@@ -24,6 +24,12 @@ translatorRouter
 		checkRole(['admin', 'seller']),
 		validator.validateUpdate,
 		controller.updateOne
+	)
+	.delete(
+		authController.authenticate,
+		checkRole(['admin', 'seller']),
+		validator.validateId,
+		controller.deleteOne
 	);
 
 export default translatorRouter;

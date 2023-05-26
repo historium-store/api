@@ -189,4 +189,31 @@ const updateOne = async (id, changes) => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne };
+const deleteOne = async id => {
+	try {
+		const translatorToDelete = await Translator.findById(id);
+
+		if (!translatorToDelete) {
+			throw {
+				status: 404,
+				message: `Translator with id '${id}' not found`
+			};
+		}
+
+		await Book.updateMany(
+			{ _id: translatorToDelete.books },
+			{ $pull: { translators: translatorToDelete.id } }
+		);
+
+		await translatorToDelete.deleteOne();
+
+		return translatorToDelete;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+export default { createOne, getOne, getAll, updateOne, deleteOne };
