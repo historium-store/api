@@ -7,7 +7,7 @@ export const errorHandler = (err, req, res, next) => {
 		message = JSON.parse(err.message);
 	} catch {
 		if (!err.status || err.status == 500) {
-			console.log(err.message);
+			console.log(err);
 			message = 'Internal server error';
 		} else {
 			message = err.message ?? err;

@@ -1,9 +1,31 @@
+import AWS from 'aws-sdk';
 import { pbkdf2, randomUUID } from 'crypto';
 import createHttpError from 'http-errors';
 import jwt from 'jsonwebtoken';
-import multer, { diskStorage } from 'multer';
+import multer from 'multer';
+import multerS3 from 'multer-s3';
+import { extname } from 'path';
 import { promisify } from 'util';
 import validator from 'validator';
+
+AWS.config.update({
+	accessKeyId: process.env.S3_ACCESS_KEY,
+	secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+	region: process.env.S3_BUCKET_REGION
+});
+
+const s3 = new AWS.S3();
+
+export const upload = multer({
+	storage: multerS3({
+		s3,
+		bucket: process.env.S3_BUCKET_NAME,
+		key: (req, file, cb) => {
+			const extension = extname(file.originalname);
+			cb(null, `${randomUUID()}${extension}`);
+		}
+	})
+});
 
 export const createError = err => {
 	return createHttpError(
@@ -11,16 +33,6 @@ export const createError = err => {
 		err.array ? JSON.stringify(err.array()) : err.message ?? err
 	);
 };
-
-export const upload = multer({
-	storage: diskStorage({
-		destination: 'uploads/',
-		filename: (req, file, cb) => {
-			const extension = file.mimetype.split('/')[1];
-			cb(null, `${randomUUID()}.${extension}`);
-		}
-	})
-});
 
 export const hashPassword = promisify(pbkdf2);
 
