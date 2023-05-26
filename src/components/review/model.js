@@ -28,7 +28,6 @@ const reviewSchema = new Schema(
 		},
 		dislikes: {
 			type: Number,
-
 			required: true
 		},
 		rating: {

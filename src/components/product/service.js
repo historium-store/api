@@ -1,10 +1,12 @@
 import ProductType from '../product-type/model.js';
+import Review from '../review/model.js';
 import Section from '../section/model.js';
 import Product from './model.js';
 
 const createOne = async productData => {
-	let { type, sections } = productData;
+	let { type, sections, reviews } = productData;
 	sections = sections ?? [];
+	reviews = reviews ?? [];
 
 	try {
 		// TODO: хранить последний использованный код в базе (триггер)
@@ -21,13 +23,23 @@ const createOne = async productData => {
 			};
 		}
 
-		const notFoundIndex = (
+		let notFoundIndex = (
 			await Section.find({ _id: sections })
 		).findIndex(s => !s);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
 				message: `Section with id '${sections[notFoundIndex]}' not found`
+			};
+		}
+
+		notFoundIndex = (await Review.find({ _id: reviews })).findIndex(
+			s => !s
+		);
+		if (notFoundIndex > -1) {
+			throw {
+				status: 404,
+				message: `Review with id '${reviews[notFoundIndex]}' not found`
 			};
 		}
 
@@ -38,9 +50,15 @@ const createOne = async productData => {
 			{ $push: { products: newProduct.id } }
 		);
 
+		await Review.updateMany(
+			{ _id: reviews },
+			{ $set: { product: newProduct.id } }
+		);
+
 		return await Product.findById(newProduct.id).populate([
 			'type',
-			'sections'
+			'sections',
+			'reviews'
 		]);
 	} catch (err) {
 		throw {
@@ -59,7 +77,11 @@ const getOne = async id => {
 			};
 		}
 
-		return await Product.findById(id).populate(['type', 'sections']);
+		return await Product.findById(id).populate([
+			'type',
+			'sections',
+			'reviews'
+		]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -70,7 +92,11 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await Product.find().populate(['type', 'sections']);
+		return await Product.find().populate([
+			'type',
+			'sections',
+			'reviews'
+		]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -80,7 +106,7 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	const { type, sections } = changes;
+	const { type, sections, reviews } = changes;
 
 	try {
 		const productToUpdate = await Product.findById(id);
@@ -114,7 +140,7 @@ const updateOne = async (id, changes) => {
 				s.id.toString('hex')
 			);
 
-			const addedSectionIds = newSectionIds.filter(
+			const addedSectionIds = sections.filter(
 				s => !oldSectionIds.includes(s)
 			);
 			await Section.updateMany(
@@ -123,7 +149,7 @@ const updateOne = async (id, changes) => {
 			);
 
 			const removedSectionIds = oldSectionIds.filter(
-				s => !newSectionIds.includes(s)
+				s => !sections.includes(s)
 			);
 			await Section.updateMany(
 				{ _id: removedSectionIds },
@@ -131,9 +157,41 @@ const updateOne = async (id, changes) => {
 			);
 		}
 
+		if (reviews) {
+			const notFoundIndex = (
+				await Review.find({ _id: reviews })
+			).findIndex(r => !r);
+			if (notFoundIndex > -1) {
+				throw {
+					status: 404,
+					message: `Review with id '${reviews[notFoundIndex]}' not found`
+				};
+			}
+
+			const oldReviewIds = productToUpdate.reviews.map(s =>
+				s.id.toString('hex')
+			);
+
+			const addedReviewIds = reviews.filter(
+				s => !oldReviewIds.includes(s)
+			);
+			await Review.updateMany(
+				{ _id: addedReviewIds },
+				{ $set: { product: productToUpdate.id } }
+			);
+
+			const removedReviewIds = oldReviewIds.filter(
+				s => !reviews.includes(s)
+			);
+			await Review.updateMany(
+				{ _id: removedReviewIds },
+				{ $unset: { product: true } }
+			);
+		}
+
 		return await Product.findByIdAndUpdate(id, changes, {
 			new: true
-		}).populate(['type', 'sections']);
+		}).populate(['type', 'sections', 'reviews']);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
