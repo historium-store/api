@@ -60,7 +60,7 @@ const deleteOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json(await productService.deleteOne(id));
+		res.json(await service.deleteOne(id));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -68,7 +68,7 @@ const deleteOne = async (req, res, next) => {
 
 const deleteAll = async (req, res, next) => {
 	try {
-		res.json(await productService.deleteAll());
+		res.json(await service.deleteAll());
 	} catch (err) {
 		next(createError(err));
 	}

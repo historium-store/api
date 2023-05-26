@@ -14,7 +14,7 @@ productRouter
 	.post(validator.validateCreate, controller.createOne);
 
 if (process.env.NODE_ENV === 'development') {
-	// router.delete('/', productController.deleteAll);
+	// productRouter.delete('/', controller.deleteAll);
 }
 
 productRouter

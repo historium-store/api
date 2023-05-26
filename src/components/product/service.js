@@ -229,36 +229,36 @@ const deleteOne = async id => {
 	}
 };
 
-// const deleteAll = async () => {
-// 	try {
-// 		const productsToDelete = await Product.find().populate([
-// 			'type',
-// 			'sections'
-// 		]);
+const deleteAll = async () => {
+	try {
+		const productsToDelete = await Product.find().populate([
+			'type',
+			'sections'
+		]);
 
-// 		for (let product of productsToDelete) {
-// 			await Section.updateMany(
-// 				{ _id: product.sections },
-// 				{ $pull: { products: product.id } }
-// 			);
+		for (let product of productsToDelete) {
+			await Section.updateMany(
+				{ _id: product.sections },
+				{ $pull: { products: product.id } }
+			);
 
-// 			await product.deleteOne();
-// 		}
+			await product.deleteOne();
+		}
 
-// 		return productsToDelete;
-// 	} catch (err) {
-// 		throw {
-// 			status: err.status ?? 500,
-// 			message: err.message ?? err
-// 		};
-// 	}
-// };
+		return productsToDelete;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
 
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne /* ,
-	deleteAll */
+	deleteOne,
+	deleteAll
 };

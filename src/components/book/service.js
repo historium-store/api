@@ -2,12 +2,28 @@ import productService from '../product/service.js';
 
 import Author from '../author/model.js';
 import BookSeries from '../book-series/model.js';
+import Compiler from '../compiler/model.js';
+import Editor from '../editor/model.js';
+import Illustrator from '../illustrator/model.js';
 import Publisher from '../publisher/model.js';
+import Translator from '../translator/model.js';
 import Book from './model.js';
 
 const createOne = async bookData => {
-	let { publisher, authors, series } = bookData;
+	let {
+		publisher,
+		authors,
+		compilers,
+		translators,
+		illustrators,
+		editors,
+		series
+	} = bookData;
 	authors = authors ?? [];
+	compilers = compilers ?? [];
+	translators = translators ?? [];
+	illustrators = illustrators ?? [];
+	editors = editors ?? [];
 
 	try {
 		if (!(await Publisher.exists({ _id: publisher }))) {
@@ -24,13 +40,53 @@ const createOne = async bookData => {
 			};
 		}
 
-		const notFoundIndex = (
+		let notFoundIndex = (
 			await Author.find({ _id: authors })
-		).findIndex(p => !p);
+		).findIndex(a => !a);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
 				message: `Author with id '${authors[notFoundIndex]}' not found`
+			};
+		}
+
+		notFoundIndex = (
+			await Compiler.find({ _id: compilers })
+		).findIndex(c => !c);
+		if (notFoundIndex > -1) {
+			throw {
+				status: 404,
+				message: `Compiler with id '${compilers[notFoundIndex]}' not found`
+			};
+		}
+
+		notFoundIndex = (
+			await Translator.find({ _id: translators })
+		).findIndex(t => !t);
+		if (notFoundIndex > -1) {
+			throw {
+				status: 404,
+				message: `Translator with id '${translators[notFoundIndex]}' not found`
+			};
+		}
+
+		notFoundIndex = (
+			await Illustrator.find({ _id: illustrators })
+		).findIndex(i => !i);
+		if (notFoundIndex > -1) {
+			throw {
+				status: 404,
+				message: `Illustrator with id '${illustrators[notFoundIndex]}' not found`
+			};
+		}
+
+		notFoundIndex = (await Editor.find({ _id: editors })).findIndex(
+			e => !e
+		);
+		if (notFoundIndex > -1) {
+			throw {
+				status: 404,
+				message: `Editor with id '${editors[notFoundIndex]}' not found`
 			};
 		}
 
@@ -55,12 +111,32 @@ const createOne = async bookData => {
 			{ $push: { books: newBook.id } }
 		);
 
+		await Compiler.updateMany(
+			{ _id: compilers },
+			{ $push: { books: newBook.id } }
+		);
+
+		await Translator.updateMany(
+			{ _id: translators },
+			{ $push: { books: newBook.id } }
+		);
+
+		await Illustrator.updateMany(
+			{ _id: illustrators },
+			{ $push: { books: newBook.id } }
+		);
+
+		await Editor.updateMany(
+			{ _id: editors },
+			{ $push: { books: newBook.id } }
+		);
+
 		return await Book.findById(newBook.id)
 			.populate([
 				'publisher',
 				'series',
 				'authors',
-				'composers',
+				'compilers',
 				'translators',
 				'illustrators',
 				'editors'
@@ -91,7 +167,7 @@ const getOne = async id => {
 				'publisher',
 				'series',
 				'authors',
-				'composers',
+				'compilers',
 				'translators',
 				'illustrators',
 				'editors'
@@ -115,7 +191,7 @@ const getAll = async () => {
 				'publisher',
 				'series',
 				'authors',
-				'composers',
+				'compilers',
 				'translators',
 				'illustrators',
 				'editors'
@@ -133,7 +209,16 @@ const getAll = async () => {
 };
 
 const updateOne = async (id, changes) => {
-	const { product, publisher, authors, series } = changes;
+	const {
+		product,
+		publisher,
+		authors,
+		compilers,
+		translators,
+		illustrators,
+		editors,
+		series
+	} = changes;
 
 	try {
 		const bookToUpdate = await Book.findById(id);
@@ -184,7 +269,7 @@ const updateOne = async (id, changes) => {
 		if (authors) {
 			const notFoundIndex = (
 				await Author.find({ _id: authors })
-			).findIndex(p => !p);
+			).findIndex(a => !a);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -201,6 +286,106 @@ const updateOne = async (id, changes) => {
 			);
 			removedAuthorIds.push(
 				...oldAuthorIds.filter(a => !authors.includes(a))
+			);
+		}
+
+		const addedCompilerIds = [];
+		const removedCompilerIds = [];
+		if (compilers) {
+			const notFoundIndex = (
+				await Compiler.find({ _id: compilers })
+			).findIndex(c => !c);
+			if (notFoundIndex > -1) {
+				throw {
+					status: 404,
+					message: `Compiler with id '${compilers[notFoundIndex]}' not found`
+				};
+			}
+
+			const oldCompilerIds = bookToUpdate.compilers.map(c =>
+				c.id.toString('hex')
+			);
+
+			addedCompilerIds.push(
+				...compilers.filter(c => !oldCompilerIds.includes(c))
+			);
+			removedCompilerIds.push(
+				...oldCompilerIds.filter(c => !compilers.includes(c))
+			);
+		}
+
+		const addedTranslatorIds = [];
+		const removedTranslatorIds = [];
+		if (translators) {
+			const notFoundIndex = (
+				await Translator.find({ _id: translators })
+			).findIndex(t => !t);
+			if (notFoundIndex > -1) {
+				throw {
+					status: 404,
+					message: `Translator with id '${translators[notFoundIndex]}' not found`
+				};
+			}
+
+			const oldTranslatorIds = bookToUpdate.translators.map(t =>
+				t.id.toString('hex')
+			);
+
+			addedTranslatorIds.push(
+				...translators.filter(c => !oldTranslatorIds.includes(c))
+			);
+			removedTranslatorIds.push(
+				...oldTranslatorIds.filter(c => !translators.includes(c))
+			);
+		}
+
+		const addedIllustratorIds = [];
+		const removedIllustratorIds = [];
+		if (illustrators) {
+			const notFoundIndex = (
+				await Illustrator.find({ _id: illustrators })
+			).findIndex(i => !i);
+			if (notFoundIndex > -1) {
+				throw {
+					status: 404,
+					message: `Illustrator with id '${illustrators[notFoundIndex]}' not found`
+				};
+			}
+
+			const oldIllustratorIds = bookToUpdate.illustrators.map(t =>
+				t.id.toString('hex')
+			);
+
+			addedIllustratorIds.push(
+				...illustrators.filter(c => !oldIllustratorIds.includes(c))
+			);
+			removedIllustratorIds.push(
+				...oldIllustratorIds.filter(c => !illustrators.includes(c))
+			);
+		}
+
+		const addedEditorIds = [];
+		const removedEditorIds = [];
+		if (editors) {
+			const notFoundIndex = (
+				await Editor.find({ _id: editors })
+			).findIndex(e => !e);
+			if (notFoundIndex > -1) {
+				throw {
+					status: 404,
+					message: `Editor with id '${editors[notFoundIndex]}' not found`
+				};
+			}
+
+			const oldEditorIds = bookToUpdate.editors.map(t =>
+				t.id.toString('hex')
+			);
+
+			addedEditorIds.push(
+				...editors.filter(c => !oldEditorIds.includes(c))
+			);
+			removedEditorIds.push(
+				...oldEditorIds.filter(c => !editors.includes(c))
 			);
 		}
 
@@ -231,12 +416,48 @@ const updateOne = async (id, changes) => {
 			{ $pull: { books: bookToUpdate.id } }
 		);
 
+		await Compiler.updateMany(
+			{ _id: addedCompilerIds },
+			{ $push: { books: bookToUpdate.id } }
+		);
+		await Compiler.updateMany(
+			{ _id: removedCompilerIds },
+			{ $pull: { books: bookToUpdate.id } }
+		);
+
+		await Translator.updateMany(
+			{ _id: addedTranslatorIds },
+			{ $push: { books: bookToUpdate.id } }
+		);
+		await Translator.updateMany(
+			{ _id: addedTranslatorIds },
+			{ $pull: { books: bookToUpdate.id } }
+		);
+
+		await Illustrator.updateMany(
+			{ _id: addedIllustratorIds },
+			{ $push: { books: bookToUpdate.id } }
+		);
+		await Illustrator.updateMany(
+			{ _id: addedIllustratorIds },
+			{ $pull: { books: bookToUpdate.id } }
+		);
+
+		await Editor.updateMany(
+			{ _id: addedEditorIds },
+			{ $push: { books: bookToUpdate.id } }
+		);
+		await Editor.updateMany(
+			{ _id: addedEditorIds },
+			{ $pull: { books: bookToUpdate.id } }
+		);
+
 		return await Book.findByIdAndUpdate(id, changes, { new: true })
 			.populate([
 				'publisher',
 				'series',
 				'authors',
-				'composers',
+				'compilers',
 				'translators',
 				'illustrators',
 				'editors'

@@ -12,15 +12,15 @@ export const createError = err => {
 	);
 };
 
-export const upload = multer(
-	diskStorage({
+export const upload = multer({
+	storage: diskStorage({
 		destination: 'uploads/',
 		filename: (req, file, cb) => {
 			const extension = file.mimetype.split('/')[1];
 			cb(null, `${randomUUID()}.${extension}`);
 		}
 	})
-);
+});
 
 export const hashPassword = promisify(pbkdf2);
 

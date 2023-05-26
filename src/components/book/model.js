@@ -32,10 +32,10 @@ const bookSchema = new Schema(
 				required: false
 			}
 		],
-		composers: [
+		compilers: [
 			{
 				type: ObjectId,
-				ref: 'Composer',
+				ref: 'Compiler',
 				required: false
 			}
 		],

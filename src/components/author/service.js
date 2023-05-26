@@ -37,7 +37,7 @@ const createOne = async authorData => {
 					'publisher',
 					'series',
 					'authors',
-					'composers',
+					'compilers',
 					'translators',
 					'illustrators',
 					'editors'
@@ -74,7 +74,7 @@ const getOne = async id => {
 					'publisher',
 					'series',
 					'authors',
-					'composers',
+					'compilers',
 					'translators',
 					'illustrators',
 					'editors'
@@ -104,7 +104,7 @@ const getAll = async () => {
 					'publisher',
 					'series',
 					'authors',
-					'composers',
+					'compilers',
 					'translators',
 					'illustrators',
 					'editors'
@@ -184,7 +184,7 @@ const updateOne = async (id, changes) => {
 					'publisher',
 					'series',
 					'authors',
-					'composers',
+					'compilers',
 					'translators',
 					'illustrators',
 					'editors'

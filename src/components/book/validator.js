@@ -108,7 +108,67 @@ const validateCreate = [
 	body('weight')
 		.optional()
 		.isInt({ allow_negatives: false })
-		.withMessage('Book weight must be a positive integer')
+		.withMessage('Book weight must be a positive integer'),
+	body('paperType')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book paper type can't be empty"),
+	body('bindingType')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book binding type can't be empty"),
+	body('illustrationsType')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book illustrations type can't be empty"),
+	body('literaturePeriod')
+		.optional()
+		.isArray()
+		.withMessage('Book literature period must be an array'),
+	body('literatureCountry')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book literature country can't be empty"),
+	body('foreignLiterature')
+		.optional()
+		.isBoolean()
+		.withMessage('Book foreign literature must be a boolean'),
+	body('timePeriod')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book time period can't be empty"),
+	body('grade')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book grade can't be empty"),
+	body('suitableAge')
+		.optional()
+		.isArray()
+		.withMessage('Book suitable age must be an array'),
+	body('packaging')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book packaging can't be empty"),
+	body('occasion')
+		.optional()
+		.isArray()
+		.withMessage('Book occasion must be an array'),
+	body('style')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book style can't be empty"),
+	body('suitableFor')
+		.optional()
+		.isArray()
+		.withMessage('Book suitable for must be an array')
 ];
 
 const validateUpdate = [
@@ -217,7 +277,67 @@ const validateUpdate = [
 	body('weight')
 		.optional()
 		.isInt({ allow_negatives: false })
-		.withMessage('Book weight must be a positive integer')
+		.withMessage('Book weight must be a positive integer'),
+	body('paperType')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book paper type can't be empty"),
+	body('bindingType')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book binding type can't be empty"),
+	body('illustrationsType')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book illustrations type can't be empty"),
+	body('literaturePeriod')
+		.optional()
+		.isArray()
+		.withMessage('Book literature period must be an array'),
+	body('literatureCountry')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book literature country can't be empty"),
+	body('foreignLiterature')
+		.optional()
+		.isBoolean()
+		.withMessage('Book foreign literature must be a boolean'),
+	body('timePeriod')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book time period can't be empty"),
+	body('grade')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book grade can't be empty"),
+	body('suitableAge')
+		.optional()
+		.isArray()
+		.withMessage('Book suitable age must be an array'),
+	body('packaging')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book packaging can't be empty"),
+	body('occasion')
+		.optional()
+		.isArray()
+		.withMessage('Book occasion must be an array'),
+	body('style')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Book style can't be empty"),
+	body('suitableFor')
+		.optional()
+		.isArray()
+		.withMessage('Book suitable for must be an array')
 ];
 
 const validator = { validateId, validateCreate, validateUpdate };

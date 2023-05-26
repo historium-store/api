@@ -19,9 +19,7 @@ const validateCreate = [
 		.isMongoId()
 		.withMessage('Publisher id must be a valid mongo id'),
 	body('books')
-		.exists()
-		.withMessage('Book series must have at least 1 book')
-		.bail()
+		.optional()
 		.custom(isArrayOfMongoIds('Book series', 'books'))
 ];
 
