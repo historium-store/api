@@ -24,20 +24,16 @@ const reviewSchema = new Schema(
 		},
 		likes: {
 			type: Number,
-			default: 0,
-			required: false
+			required: true
 		},
 		dislikes: {
 			type: Number,
-			default: 0,
-			required: false
+
+			required: true
 		},
 		rating: {
 			type: Number,
-			default: 0,
-			min: 0,
-			max: 5,
-			required: false
+			required: true
 		},
 		date: {
 			type: Number,
