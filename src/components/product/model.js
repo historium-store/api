@@ -53,11 +53,18 @@ const productSchema = new Schema(
 				type: String,
 				required: true
 			}
-		]
+		],
+		createdAt: {
+			type: Number
+		},
+		updatedAt: {
+			type: Number
+		}
 	},
 	{
 		versionKey: false,
-		strict: false
+		strict: false,
+		timestamps: true
 	}
 );
 

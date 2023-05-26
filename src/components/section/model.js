@@ -25,10 +25,17 @@ const sectionSchema = new Schema(
 				ref: 'Section',
 				required: false
 			}
-		]
+		],
+		createdAt: {
+			type: Number
+		},
+		updatedAt: {
+			type: Number
+		}
 	},
 	{
-		versionKey: false
+		versionKey: false,
+		timestamps: true
 	}
 );
 

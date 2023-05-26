@@ -23,8 +23,8 @@ const createOne = async reviewData => {
 		const newReview = await Review.create({
 			...reviewData,
 			likes: 0,
-			dislikes: 0,
-			date: Math.floor(Date.now() / 1000)
+			dislikes: 0
+			//date: Math.floor(Date.now() / 1000)
 		});
 
 		await Product.updateOne(

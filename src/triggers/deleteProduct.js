@@ -1,8 +1,9 @@
 const deleteProduct = async doc => {
 	try {
-		if (!doc.hasOwnProperty('deletedAt'))
+		if (!doc.hasOwnProperty('deletedAt')) {
 			doc.set('deletedAt', Date.now());
-		else
+			doc.save();
+		} else
 			throw new Error(
 				'Error while uninstalling product. Product already removed.'
 			);
