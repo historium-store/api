@@ -15,4 +15,8 @@ translatorRouter
 		controller.createOne
 	);
 
+translatorRouter
+	.route('/:id')
+	.get(validator.validateId, controller.getOne);
+
 export default translatorRouter;

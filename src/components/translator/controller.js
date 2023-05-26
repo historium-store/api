@@ -16,4 +16,18 @@ const createOne = async (req, res, next) => {
 	}
 };
 
-export default { createOne };
+const getOne = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { id } = matchedData(req);
+
+		res.json(await service.getOne(id));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+export default { createOne, getOne };

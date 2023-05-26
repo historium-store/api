@@ -54,4 +54,37 @@ const createOne = async translatorData => {
 	}
 };
 
-export default { createOne };
+const getOne = async id => {
+	try {
+		if (!(await Translator.exists({ _id: id }))) {
+			throw {
+				status: 404,
+				message: `Translator with id '${id}' not found`
+			};
+		}
+
+		return Translator.findById(id).populate({
+			path: 'books',
+			populate: [
+				'publisher',
+				'series',
+				'authors',
+				'composers',
+				'translators',
+				'illustrators',
+				'editors',
+				{
+					path: 'product',
+					populate: ['type', 'sections']
+				}
+			]
+		});
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+export default { createOne, getOne };
