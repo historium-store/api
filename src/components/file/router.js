@@ -4,6 +4,6 @@ import controller from './controller.js';
 
 const fileRouter = Router();
 
-fileRouter.post('/upload', upload.array('files'), controller.upload);
+fileRouter.post('/', upload.array('files'), controller.upload);
 
 export default fileRouter;
