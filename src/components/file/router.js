@@ -6,6 +6,4 @@ const fileRouter = Router();
 
 fileRouter.post('/upload', upload.array('files'), controller.upload);
 
-fileRouter.get('/:fileName', controller.send);
-
 export default fileRouter;
