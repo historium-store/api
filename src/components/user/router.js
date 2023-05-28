@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { checkRole, checkSameIdOrRole } from '../../middleware.js';
+import {
+	checkRole,
+	checkSameIdOrRole,
+	validateQueryParams
+} from '../../middleware.js';
 import authController from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -33,6 +37,7 @@ userRouter.get(
 	'/',
 	authController.authenticate,
 	checkRole(['admin']),
+	validateQueryParams,
 	controller.getAll
 );
 

@@ -1,5 +1,8 @@
 import { Router } from 'express';
-import { checkSameIdOrRole } from '../../middleware.js';
+import {
+	checkSameIdOrRole,
+	validateQueryParams
+} from '../../middleware.js';
 import authController from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -13,7 +16,7 @@ reviewRouter
 		validator.validateCreate,
 		controller.createOne
 	)
-	.get(controller.getAll);
+	.get(validateQueryParams, controller.getAll);
 
 reviewRouter
 	.route('/:id')

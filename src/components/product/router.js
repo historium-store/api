@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { checkRole } from '../../middleware.js';
+import { checkRole, validateQueryParams } from '../../middleware.js';
 import authController from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -10,7 +10,7 @@ productRouter.use(authController.authenticate, checkRole(['admin']));
 
 productRouter
 	.route('/')
-	.get(controller.getAll)
+	.get(validateQueryParams, controller.getAll)
 	.post(validator.validateCreate, controller.createOne);
 
 if (process.env.NODE_ENV === 'development') {

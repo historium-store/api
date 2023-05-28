@@ -1,3 +1,4 @@
+import { query } from 'express-validator';
 import createHttpError from 'http-errors';
 
 export const errorHandler = (err, req, res, next) => {
@@ -37,3 +38,18 @@ export const checkSameIdOrRole = roles => (req, res, next) => {
 
 	next(createHttpError(403, 'No permission to use this endpoint'));
 };
+
+export const validateQueryParams = [
+	query('limit')
+		.default(0)
+		.isInt({ min: 0 })
+		.withMessage(
+			"Query parameter 'limit' must be a positive integer"
+		),
+	query('offset')
+		.default(0)
+		.isInt({ min: 0 })
+		.withMessage(
+			"Query parameter 'offset' must be a positive integer"
+		)
+];
