@@ -32,7 +32,7 @@ const login = async (req, res, next) => {
 			password
 		};
 
-		res.json(await service.login(loginData));
+		res.json({ token: await service.login(loginData) });
 	} catch (err) {
 		next(createError(err));
 	}
@@ -92,7 +92,7 @@ const verifyRestore = async (req, res, next) => {
 			restorationToken
 		};
 
-		res.json(await service.verifyRestore(dataToVerify));
+		res.json({ id: await service.verifyRestore(dataToVerify) });
 	} catch (err) {
 		next(createError(err));
 	}
