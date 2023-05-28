@@ -76,15 +76,20 @@ const getOne = async id => {
 	}
 };
 
-const getAll = async () => {
+const getAll = async queryParams => {
+	const { limit, offset: skip } = queryParams;
+
 	try {
-		return await Review.find().populate([
-			{
-				path: 'product',
-				populate: ['type', 'sections']
-			},
-			'user'
-		]);
+		return await Review.find()
+			.limit(limit)
+			.skip(skip)
+			.populate([
+				{
+					path: 'product',
+					populate: ['type', 'sections']
+				},
+				'user'
+			]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

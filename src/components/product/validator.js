@@ -38,8 +38,8 @@ const validateCreate = [
 			'Product description must be between 50 and 10000 characters'
 		),
 	body('images')
-		.isArray({ min: 1, max: 3 })
-		.withMessage('Product must have between 1 and 3 images'),
+		.isArray({ min: 1, max: 8 })
+		.withMessage('Product must have between 1 and 8 images'),
 	body('sections')
 		.exists()
 		.withMessage('Product must be in at least 1 section')
@@ -81,8 +81,8 @@ const validateUpdate = [
 		),
 	body('images')
 		.optional()
-		.isArray({ min: 1, max: 3 })
-		.withMessage('Product must have between 1 and 3 images'),
+		.isArray({ min: 1, max: 8 })
+		.withMessage('Product must have between 1 and 8 images'),
 	body('sections')
 		.optional()
 		.isArray({ min: 1 })

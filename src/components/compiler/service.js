@@ -87,24 +87,29 @@ const getOne = async id => {
 	}
 };
 
-const getAll = async () => {
+const getAll = async queryParams => {
+	const { limit, offset: skip } = queryParams;
+
 	try {
-		return await Compiler.find().populate({
-			path: 'books',
-			populate: [
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'compilers',
-				'illustrators',
-				'editors',
-				{
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			]
-		});
+		return await Compiler.find()
+			.limit(limit)
+			.skip(skip)
+			.populate({
+				path: 'books',
+				populate: [
+					'publisher',
+					'series',
+					'authors',
+					'compilers',
+					'compilers',
+					'illustrators',
+					'editors',
+					{
+						path: 'product',
+						populate: ['type', 'sections']
+					}
+				]
+			});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

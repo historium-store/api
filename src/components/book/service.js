@@ -33,7 +33,7 @@ const createOne = async bookData => {
 			};
 		}
 
-		if (!(await BookSeries.exists({ _id: series }))) {
+		if (series && !(await BookSeries.exists({ _id: series }))) {
 			throw {
 				status: 404,
 				message: `Book series with id '${series}' not found`
@@ -184,9 +184,13 @@ const getOne = async id => {
 	}
 };
 
-const getAll = async () => {
+const getAll = async queryParams => {
+	const { limit, offset: skip } = queryParams;
+
 	try {
 		return await Book.find()
+			.limit(limit)
+			.skip(skip)
 			.populate([
 				'publisher',
 				'series',

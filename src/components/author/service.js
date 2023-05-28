@@ -95,9 +95,13 @@ const getOne = async id => {
 	}
 };
 
-const getAll = async () => {
+const getAll = async queryParams => {
+	const { limit, offset: skip } = queryParams;
+
 	try {
 		return await Author.find()
+			.limit(limit)
+			.skip(skip)
 			.populate({
 				path: 'books',
 				populate: [

@@ -109,9 +109,13 @@ const getOne = async id => {
 	}
 };
 
-const getAll = async () => {
+const getAll = async queryParams => {
+	const { limit, offset: skip } = queryParams;
+
 	try {
 		return await BookSeries.find()
+			.limit(limit)
+			.skip(skip)
 			.populate('publisher')
 			.populate({
 				path: 'books',

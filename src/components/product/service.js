@@ -84,13 +84,14 @@ const getOne = async id => {
 	}
 };
 
-const getAll = async () => {
+const getAll = async queryParams => {
+	const { limit, offset: skip } = queryParams;
+
 	try {
-		return await Product.find().populate([
-			'type',
-			'sections',
-			'reviews'
-		]);
+		return await Product.find()
+			.limit(limit)
+			.skip(skip)
+			.populate(['type', 'sections', 'reviews']);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

@@ -18,7 +18,13 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
 	try {
-		res.json(await service.getAll());
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const queryParams = matchedData(req);
+
+		res.json(await service.getAll(queryParams));
 	} catch (err) {
 		next(createError(err));
 	}

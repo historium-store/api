@@ -67,9 +67,13 @@ const getOne = async id => {
 	}
 };
 
-const getAll = async () => {
+const getAll = async queryParams => {
+	const { limit, offset: skip } = queryParams;
+
 	try {
 		return await Section.find()
+			.limit(limit)
+			.skip(skip)
 			.populate('sections')
 			.populate({
 				path: 'products',

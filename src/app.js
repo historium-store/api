@@ -15,6 +15,7 @@ import productTypeRouter from './components/product-type/router.js';
 import productRouter from './components/product/router.js';
 import publisherRouter from './components/publisher/router.js';
 import reviewRouter from './components/review/router.js';
+import searchRouter from './components/search/router.js';
 import sectionRouter from './components/section/router.js';
 import translatorRouter from './components/translator/router.js';
 import userRouter from './components/user/router.js';
@@ -38,6 +39,7 @@ app.use('/translator', translatorRouter);
 app.use('/illustrator', illustratorRouter);
 app.use('/editor', editorRouter);
 app.use('/book-series', bookSeriesRouter);
+app.use('/search', searchRouter);
 app.use('/file', fileRouter);
 
 app.use((req, res, next) =>

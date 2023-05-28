@@ -62,9 +62,11 @@ const getOne = async id => {
 	}
 };
 
-const getAll = async () => {
+const getAll = async queryParams => {
+	const { limit, offset: skip } = queryParams;
+
 	try {
-		return await User.find();
+		return await User.find().limit(limit).skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
