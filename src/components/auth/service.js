@@ -215,15 +215,7 @@ const verifyRestore = async resetData => {
 			$unset: { restorationToken: true }
 		});
 
-		const payload = { sub: foundUser.id };
-		const options = {
-			expiresIn: process.env.JWT_EXPIRATION,
-			noTimestamp: true
-		};
-
-		const token = jwt.sign(payload, process.env.SECRET, options);
-
-		return { id: user.id, token };
+		return `${user.id}`;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
