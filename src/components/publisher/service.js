@@ -80,9 +80,14 @@ const getOne = async id => {
 	}
 };
 
-const getAll = async () => {
+const getAll = async queryParams => {
+	const { limit, offset } = queryParams;
+
 	try {
-		return await Publisher.find().populate(['books', 'bookSeries']);
+		return await Publisher.find()
+			.limit(limit)
+			.skip(offset)
+			.populate(['books', 'bookSeries']);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

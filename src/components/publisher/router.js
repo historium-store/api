@@ -8,7 +8,7 @@ const publisherRouter = Router();
 
 publisherRouter
 	.route('/')
-	.get(controller.getAll)
+	.get(validator.validateQueryParams, controller.getAll)
 	.post(
 		authController.authenticate,
 		checkRole(['admin', 'seller']),

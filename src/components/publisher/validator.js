@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import { isArrayOfMongoIds } from '../../utils.js';
 
 const validateId = [
@@ -75,6 +75,26 @@ const validateUpdate = [
 		.withMessage('Publisher logo must be a valid url')
 ];
 
-const validator = { validateId, validateCreate, validateUpdate };
+const validateQueryParams = [
+	query('limit')
+		.default(0)
+		.isInt({ min: 0 })
+		.withMessage(
+			"Query parameter 'limit' must be a positive integer"
+		),
+	query('offset')
+		.default(0)
+		.isInt({ min: 0 })
+		.withMessage(
+			"Query parameter 'offset' must be a positive integer"
+		)
+];
+
+const validator = {
+	validateId,
+	validateCreate,
+	validateUpdate,
+	validateQueryParams
+};
 
 export default validator;
