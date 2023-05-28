@@ -177,7 +177,7 @@ const restorePassword = async loginData => {
 	}
 };
 
-const verifyRestorationToken = async resetData => {
+const verifyRestore = async resetData => {
 	const { phoneNumber, email, restorationToken } = resetData;
 
 	try {
@@ -198,7 +198,10 @@ const verifyRestorationToken = async resetData => {
 		}
 
 		if (!user.restorationToken) {
-			throw { status: 400, message: "User doesn't need restoration" };
+			throw {
+				status: 400,
+				message: "User doesn't need restoration"
+			};
 		}
 
 		if (restorationToken !== user.restorationToken) {
@@ -208,7 +211,9 @@ const verifyRestorationToken = async resetData => {
 			};
 		}
 
-		await user.updateOne({ $unset: { restorationToken: true } });
+		await user.updateOne({
+			$unset: { restorationToken: true }
+		});
 
 		return `${user.id}`;
 	} catch (err) {
@@ -224,5 +229,5 @@ export default {
 	login,
 	authenticate,
 	restorePassword,
-	verifyRestorationToken
+	verifyRestore
 };

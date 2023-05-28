@@ -77,7 +77,7 @@ const restorePassword = async (req, res, next) => {
 	}
 };
 
-const verifyRestorationToken = async (req, res, next) => {
+const verifyRestore = async (req, res, next) => {
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
@@ -92,7 +92,7 @@ const verifyRestorationToken = async (req, res, next) => {
 			restorationToken
 		};
 
-		res.json(await service.verifyRestorationToken(dataToVerify));
+		res.json(await service.verifyRestore(dataToVerify));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -104,5 +104,5 @@ export default {
 	authenticate,
 	authenticateAndReturn,
 	restorePassword,
-	verifyRestorationToken
+	verifyRestore
 };

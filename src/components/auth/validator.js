@@ -80,7 +80,7 @@ const validatePasswordRestore = [
 		})
 ];
 
-const validateVerifyRestorationToken = [
+const validateVerifyRestore = [
 	body('login')
 		.trim()
 		.notEmpty()
@@ -101,7 +101,7 @@ const validator = {
 	validateSignup,
 	validateLogin,
 	validatePasswordRestore,
-	validateVerifyRestorationToken
+	validateVerifyRestore
 };
 
 export default validator;

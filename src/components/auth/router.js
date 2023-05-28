@@ -19,9 +19,9 @@ authRouter.post(
 );
 
 authRouter.post(
-	'/verify-restoration-token',
-	validator.validateVerifyRestorationToken,
-	controller.verifyRestorationToken
+	'/verify-restore',
+	validator.validateVerifyRestore,
+	controller.verifyRestore
 );
 
 export default authRouter;
