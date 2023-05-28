@@ -220,7 +220,6 @@ const verifyRestore = async resetData => {
 			expiresIn: process.env.JWT_EXPIRATION,
 			noTimestamp: true
 		};
-
 		const token = jwt.sign(payload, process.env.SECRET, options);
 
 		return { id: user.id, token };
