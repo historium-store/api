@@ -10,7 +10,7 @@ const createOne = async userData => {
 			$or: [{ phoneNumber }, { email }]
 		});
 
-		if (foundUser) {
+		if (foundUser && !foundUser.deletedAt) {
 			throw {
 				status: 409,
 				message:
@@ -46,7 +46,7 @@ const getOne = async id => {
 	try {
 		const user = await User.findById(id);
 
-		if (!user) {
+		if (!user || user.deletedAt) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`
@@ -66,7 +66,11 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await User.find().limit(limit).skip(skip);
+		return await User.find({
+			deletedAt: { $exists: false }
+		})
+			.limit(limit)
+			.skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -79,23 +83,25 @@ const updateOne = async (id, changes) => {
 	const { phoneNumber, email } = changes;
 
 	try {
-		if (!(await User.exists({ _id: id }))) {
+		const userToUpdate = await User.findById(id);
+
+		if (!userToUpdate || userToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`
 			};
 		}
 
-		const userToUpdate = await User.findOne({
+		const foundUser = await User.findOne({
 			$or: [{ phoneNumber }, { email }]
 		});
 
-		if (userToUpdate) {
+		if (foundUser && !foundUser.deletedAt && foundUser.id !== id) {
 			throw {
 				status: 409,
 				message:
 					'User with ' +
-					(userToUpdate.phoneNumber === phoneNumber
+					(foundUser.phoneNumber === phoneNumber
 						? `phone number '${phoneNumber}'`
 						: `email '${email}'`) +
 					' already exists'
@@ -129,7 +135,7 @@ const deleteOne = async id => {
 	try {
 		const userToDelete = await User.findById(id);
 
-		if (!userToDelete) {
+		if (!userToDelete || userToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`

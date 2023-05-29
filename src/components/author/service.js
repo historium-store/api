@@ -6,16 +6,23 @@ const createOne = async authorData => {
 	books = books ?? [];
 
 	try {
-		if (await Author.exists({ fullName })) {
+		const existingAuthor = await Author.exists({
+			fullName,
+			deletedAt: { $exists: false }
+		});
+
+		if (existingAuthor) {
 			throw {
 				status: 409,
 				message: `Author with full name '${fullName}' already exists`
 			};
 		}
 
-		const notFoundIndex = (await Book.find({ _id: books })).findIndex(
-			b => !b
-		);
+		const notFoundIndex = (
+			await Book.find({
+				_id: books
+			})
+		).findIndex(b => !b || b.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -30,26 +37,7 @@ const createOne = async authorData => {
 			{ $push: { authors: newAuthor.id } }
 		);
 
-		return await Author.findById(newAuthor.id)
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'translators',
-					'illustrators',
-					'editors'
-				]
-			})
-			.populate({
-				path: 'books',
-				populate: {
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			});
+		return newAuthor;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -60,33 +48,16 @@ const createOne = async authorData => {
 
 const getOne = async id => {
 	try {
-		if (!(await Author.exists({ _id: id }))) {
+		const foundAuthor = await Author.findById(id);
+
+		if (!foundAuthor || foundAuthor.deletedAt) {
 			throw {
 				status: 404,
 				message: `Author with id '${id}' not found`
 			};
 		}
 
-		return await Author.findById(id)
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'translators',
-					'illustrators',
-					'editors'
-				]
-			})
-			.populate({
-				path: 'books',
-				populate: {
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			});
+		return foundAuthor;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -99,28 +70,11 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Author.find()
-			.limit(limit)
-			.skip(skip)
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'translators',
-					'illustrators',
-					'editors'
-				]
-			})
-			.populate({
-				path: 'books',
-				populate: {
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			});
+		const filter = {
+			deletedAt: { $exists: false }
+		};
+
+		return await Author.find(filter).limit(limit).skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -135,14 +89,19 @@ const updateOne = async (id, changes) => {
 	try {
 		const authorToUpdate = await Author.findById(id);
 
-		if (!authorToUpdate) {
+		if (!authorToUpdate || authorToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Author with id '${id}' not found`
 			};
 		}
 
-		if (await Author.exists({ fullName })) {
+		const existingAuthor = await Author.exists({
+			fullName,
+			deletedAt: { $exists: false }
+		});
+
+		if (existingAuthor && existingAuthor.id !== id) {
 			throw {
 				status: 409,
 				message: `Author with full name '${fullName}' already exists`
@@ -152,7 +111,7 @@ const updateOne = async (id, changes) => {
 		if (books) {
 			const notFoundIndex = (
 				await Book.find({ _id: books })
-			).findIndex(b => !b);
+			).findIndex(b => !b || b.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -179,28 +138,9 @@ const updateOne = async (id, changes) => {
 			);
 		}
 
-		return await Author.findByIdAndUpdate(id, changes, {
-			new: true
-		})
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'translators',
-					'illustrators',
-					'editors'
-				]
-			})
-			.populate({
-				path: 'books',
-				populate: {
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			});
+		await authorToUpdate.updateOne(changes);
+
+		return await Author.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -213,7 +153,7 @@ const deleteOne = async id => {
 	try {
 		const authorToDelete = await Author.findById(id);
 
-		if (!authorToDelete) {
+		if (!authorToDelete || authorToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Author with id '${id}' not found`

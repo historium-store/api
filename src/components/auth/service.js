@@ -24,7 +24,7 @@ const login = async loginData => {
 			$or: [{ phoneNumber }, { email }]
 		});
 
-		if (!foundUser) {
+		if (!foundUser || foundUser.deletedAt) {
 			throw {
 				status: 404,
 				message:
@@ -94,16 +94,16 @@ const authenticate = async authHeader => {
 			tokenParts[1],
 			process.env.SECRET
 		);
-		const user = await User.findById(id);
+		const foundUser = await User.findById(id);
 
-		if (!user) {
+		if (!foundUser || foundUser.deletedAt) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`
 			};
 		}
 
-		return user;
+		return foundUser;
 	} catch (err) {
 		let status;
 		let message;
@@ -130,11 +130,11 @@ const restorePassword = async loginData => {
 	const { phoneNumber, email } = loginData;
 
 	try {
-		const user = await User.findOne({
+		const foundUser = await User.findOne({
 			$or: [{ phoneNumber }, { email }]
 		});
 
-		if (!user) {
+		if (!foundUser || foundUser.deletedAt) {
 			throw {
 				status: 404,
 				message:
@@ -160,14 +160,14 @@ const restorePassword = async loginData => {
 			const restorationToken = randomBytes(4).toString('hex');
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
-				to: user.email,
+				to: foundUser.email,
 				subject: 'Password restoration',
 				html: `Restoration token: <b>${restorationToken}</b>`
 			};
 
 			await transporter.sendMail(mailData);
 
-			await user.updateOne({ $set: { restorationToken } });
+			await foundUser.updateOne({ $set: { restorationToken } });
 		}
 	} catch (err) {
 		throw {
@@ -181,11 +181,11 @@ const verifyRestore = async resetData => {
 	const { phoneNumber, email, restorationToken } = resetData;
 
 	try {
-		const user = await User.findOne({
+		const foundUser = await User.findOne({
 			$or: [{ phoneNumber }, { email }]
 		});
 
-		if (!user) {
+		if (!foundUser || foundUser.deletedAt) {
 			throw {
 				status: 404,
 				message:
@@ -197,32 +197,32 @@ const verifyRestore = async resetData => {
 			};
 		}
 
-		if (!user.restorationToken) {
+		if (!foundUser.restorationToken) {
 			throw {
 				status: 400,
 				message: "User doesn't need restoration"
 			};
 		}
 
-		if (restorationToken !== user.restorationToken) {
+		if (restorationToken !== foundUser.restorationToken) {
 			throw {
 				status: 400,
 				message: 'Incorrect restoration token'
 			};
 		}
 
-		await user.updateOne({
+		await foundUser.updateOne({
 			$unset: { restorationToken: true }
 		});
 
-		const payload = { sub: user.id };
+		const payload = { sub: foundUser.id };
 		const options = {
 			expiresIn: process.env.JWT_EXPIRATION,
 			noTimestamp: true
 		};
 		const token = jwt.sign(payload, process.env.SECRET, options);
 
-		return { id: user.id, token };
+		return { id: foundUser.id, token };
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
