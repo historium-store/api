@@ -13,10 +13,6 @@ productRouter
 	.get(validateQueryParams, controller.getAll)
 	.post(validator.validateCreate, controller.createOne);
 
-if (process.env.NODE_ENV === 'development') {
-	productRouter.delete('/', controller.deleteAll);
-}
-
 productRouter
 	.route('/:id')
 	.get(validator.validateId, controller.getOne)

@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import ProductType from '../product-type/model.js';
 import Review from '../review/model.js';
 import Section from '../section/model.js';
@@ -10,7 +9,12 @@ const createOne = async productData => {
 	reviews = reviews ?? [];
 
 	try {
-		if (!(await ProductType.exists({ _id: type }))) {
+		const existingProductType = await ProductType.exists({
+			_id: type,
+			deletedAt: { $exists: false }
+		});
+
+		if (!existingProductType) {
 			throw {
 				status: 404,
 				message: `Product type with id '${type}' not found`
@@ -19,7 +23,7 @@ const createOne = async productData => {
 
 		let notFoundIndex = (
 			await Section.find({ _id: sections })
-		).findIndex(s => !s);
+		).findIndex(s => !s || s.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -27,9 +31,11 @@ const createOne = async productData => {
 			};
 		}
 
-		notFoundIndex = (await Review.find({ _id: reviews })).findIndex(
-			s => !s
-		);
+		notFoundIndex = (
+			await Review.find({
+				_id: reviews
+			})
+		).findIndex(r => !r || r.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -49,11 +55,7 @@ const createOne = async productData => {
 			{ $set: { product: newProduct.id } }
 		);
 
-		return await Product.findById(newProduct.id).populate([
-			'type',
-			'sections',
-			'reviews'
-		]);
+		return newProduct;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -64,18 +66,16 @@ const createOne = async productData => {
 
 const getOne = async id => {
 	try {
-		if (!(await Product.exists({ _id: id }))) {
+		const foundProduct = await Product.findById(id);
+
+		if (!foundProduct || foundProduct.deletedAt) {
 			throw {
 				status: 404,
 				message: `Product with id '${id}' not found`
 			};
 		}
 
-		return await Product.findById(id).populate([
-			'type',
-			'sections',
-			'reviews'
-		]);
+		return foundProduct;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -88,10 +88,11 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Product.find()
+		return await Product.find({
+			deletedAt: { $exists: false }
+		})
 			.limit(limit)
-			.skip(skip)
-			.populate(['type', 'sections', 'reviews']);
+			.skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -106,24 +107,33 @@ const updateOne = async (id, changes) => {
 	try {
 		const productToUpdate = await Product.findById(id);
 
-		if (!productToUpdate) {
+		if (!productToUpdate || productToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Product with id '${id}' not found`
 			};
 		}
 
-		if (type && !(await ProductType.exists({ _id: type }))) {
-			throw {
-				status: 404,
-				message: `Product type with id '${type}' not found`
-			};
+		if (type) {
+			const existingProductType = await ProductType.exists({
+				_id: type,
+				deletedAt: { $exists: false }
+			});
+
+			if (!existingProductType) {
+				throw {
+					status: 404,
+					message: `Product type with id '${type}' not found`
+				};
+			}
 		}
 
+		let addedSectionIds = [];
+		let removedSectionIds = [];
 		if (sections) {
 			const notFoundIndex = (
 				await Section.find({ _id: sections })
-			).findIndex(s => !s);
+			).findIndex(s => !s || s.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -135,27 +145,21 @@ const updateOne = async (id, changes) => {
 				s.id.toString('hex')
 			);
 
-			const addedSectionIds = sections.filter(
+			addedSectionIds = sections.filter(
 				s => !oldSectionIds.includes(s)
 			);
-			await Section.updateMany(
-				{ _id: addedSectionIds },
-				{ $push: { products: productToUpdate.id } }
-			);
 
-			const removedSectionIds = oldSectionIds.filter(
+			removedSectionIds = oldSectionIds.filter(
 				s => !sections.includes(s)
-			);
-			await Section.updateMany(
-				{ _id: removedSectionIds },
-				{ $pull: { products: productToUpdate.id } }
 			);
 		}
 
+		let addedReviewIds = [];
+		let removedReviewIds = [];
 		if (reviews) {
 			const notFoundIndex = (
 				await Review.find({ _id: reviews })
-			).findIndex(r => !r);
+			).findIndex(r => !r || r.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -167,26 +171,34 @@ const updateOne = async (id, changes) => {
 				s.id.toString('hex')
 			);
 
-			const addedReviewIds = reviews.filter(
-				s => !oldReviewIds.includes(s)
-			);
-			await Review.updateMany(
-				{ _id: addedReviewIds },
-				{ $set: { product: productToUpdate.id } }
-			);
+			addedReviewIds = reviews.filter(s => !oldReviewIds.includes(s));
 
-			const removedReviewIds = oldReviewIds.filter(
+			removedReviewIds = oldReviewIds.filter(
 				s => !reviews.includes(s)
-			);
-			await Review.updateMany(
-				{ _id: removedReviewIds },
-				{ $unset: { product: true } }
 			);
 		}
 
-		return await Product.findByIdAndUpdate(id, changes, {
-			new: true
-		}).populate(['type', 'sections', 'reviews']);
+		await Section.updateMany(
+			{ _id: addedSectionIds },
+			{ $push: { products: productToUpdate.id } }
+		);
+		await Section.updateMany(
+			{ _id: removedSectionIds },
+			{ $pull: { products: productToUpdate.id } }
+		);
+
+		await Review.updateMany(
+			{ _id: addedReviewIds },
+			{ $set: { product: productToUpdate.id } }
+		);
+		await Review.updateMany(
+			{ _id: removedReviewIds },
+			{ $unset: { product: true } }
+		);
+
+		await productToUpdate.updateOne(changes);
+
+		return await Product.findByIdAndUpdate(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -199,7 +211,7 @@ const deleteOne = async id => {
 	try {
 		const productToDelete = await Product.findById(id);
 
-		if (!productToDelete) {
+		if (!productToDelete || productToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Product with id '${id}' not found`
@@ -211,36 +223,9 @@ const deleteOne = async id => {
 			{ $pull: { products: productToDelete.id } }
 		);
 
-		// TODO (мне): нужно продумать как при удалении товара
-		// удалять и связанный с ним конкретный товар
 		await productToDelete.deleteOne();
 
 		return productToDelete;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
-	}
-};
-
-const deleteAll = async () => {
-	try {
-		const productsToDelete = await Product.find().populate([
-			'type',
-			'sections'
-		]);
-
-		for (let product of productsToDelete) {
-			await Section.updateMany(
-				{ _id: product.sections },
-				{ $pull: { products: product.id } }
-			);
-
-			await product.deleteOne();
-		}
-
-		return productsToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -254,6 +239,5 @@ export default {
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne,
-	deleteAll
+	deleteOne
 };

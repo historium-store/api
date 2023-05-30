@@ -72,19 +72,10 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
-const deleteAll = async (req, res, next) => {
-	try {
-		res.json(await service.deleteAll());
-	} catch (err) {
-		next(createError(err));
-	}
-};
-
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne,
-	deleteAll
+	deleteOne
 };
