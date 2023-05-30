@@ -6,16 +6,23 @@ const createOne = async illustratorData => {
 	books = books ?? [];
 
 	try {
-		if (await Illustrator.exists({ fullName })) {
+		const existingIllustrator = await Illustrator.exists({
+			fullName,
+			deletedAt: { $exists: false }
+		});
+
+		if (existingIllustrator) {
 			throw {
 				status: 409,
 				message: `Illustrator with full name '${fullName}' already exists`
 			};
 		}
 
-		const notFoundIndex = (await Book.find({ _id: books })).findIndex(
-			b => !b
-		);
+		const notFoundIndex = (
+			await Book.find({
+				_id: books
+			})
+		).findIndex(b => !b || b.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -30,22 +37,7 @@ const createOne = async illustratorData => {
 			{ $push: { illustrators: newIllustrator.id } }
 		);
 
-		return await Illustrator.findById(newIllustrator.id).populate({
-			path: 'books',
-			populate: [
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'illustrators',
-				'illustrators',
-				'editors',
-				{
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			]
-		});
+		return newIllustrator;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -56,29 +48,16 @@ const createOne = async illustratorData => {
 
 const getOne = async id => {
 	try {
-		if (!(await Illustrator.exists({ _id: id }))) {
+		const foundIllustrator = await Illustrator.findById(id);
+
+		if (!foundIllustrator || foundIllustrator.deletedAt) {
 			throw {
 				status: 404,
 				message: `Illustrator with id '${id}' not found`
 			};
 		}
 
-		return Illustrator.findById(id).populate({
-			path: 'books',
-			populate: [
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'illustrators',
-				'illustrators',
-				'editors',
-				{
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			]
-		});
+		return foundIllustrator;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -91,25 +70,11 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Illustrator.find()
-			.limit(limit)
-			.skip(skip)
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'illustrators',
-					'illustrators',
-					'editors',
-					{
-						path: 'product',
-						populate: ['type', 'sections']
-					}
-				]
-			});
+		const filter = {
+			deletedAt: { $exists: false }
+		};
+
+		return await Illustrator.find(filter).limit(limit).skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -124,14 +89,22 @@ const updateOne = async (id, changes) => {
 	try {
 		const illustratorToUpdate = await Illustrator.findById(id);
 
-		if (!illustratorToUpdate) {
+		if (!illustratorToUpdate || illustratorToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Illustrator with id '${id}' not found`
 			};
 		}
 
-		if (await Illustrator.exists({ fullName })) {
+		const existingIllustrator = await Illustrator.exists({
+			fullName,
+			deletedAt: { $exists: false }
+		});
+
+		if (
+			existingIllustrator &&
+			existingIllustrato._id.toHexString() !== id
+		) {
 			throw {
 				status: 409,
 				message: `Illustrator with full name '${fullName}' already exists`
@@ -141,7 +114,7 @@ const updateOne = async (id, changes) => {
 		if (books) {
 			const notFoundIndex = (
 				await Book.find({ _id: books })
-			).findIndex(b => !b);
+			).findIndex(b => !b || b.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -168,24 +141,9 @@ const updateOne = async (id, changes) => {
 			);
 		}
 
-		return await Illustrator.findByIdAndUpdate(id, changes, {
-			new: true
-		}).populate({
-			path: 'books',
-			populate: [
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'illustrators',
-				'illustrators',
-				'editors',
-				{
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			]
-		});
+		await illustratorToUpdate.updateOne(changes);
+
+		return await Illustrator.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -198,7 +156,7 @@ const deleteOne = async id => {
 	try {
 		const illustratorToDelete = await Illustrator.findById(id);
 
-		if (!illustratorToDelete) {
+		if (!illustratorToDelete || illustratorToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Illustrator with id '${id}' not found`

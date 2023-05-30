@@ -101,7 +101,7 @@ const updateOne = async (id, changes) => {
 			deletedAt: { $exists: false }
 		});
 
-		if (existingAuthor && existingAuthor.id !== id) {
+		if (existingAuthor && existingAuthor._id.toHexString() !== id) {
 			throw {
 				status: 409,
 				message: `Author with full name '${fullName}' already exists`

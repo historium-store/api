@@ -6,16 +6,23 @@ const createOne = async translatorData => {
 	books = books ?? [];
 
 	try {
-		if (await Translator.exists({ fullName })) {
+		const existingTranslator = await Translator.exists({
+			fullName,
+			deletedAt: { $exists: false }
+		});
+
+		if (existingTranslator) {
 			throw {
 				status: 409,
 				message: `Translator with full name '${fullName}' already exists`
 			};
 		}
 
-		const notFoundIndex = (await Book.find({ _id: books })).findIndex(
-			b => !b
-		);
+		const notFoundIndex = (
+			await Book.find({
+				_id: books
+			})
+		).findIndex(b => !b || b.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -30,22 +37,7 @@ const createOne = async translatorData => {
 			{ $push: { translators: newTranslator.id } }
 		);
 
-		return await Translator.findById(newTranslator.id).populate({
-			path: 'books',
-			populate: [
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'translators',
-				'illustrators',
-				'editors',
-				{
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			]
-		});
+		return newTranslator;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -56,29 +48,16 @@ const createOne = async translatorData => {
 
 const getOne = async id => {
 	try {
-		if (!(await Translator.exists({ _id: id }))) {
+		const foundTranslator = await Translator.findById(id);
+
+		if (!foundTranslator || foundTranslator.deletedAt) {
 			throw {
 				status: 404,
 				message: `Translator with id '${id}' not found`
 			};
 		}
 
-		return Translator.findById(id).populate({
-			path: 'books',
-			populate: [
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'translators',
-				'illustrators',
-				'editors',
-				{
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			]
-		});
+		return foundTranslator;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -91,25 +70,11 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Translator.find()
-			.limit(limit)
-			.skip(skip)
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'translators',
-					'illustrators',
-					'editors',
-					{
-						path: 'product',
-						populate: ['type', 'sections']
-					}
-				]
-			});
+		const filter = {
+			deletedAt: { $exists: false }
+		};
+
+		return await Translator.find(filter).limit(limit).skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -124,14 +89,22 @@ const updateOne = async (id, changes) => {
 	try {
 		const translatorToUpdate = await Translator.findById(id);
 
-		if (!translatorToUpdate) {
+		if (!translatorToUpdate || translatorToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Translator with id '${id}' not found`
 			};
 		}
 
-		if (await Translator.exists({ fullName })) {
+		const existingTranslator = await Translator.exists({
+			fullName,
+			deletedAt: { $exists: false }
+		});
+
+		if (
+			existingTranslator &&
+			existingTranslato._id.toHexString() !== id
+		) {
 			throw {
 				status: 409,
 				message: `Translator with full name '${fullName}' already exists`
@@ -141,7 +114,7 @@ const updateOne = async (id, changes) => {
 		if (books) {
 			const notFoundIndex = (
 				await Book.find({ _id: books })
-			).findIndex(b => !b);
+			).findIndex(b => !b || b.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -168,24 +141,9 @@ const updateOne = async (id, changes) => {
 			);
 		}
 
-		return await Translator.findByIdAndUpdate(id, changes, {
-			new: true
-		}).populate({
-			path: 'books',
-			populate: [
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'translators',
-				'illustrators',
-				'editors',
-				{
-					path: 'product',
-					populate: ['type', 'sections']
-				}
-			]
-		});
+		await translatorToUpdate.updateOne(changes);
+
+		return await Translator.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -198,7 +156,7 @@ const deleteOne = async id => {
 	try {
 		const translatorToDelete = await Translator.findById(id);
 
-		if (!translatorToDelete) {
+		if (!translatorToDelete || translatorToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Translator with id '${id}' not found`

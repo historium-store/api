@@ -96,7 +96,11 @@ const updateOne = async (id, changes) => {
 			$or: [{ phoneNumber }, { email }]
 		});
 
-		if (foundUser && !foundUser.deletedAt && foundUser.id !== id) {
+		if (
+			foundUser &&
+			!foundUser.deletedAt &&
+			foundUse._id.toHexString() !== id
+		) {
 			throw {
 				status: 409,
 				message:
