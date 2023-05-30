@@ -40,7 +40,8 @@ const publisherSchema = new Schema(
 	},
 	{
 		versionKey: false,
-		timestamps: true
+		timestamps: true,
+		strict: false
 	}
 );
 

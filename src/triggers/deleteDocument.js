@@ -2,7 +2,7 @@ const deleteDocument = async doc => {
 	try {
 		if (!doc.hasOwnProperty('deletedAt')) {
 			doc.set('deletedAt', Date.now());
-			doc.save();
+			await doc.save();
 		} else
 			throw new Error(
 				'Error while uninstalling product. Product already removed.'
