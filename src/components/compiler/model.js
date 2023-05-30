@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import deleteDocument from '../../triggers/deleteDocument.js';
 
 const { ObjectId } = Schema.Types;
 
@@ -27,6 +28,10 @@ const compilerSchema = new Schema(
 		timestamps: true
 	}
 );
+
+compilerSchema.methods.deleteOne = async function () {
+	await deleteDocument(this);
+};
 
 const Compiler = model('Compiler', compilerSchema);
 

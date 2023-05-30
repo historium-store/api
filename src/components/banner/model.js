@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import deleteDocument from '../../triggers/deleteDocument.js';
 
 const bannerSchema = new Schema(
 	{
@@ -22,6 +23,10 @@ const bannerSchema = new Schema(
 		timestamps: true
 	}
 );
+
+bannerSchema.methods.deleteOne = async function () {
+	await deleteDocument(this);
+};
 
 const Banner = model('Banner', bannerSchema);
 

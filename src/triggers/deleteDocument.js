@@ -1,4 +1,4 @@
-const deleteProduct = async doc => {
+const deleteDocument = async doc => {
 	try {
 		if (!doc.hasOwnProperty('deletedAt')) {
 			doc.set('deletedAt', Date.now());
@@ -15,4 +15,4 @@ const deleteProduct = async doc => {
 	}
 };
 
-export default deleteProduct;
+export default deleteDocument;

@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import deleteDocument from '../../triggers/deleteDocument.js';
 
 const { ObjectId } = Schema.Types;
 
@@ -27,6 +28,10 @@ const illustratorSchema = new Schema(
 		timestamps: true
 	}
 );
+
+illustratorSchema.methods.deleteOne = async function () {
+	await deleteDocument(this);
+};
 
 const Illustrator = model('Illustrator', illustratorSchema);
 

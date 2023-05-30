@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import deleteProduct from '../../triggers/deleteProduct.js';
+import deleteDocument from '../../triggers/deleteDocument.js';
 import setProductCode from '../../triggers/setProductCode.js';
 
 const { ObjectId } = Schema.Types;
@@ -74,7 +74,7 @@ productSchema.pre('save', async function (next) {
 });
 
 productSchema.methods.deleteOne = async function () {
-	await deleteProduct(this);
+	await deleteDocument(this);
 };
 
 const Product = model('Product', productSchema);
