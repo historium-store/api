@@ -109,10 +109,12 @@ const bookSchema = new Schema(
 			type: String,
 			required: false
 		},
-		illustrationsType: {
-			type: String,
-			required: false
-		},
+		illustrationsType: [
+			{
+				type: String,
+				required: false
+			}
+		],
 
 		literaturePeriod: [
 			{
@@ -120,18 +122,22 @@ const bookSchema = new Schema(
 				required: false
 			}
 		],
-		literatureCountry: {
-			type: String,
-			required: false
-		},
+		literatureCountry: [
+			{
+				type: String,
+				required: false
+			}
+		],
 		foreignLiterature: {
 			type: Boolean,
 			required: false
 		},
-		timePeriod: {
-			type: String,
-			required: false
-		},
+		timePeriod: [
+			{
+				type: String,
+				required: false
+			}
+		],
 
 		grade: {
 			type: String,
@@ -166,7 +172,12 @@ const bookSchema = new Schema(
 				type: String,
 				required: false
 			}
-		]
+		],
+		key: {
+			type: String,
+			required: true,
+			unique: true
+		}
 	},
 	{
 		versionKey: false

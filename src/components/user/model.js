@@ -46,6 +46,13 @@ const userSchema = new Schema(
 			type: String,
 			required: false
 		},
+		favorites: [
+			{
+				type: ObjectId,
+				ref: 'Product',
+				required: false
+			}
+		],
 		createdAt: {
 			type: Number
 		},

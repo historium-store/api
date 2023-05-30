@@ -10,6 +10,10 @@ const productSchema = new Schema(
 			type: String,
 			required: true
 		},
+		specificProduct: {
+			type: ObjectId,
+			required: false
+		},
 		code: {
 			type: String,
 			required: false,
