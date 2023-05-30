@@ -13,3 +13,8 @@ mongoose
 	.catch(err => {
 		console.log(`Failed to connect to database: ${err.message}`);
 	});
+
+process.on('unhandledRejection', event => {
+	console.log(event.promise);
+	console.log(event.reason);
+});
