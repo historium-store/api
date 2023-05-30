@@ -4,7 +4,12 @@ const createOne = async productTypeData => {
 	const { name } = productTypeData;
 
 	try {
-		if (await ProductType.exists({ name })) {
+		const existsingProductType = await ProductType.exists({
+			name,
+			deletedAt: { $exists: false }
+		});
+
+		if (existsingProductType) {
 			throw {
 				status: 409,
 				message: `Product type with name '${name}' already exists`
@@ -22,16 +27,16 @@ const createOne = async productTypeData => {
 
 const getOne = async id => {
 	try {
-		const productType = await ProductType.findById(id);
+		const foundProductType = await ProductType.findById(id);
 
-		if (!productType) {
+		if (!foundProductType) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
 			};
 		}
 
-		return productType;
+		return foundProductType;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -44,7 +49,11 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await ProductType.find().limit(limit).skip(skip);
+		return await ProductType.find({
+			deletedAt: { $exists: false }
+		})
+			.limit(limit)
+			.skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -59,23 +68,27 @@ const updateOne = async (id, changes) => {
 	try {
 		const productTypeToUpdate = await ProductType.findById(id);
 
-		if (!productTypeToUpdate) {
+		if (!productTypeToUpdate || productTypeToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
 			};
 		}
 
-		if (await ProductType.exists({ name })) {
+		const existsingProductType = await ProductType.exists({
+			name,
+			deletedAt: { $exists: false }
+		});
+		if (existsingProductType) {
 			throw {
 				status: 409,
 				message: `Product type with name '${name}' already exists`
 			};
 		}
 
-		return await ProductType.findByIdAndUpdate(id, changes, {
-			new: true
-		});
+		await productTypeToUpdate.updateOne(changes);
+
+		return await ProductType.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -88,7 +101,7 @@ const deleteOne = async id => {
 	try {
 		const productTypeToDelete = await ProductType.findById(id);
 
-		if (!productTypeToDelete) {
+		if (!productTypeToDelete || productTypeToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`

@@ -99,7 +99,7 @@ const updateOne = async (id, changes) => {
 		if (
 			foundUser &&
 			!foundUser.deletedAt &&
-			foundUse._id.toHexString() !== id
+			foundUser._id.toHexString() !== id
 		) {
 			throw {
 				status: 409,

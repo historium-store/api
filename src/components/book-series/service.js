@@ -7,28 +7,32 @@ const createOne = async bookSeriesData => {
 	books = books ?? [];
 
 	try {
-		if (!(await Publisher.exists({ _id: publisher }))) {
+		const foundPublisher = await Publisher.findById(publisher);
+		if (!foundPublisher || foundPublisher.deletedAt) {
 			throw {
 				status: 404,
 				message: `Publisher with id '${publisher}' not found`
 			};
 		}
 
-		if (
-			await BookSeries.exists({
-				name,
-				publisher
-			})
-		) {
+		const existingBookSeries = await BookSeries.exists({
+			name,
+			publisher,
+			deletedAt: { $exists: false }
+		});
+
+		if (existingBookSeries) {
 			throw {
 				status: 409,
-				message: `Publisher '${publisher.name}' already has book series named '${name}'`
+				message: `Publisher '${foundPublisher.name}' already has book series named '${name}'`
 			};
 		}
 
-		const notFoundIndex = (await Book.find({ _id: books })).findIndex(
-			b => !b
-		);
+		const notFoundIndex = (
+			await Book.find({
+				_id: books
+			})
+		).findIndex(b => !b || b.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -48,24 +52,7 @@ const createOne = async bookSeriesData => {
 			{ $set: { series: newBookSeries.id } }
 		);
 
-		return await BookSeries.findById(newBookSeries.id)
-			.populate('publisher')
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'translators',
-					'illustrators',
-					'editors',
-					{
-						path: 'product',
-						populate: ['type', 'sections']
-					}
-				]
-			});
+		return newBookSeries;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -76,31 +63,16 @@ const createOne = async bookSeriesData => {
 
 const getOne = async id => {
 	try {
-		if (!(await BookSeries.exists({ _id: id }))) {
+		const foundBookSeries = await BookSeries.findById(id);
+
+		if (!foundBookSeries || foundBookSeries.deletedAt) {
 			throw {
 				status: 404,
 				message: `Book series with id '${id}' not found`
 			};
 		}
 
-		return await BookSeries.findById(id)
-			.populate('publisher')
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'translators',
-					'illustrators',
-					'editors',
-					{
-						path: 'product',
-						populate: ['type', 'sections']
-					}
-				]
-			});
+		return foundBookSeries;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -113,26 +85,11 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await BookSeries.find()
+		return await BookSeries.find({
+			deletedAt: { $exists: false }
+		})
 			.limit(limit)
-			.skip(skip)
-			.populate('publisher')
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'translators',
-					'illustrators',
-					'editors',
-					{
-						path: 'product',
-						populate: ['type', 'sections']
-					}
-				]
-			});
+			.skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -147,7 +104,7 @@ const updateOne = async (id, changes) => {
 	try {
 		const bookSeriesToUpdate = await BookSeries.findById(id);
 
-		if (!bookSeriesToUpdate) {
+		if (!bookSeriesToUpdate || bookSeriesToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Book series with id '${id}' not found`
@@ -157,7 +114,8 @@ const updateOne = async (id, changes) => {
 		let oldPublisher;
 		let newPublisher;
 		if (publisher) {
-			if (!(await Publisher.exists({ _id: publisher }))) {
+			newPublisher = await Publisher.findById(publisher);
+			if (!newPublisher || newPublisher.deletedAt) {
 				throw {
 					status: 404,
 					message: `Publisher with id '${publisher}' not found`
@@ -167,9 +125,14 @@ const updateOne = async (id, changes) => {
 			oldPublisher = await Publisher.findById(
 				bookSeriesToUpdate.publisher
 			);
-			newPublisher = await Publisher.findById(publisher);
 
-			if (await BookSeries.exists({ name, publisher })) {
+			const existingBookSeries = await BookSeries.exists({
+				name,
+				publisher,
+				deletedAt: { $exists: false }
+			});
+
+			if (existingBookSeries) {
 				throw {
 					status: 409,
 					message: `Publisher '${newPublisher.name}' already has book series named '${name}'`
@@ -182,7 +145,7 @@ const updateOne = async (id, changes) => {
 		if (books) {
 			const notFoundIndex = (
 				await Book.find({ _id: books })
-			).findIndex(b => !b);
+			).findIndex(b => !b || b.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -220,26 +183,9 @@ const updateOne = async (id, changes) => {
 			{ $unset: { series: true } }
 		);
 
-		return await BookSeries.findByIdAndUpdate(id, changes, {
-			new: true
-		})
-			.populate('publisher')
-			.populate({
-				path: 'books',
-				populate: [
-					'publisher',
-					'series',
-					'authors',
-					'compilers',
-					'translators',
-					'illustrators',
-					'editors',
-					{
-						path: 'product',
-						populate: ['type', 'sections']
-					}
-				]
-			});
+		await bookSeriesToUpdate.updateOne(changes);
+
+		return await BookSeries.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -252,7 +198,7 @@ const deleteOne = async id => {
 	try {
 		const bookSeriesToDelete = await BookSeries.findById(id);
 
-		if (!bookSeriesToDelete) {
+		if (!bookSeriesToDelete || bookSeriesToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Book series with id '${id}' not found`

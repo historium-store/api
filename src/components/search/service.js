@@ -11,7 +11,10 @@ const findProducts = async valueToFind => {
 		})
 	).map(p => p.id);
 
-	return await Book.find({ product: productIds })
+	return await Book.find({
+		product: productIds,
+		deletedAt: { $exists: false }
+	})
 		.populate([
 			'publisher',
 			'series',

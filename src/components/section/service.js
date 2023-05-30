@@ -6,7 +6,12 @@ const createOne = async sectionData => {
 	products = products ?? [];
 
 	try {
-		if (await Section.exists({ name })) {
+		const existingSection = await Section.exists({
+			name,
+			deletedAt: { $exists: false }
+		});
+
+		if (existingSection) {
 			throw {
 				status: 409,
 				message: `Section with name '${name}' already exists`
@@ -15,7 +20,7 @@ const createOne = async sectionData => {
 
 		const notFoundIndex = (
 			await Product.find({ _id: products })
-		).findIndex(p => !p);
+		).findIndex(p => !p || p.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -30,12 +35,7 @@ const createOne = async sectionData => {
 			{ $push: { sections: newSection.id } }
 		);
 
-		return await Section.findById(newSection.id)
-			.populate('sections')
-			.populate({
-				path: 'products',
-				populate: ['type', 'sections']
-			});
+		return newSection;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -46,19 +46,16 @@ const createOne = async sectionData => {
 
 const getOne = async id => {
 	try {
-		if (!(await Section.exists({ _id: id }))) {
+		const foundSection = await Section.findById(id);
+
+		if (!foundSection || foundSection.deletedAt) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
 			};
 		}
 
-		return await Section.findById(id)
-			.populate('sections')
-			.populate({
-				path: 'products',
-				populate: ['type', 'sections']
-			});
+		return foundSection;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -71,14 +68,11 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Section.find()
+		return await Section.find({
+			deletedAt: { $exists: false }
+		})
 			.limit(limit)
-			.skip(skip)
-			.populate('sections')
-			.populate({
-				path: 'products',
-				populate: ['type', 'sections']
-			});
+			.skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -93,14 +87,19 @@ const updateOne = async (id, changes) => {
 	try {
 		const sectionToUpdate = await Section.findById(id);
 
-		if (!sectionToUpdate) {
+		if (!sectionToUpdate || sectionToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
 			};
 		}
 
-		if (await Section.exists({ name })) {
+		const existingSection = await Section.exists({
+			name,
+			deletedAt: { $exists: false }
+		});
+
+		if (existingSection) {
 			throw {
 				status: 409,
 				message: `Section with name '${name}' already exists`
@@ -110,7 +109,7 @@ const updateOne = async (id, changes) => {
 		if (products) {
 			const notFoundIndex = (
 				await Product.find({ _id: products })
-			).findIndex(p => !p);
+			).findIndex(p => !p || p.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -139,14 +138,9 @@ const updateOne = async (id, changes) => {
 			);
 		}
 
-		return await Section.findByIdAndUpdate(id, changes, {
-			new: true
-		})
-			.populate('sections')
-			.populate({
-				path: 'products',
-				populate: ['type', 'sections']
-			});
+		await sectionToUpdate.updateOne(changes);
+
+		return await Section.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -159,7 +153,7 @@ const deleteOne = async id => {
 	try {
 		const sectionToDelete = await Section.findById(id);
 
-		if (!sectionToDelete) {
+		if (!sectionToDelete || sectionToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
@@ -173,12 +167,7 @@ const deleteOne = async id => {
 			};
 		}
 
-		return await Section.findByIdAndDelete(id)
-			.populate('sections')
-			.populate({
-				path: 'products',
-				populate: ['type', 'sections']
-			});
+		return sectionToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

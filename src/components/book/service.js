@@ -26,23 +26,35 @@ const createOne = async bookData => {
 	editors = editors ?? [];
 
 	try {
-		if (!(await Publisher.exists({ _id: publisher }))) {
+		const existingPublisher = await Publisher.exists({
+			_id: publisher,
+			deletedAt: { $exists: false }
+		});
+
+		if (!existingPublisher) {
 			throw {
 				status: 404,
 				message: `Publisher with id '${publisher}' not found`
 			};
 		}
 
-		if (series && !(await BookSeries.exists({ _id: series }))) {
-			throw {
-				status: 404,
-				message: `Book series with id '${series}' not found`
-			};
+		if (series) {
+			const existsingBookSeries = await BookSeries.exists({
+				_id: series,
+				deletedAt: { $exists: false }
+			});
+
+			if (!existsingBookSeries) {
+				throw {
+					status: 404,
+					message: `Book series with id '${series}' not found`
+				};
+			}
 		}
 
 		let notFoundIndex = (
 			await Author.find({ _id: authors })
-		).findIndex(a => !a);
+		).findIndex(a => !a || a.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -52,7 +64,7 @@ const createOne = async bookData => {
 
 		notFoundIndex = (
 			await Compiler.find({ _id: compilers })
-		).findIndex(c => !c);
+		).findIndex(c => !c || c.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -62,7 +74,7 @@ const createOne = async bookData => {
 
 		notFoundIndex = (
 			await Translator.find({ _id: translators })
-		).findIndex(t => !t);
+		).findIndex(t => !t || t.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -72,7 +84,7 @@ const createOne = async bookData => {
 
 		notFoundIndex = (
 			await Illustrator.find({ _id: illustrators })
-		).findIndex(i => !i);
+		).findIndex(i => !i || i.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -80,9 +92,11 @@ const createOne = async bookData => {
 			};
 		}
 
-		notFoundIndex = (await Editor.find({ _id: editors })).findIndex(
-			e => !e
-		);
+		notFoundIndex = (
+			await Editor.find({
+				_id: editors
+			})
+		).findIndex(e => !e || e.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -131,20 +145,11 @@ const createOne = async bookData => {
 			{ $push: { books: newBook.id } }
 		);
 
-		return await Book.findById(newBook.id)
-			.populate([
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'translators',
-				'illustrators',
-				'editors'
-			])
-			.populate({
-				path: 'product',
-				populate: ['type', 'sections']
-			});
+		return await Book.findById(newBook.id).populate([
+			'publisher',
+			'authors',
+			{ path: 'product' }
+		]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -155,27 +160,20 @@ const createOne = async bookData => {
 
 const getOne = async id => {
 	try {
-		if (!(await Book.exists({ _id: id }))) {
+		const foundBook = await Book.findById(id).populate([
+			'publisher',
+			'authors',
+			{ path: 'product' }
+		]);
+
+		if (!foundBook || foundBook.deletedAt) {
 			throw {
 				status: 404,
 				message: `Book with id '${id}' not found`
 			};
 		}
 
-		return await Book.findById(id)
-			.populate([
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'translators',
-				'illustrators',
-				'editors'
-			])
-			.populate({
-				path: 'product',
-				populate: ['type', 'sections']
-			});
+		return foundBook;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -188,22 +186,12 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Book.find()
+		return await Book.find({
+			deletedAt: { $exists: false }
+		})
 			.limit(limit)
 			.skip(skip)
-			.populate([
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'translators',
-				'illustrators',
-				'editors'
-			])
-			.populate({
-				path: 'product',
-				populate: ['type', 'sections']
-			});
+			.populate(['publisher', 'authors', { path: 'product' }]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -227,7 +215,7 @@ const updateOne = async (id, changes) => {
 	try {
 		const bookToUpdate = await Book.findById(id);
 
-		if (!bookToUpdate) {
+		if (!bookToUpdate || bookToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Book with id '${id}' not found`
@@ -243,7 +231,8 @@ const updateOne = async (id, changes) => {
 		let oldPublisher;
 		let newPublisher;
 		if (publisher) {
-			if (!(await Publisher.exists({ _id: publisher }))) {
+			newPublisher = await Publisher.findById(publisher);
+			if (!newPublisher || newPublisher.deletedAt) {
 				throw {
 					status: 404,
 					message: `Publisher with id '${publisher}' not found`
@@ -251,13 +240,14 @@ const updateOne = async (id, changes) => {
 			}
 
 			oldPublisher = await Publisher.findById(bookToUpdate.publisher);
-			newPublisher = await Publisher.findById(publisher);
 		}
 
 		let oldBookSeries;
 		let newBookSeries;
 		if (series) {
-			if (!(await BookSeries.exists({ _id: series }))) {
+			newBookSeries = await BookSeries.findById(series);
+
+			if (!newBookSeries || newBookSeries.deletedAt) {
 				throw {
 					status: 404,
 					message: `Book series with id '${series}' not found`
@@ -265,7 +255,6 @@ const updateOne = async (id, changes) => {
 			}
 
 			oldBookSeries = await BookSeries.findById(bookToUpdate.series);
-			newBookSeries = await BookSeries.findById(series);
 		}
 
 		const addedAuthorIds = [];
@@ -273,7 +262,7 @@ const updateOne = async (id, changes) => {
 		if (authors) {
 			const notFoundIndex = (
 				await Author.find({ _id: authors })
-			).findIndex(a => !a);
+			).findIndex(a => !a || a.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -298,7 +287,7 @@ const updateOne = async (id, changes) => {
 		if (compilers) {
 			const notFoundIndex = (
 				await Compiler.find({ _id: compilers })
-			).findIndex(c => !c);
+			).findIndex(c => !c || c.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -323,7 +312,7 @@ const updateOne = async (id, changes) => {
 		if (translators) {
 			const notFoundIndex = (
 				await Translator.find({ _id: translators })
-			).findIndex(t => !t);
+			).findIndex(t => !t || t.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -348,7 +337,7 @@ const updateOne = async (id, changes) => {
 		if (illustrators) {
 			const notFoundIndex = (
 				await Illustrator.find({ _id: illustrators })
-			).findIndex(i => !i);
+			).findIndex(i => !i || i.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -373,7 +362,7 @@ const updateOne = async (id, changes) => {
 		if (editors) {
 			const notFoundIndex = (
 				await Editor.find({ _id: editors })
-			).findIndex(e => !e);
+			).findIndex(e => !e || e.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -456,20 +445,13 @@ const updateOne = async (id, changes) => {
 			{ $pull: { books: bookToUpdate.id } }
 		);
 
-		return await Book.findByIdAndUpdate(id, changes, { new: true })
-			.populate([
-				'publisher',
-				'series',
-				'authors',
-				'compilers',
-				'translators',
-				'illustrators',
-				'editors'
-			])
-			.populate({
-				path: 'product',
-				populate: ['type', 'sections']
-			});
+		await bookToUpdate.updateOne(changes);
+
+		return await Book.findById(id).populate([
+			'publisher',
+			'authors',
+			{ path: 'product' }
+		]);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -482,7 +464,7 @@ const deleteOne = async id => {
 	try {
 		const bookToDelete = await Book.findById(id);
 
-		if (!bookToDelete) {
+		if (!bookToDelete || bookToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Book with id '${id}' not found`

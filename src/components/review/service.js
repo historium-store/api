@@ -6,14 +6,24 @@ const createOne = async reviewData => {
 	const { product, user } = reviewData;
 
 	try {
-		if (!(await Product.exists({ _id: product }))) {
+		const existingProduct = await Product.exists({
+			_id: product,
+			deletedAt: { $exists: false }
+		});
+
+		if (!existingProduct) {
 			throw {
 				status: 404,
 				message: `Product with id '${product}' not found`
 			};
 		}
 
-		if (!(await User.exists({ _id: user }))) {
+		const existingUser = await User.exists({
+			_id: user,
+			deletedAt: { $exists: false }
+		});
+
+		if (!existingUser) {
 			throw {
 				status: 404,
 				message: `User with id '${user}' not found`
@@ -24,7 +34,6 @@ const createOne = async reviewData => {
 			...reviewData,
 			likes: 0,
 			dislikes: 0
-			//date: Math.floor(Date.now() / 1000)
 		});
 
 		await Product.updateOne(
@@ -37,13 +46,7 @@ const createOne = async reviewData => {
 			{ $push: { reviews: newReview.id } }
 		);
 
-		return await Review.findById(newReview.id).populate([
-			{
-				path: 'product',
-				populate: ['type', 'sections']
-			},
-			'user'
-		]);
+		return newReview;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -54,20 +57,16 @@ const createOne = async reviewData => {
 
 const getOne = async id => {
 	try {
-		if (!(await Review.exists({ _id: id }))) {
+		const foundReview = await Review.findById(id);
+
+		if (!foundReview || foundReview.deletedAt) {
 			throw {
 				status: 404,
 				message: `Review with id '${id}' not found`
 			};
 		}
 
-		return Review.findById(id).populate([
-			{
-				path: 'product',
-				populate: ['type', 'sections']
-			},
-			'user'
-		]);
+		return foundReview;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -80,16 +79,11 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Review.find()
+		return await Review.find({
+			deletedAt: { $exists: false }
+		})
 			.limit(limit)
-			.skip(skip)
-			.populate([
-				{
-					path: 'product',
-					populate: ['type', 'sections']
-				},
-				'user'
-			]);
+			.skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -104,7 +98,7 @@ const updateOne = async (id, changes) => {
 	try {
 		const reviewToUpdate = await Review.findById(id);
 
-		if (!reviewToUpdate) {
+		if (!reviewToUpdate || reviewToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Review with id '${id}' not found`
@@ -114,7 +108,8 @@ const updateOne = async (id, changes) => {
 		let oldProduct;
 		let newProduct;
 		if (product) {
-			if (!(await Product.exists({ _id: product }))) {
+			newProduct = await Product.findById(product);
+			if (!newProduct || newProduct.deletedAt) {
 				throw {
 					status: 404,
 					message: `Product with id '${product}' not found`
@@ -122,13 +117,13 @@ const updateOne = async (id, changes) => {
 			}
 
 			oldProduct = await Product.findById(reviewToUpdate.product);
-			newProduct = await Product.findById(product);
 		}
 
 		let oldUser;
 		let newUser;
 		if (user) {
-			if (!(await User.exists({ _id: user }))) {
+			const newUser = await User.findById(user);
+			if (!newUser || newUser.deletedAt) {
 				throw {
 					status: 404,
 					message: `User with id '${user}' not found`
@@ -136,7 +131,6 @@ const updateOne = async (id, changes) => {
 			}
 
 			oldUser = await User.findById(reviewToUpdate.user);
-			newUser = await User.findById(user);
 		}
 
 		if (product && newProduct.id !== oldProduct.id) {
@@ -157,15 +151,9 @@ const updateOne = async (id, changes) => {
 			});
 		}
 
-		return await Review.findByIdAndUpdate(id, changes, {
-			new: true
-		}).populate([
-			{
-				path: 'product',
-				populate: ['type', 'sections']
-			},
-			'user'
-		]);
+		await reviewToUpdate.updateOne(changes);
+
+		return await Review.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -178,7 +166,7 @@ const deleteOne = async id => {
 	try {
 		const reviewToDelete = await Review.findById(id);
 
-		if (!reviewToDelete) {
+		if (!reviewToDelete || reviewToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Review with id '${id}' not found`

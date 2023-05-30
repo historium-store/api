@@ -8,16 +8,23 @@ const createOne = async publisherData => {
 	bookSeries = bookSeries ?? [];
 
 	try {
-		if (await Publisher.exists({ name })) {
+		const existingPublisher = await Publisher.exists({
+			name,
+			deletedAt: { $exists: false }
+		});
+
+		if (existingPublisher) {
 			throw {
 				status: 409,
 				message: `Publisher with name '${name}' already exists`
 			};
 		}
 
-		let notFoundIndex = (await Book.find({ _id: books })).findIndex(
-			b => !b
-		);
+		let notFoundIndex = (
+			await Book.find({
+				_id: books
+			})
+		).findIndex(b => !b || b.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -27,7 +34,7 @@ const createOne = async publisherData => {
 
 		notFoundIndex = (
 			await BookSeries.find({ _id: bookSeries })
-		).findIndex(b => !b);
+		).findIndex(b => !b || b.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -47,10 +54,7 @@ const createOne = async publisherData => {
 			{ $set: { publisher: newPublisher.id } }
 		);
 
-		return await Publisher.findById(newPublisher.id).populate([
-			'books',
-			'bookSeries'
-		]);
+		return newPublisher;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -61,17 +65,16 @@ const createOne = async publisherData => {
 
 const getOne = async id => {
 	try {
-		if (!(await Publisher.exists({ _id: id }))) {
+		const foundPublisher = await Publisher.findById(id);
+
+		if (!foundPublisher || foundPublisher.deletedAt) {
 			throw {
 				status: 404,
 				message: `Publisher with id '${id}' not found`
 			};
 		}
 
-		return await Publisher.findById(id).populate([
-			'books',
-			'bookSeries'
-		]);
+		return foundPublisher;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -84,10 +87,11 @@ const getAll = async queryParams => {
 	const { limit, offset } = queryParams;
 
 	try {
-		return await Publisher.find()
+		return await Publisher.find({
+			deletedAt: { $exists: false }
+		})
 			.limit(limit)
-			.skip(offset)
-			.populate(['books', 'bookSeries']);
+			.skip(offset);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -102,14 +106,19 @@ const updateOne = async (id, changes) => {
 	try {
 		const publisherToUpdate = await Publisher.findById(id);
 
-		if (!publisherToUpdate) {
+		if (!publisherToUpdate || publisherToUpdate.deletedAt) {
 			throw {
 				status: 404,
 				message: `Publisher with id '${id}' not found`
 			};
 		}
 
-		if (await Publisher.exists({ name })) {
+		const existingPublisher = await Publisher.exists({
+			name,
+			deletedAt: { $exists: false }
+		});
+
+		if (existingPublisher) {
 			throw {
 				status: 409,
 				message: `Publisher with name '${name}' already exists`
@@ -121,7 +130,7 @@ const updateOne = async (id, changes) => {
 		if (books) {
 			const notFoundIndex = (
 				await Book.find({ _id: books })
-			).findIndex(b => !b);
+			).findIndex(b => !b || b.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -146,7 +155,7 @@ const updateOne = async (id, changes) => {
 		if (bookSeries) {
 			const notFoundIndex = (
 				await Book.find({ _id: books })
-			).findIndex(b => !b);
+			).findIndex(b => !b || b.deletedAt);
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -184,9 +193,9 @@ const updateOne = async (id, changes) => {
 			{ $set: { publisher: publisherToUpdate.id } }
 		);
 
-		return await Publisher.findByIdAndUpdate(id, changes, {
-			new: true
-		}).populate(['books', 'bookSeries']);
+		await publisherToUpdate.updateOne(changes);
+
+		return await Publisher.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -197,32 +206,32 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const publisher = await Publisher.findById(id);
+		const publisherToDelete = await Publisher.findById(id);
 
-		if (!publisher) {
+		if (!publisherToDelete || publisherToDelete.deletedAt) {
 			throw {
 				status: 404,
 				message: `Publisher with id '${id}' not found`
 			};
 		}
 
-		if (publisher.books.length) {
+		if (publisherToDelete.books.length) {
 			throw {
 				status: 400,
 				message: "Can't delete publisher with books published"
 			};
 		}
 
-		if (publisher.bookSeries.length) {
+		if (publisherToDelete.bookSeries.length) {
 			throw {
 				status: 400,
 				message: "Can't delete publisher with book series published"
 			};
 		}
 
-		await publisher.deleteOne();
+		await publisherToDelete.deleteOne();
 
-		return publisher;
+		return publisherToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
