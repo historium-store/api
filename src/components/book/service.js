@@ -26,6 +26,8 @@ const createOne = async bookData => {
 	editors = editors ?? [];
 
 	try {
+		//#region check existence
+
 		const existingPublisher = await Publisher.exists({
 			_id: publisher,
 			deletedAt: { $exists: false }
@@ -104,11 +106,16 @@ const createOne = async bookData => {
 			};
 		}
 
-		bookData.product = (
-			await productService.createOne(bookData.product)
-		).id;
+		//#endregion
+
+		const newProduct = await productService.createOne({
+			...bookData.product
+		});
+		bookData.product = newProduct.id;
 
 		const newBook = await Book.create(bookData);
+
+		//#region updates
 
 		await Publisher.updateOne(
 			{ _id: publisher },
@@ -145,11 +152,9 @@ const createOne = async bookData => {
 			{ $push: { books: newBook.id } }
 		);
 
-		return await Book.findById(newBook.id).populate([
-			'publisher',
-			'authors',
-			{ path: 'product' }
-		]);
+		//#endregion
+
+		return newBook;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -160,11 +165,7 @@ const createOne = async bookData => {
 
 const getOne = async id => {
 	try {
-		const foundBook = await Book.findById(id).populate([
-			'publisher',
-			'authors',
-			{ path: 'product' }
-		]);
+		const foundBook = await Book.findById(id);
 
 		if (!foundBook || foundBook.deletedAt) {
 			throw {
@@ -190,8 +191,7 @@ const getAll = async queryParams => {
 			deletedAt: { $exists: false }
 		})
 			.limit(limit)
-			.skip(skip)
-			.populate(['publisher', 'authors', { path: 'product' }]);
+			.skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -227,6 +227,8 @@ const updateOne = async (id, changes) => {
 
 			delete changes.product;
 		}
+
+		//#region check existense
 
 		let oldPublisher;
 		let newPublisher;
@@ -382,6 +384,10 @@ const updateOne = async (id, changes) => {
 			);
 		}
 
+		//#endregion
+
+		//#region updates
+
 		if (publisher && newPublisher.id !== oldPublisher.id) {
 			await newPublisher.updateOne({
 				$push: { books: bookToUpdate.id }
@@ -445,13 +451,11 @@ const updateOne = async (id, changes) => {
 			{ $pull: { books: bookToUpdate.id } }
 		);
 
+		//#endregion
+
 		await bookToUpdate.updateOne(changes);
 
-		return await Book.findById(id).populate([
-			'publisher',
-			'authors',
-			{ path: 'product' }
-		]);
+		return await Book.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

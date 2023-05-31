@@ -1,3 +1,4 @@
+import Book from '../book/model.js';
 import ProductType from '../product-type/model.js';
 import Review from '../review/model.js';
 import Section from '../section/model.js';
@@ -66,7 +67,10 @@ const createOne = async productData => {
 
 const getOne = async id => {
 	try {
-		const foundProduct = await Product.findById(id);
+		const foundProduct = await Product.findById(id).populate([
+			{ path: 'type', select: 'name' },
+			{ path: 'sections', select: 'name key' }
+		]);
 
 		if (!foundProduct || foundProduct.deletedAt) {
 			throw {
@@ -75,7 +79,29 @@ const getOne = async id => {
 			};
 		}
 
-		return foundProduct;
+		switch (foundProduct.type.name) {
+			case 'Книга':
+			case 'Електронна книга':
+			case 'Аудіокнига':
+				return {
+					...foundProduct._doc,
+					specificProduct: await Book.findById(
+						foundProduct.specificProduct
+					)
+						.populate([
+							{ path: 'publisher', select: 'name' },
+							{
+								path: 'authors',
+								select: 'fullName pictures biography'
+							},
+							{ path: 'compilers', select: 'fullName' },
+							{ path: 'translators', select: 'fullName' },
+							{ path: 'illustrators', select: 'fullName' },
+							{ path: 'editors', select: 'fullName' }
+						])
+						.select('-product')
+				};
+		}
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -88,11 +114,39 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Product.find({
+		const foundProducts = await Product.find({
 			deletedAt: { $exists: false }
 		})
 			.limit(limit)
-			.skip(skip);
+			.skip(skip)
+			.populate([{ path: 'type', select: '-_id name' }])
+			.select('name code price quantity images specificProduct');
+
+		return await Promise.all(
+			foundProducts.map(async p => {
+				switch (p.type.name) {
+					case 'Книга':
+					case 'Електронна книга':
+					case 'Аудіокнига':
+						const foundBook = await Book.findById(p.specificProduct)
+							.populate([
+								{
+									path: 'authors',
+									select: ' -_id fullName'
+								}
+							])
+							.select('-_id authors');
+
+						return {
+							...p._doc,
+							image: p._doc.images[0],
+							images: undefined,
+							specificProduct: undefined,
+							authors: foundBook?.authors.map(a => a.fullName)
+						};
+				}
+			})
+		);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -209,7 +263,9 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const productToDelete = await Product.findById(id);
+		const productToDelete = await Product.findById(id).populate([
+			{ path: 'type', select: 'name' }
+		]);
 
 		if (!productToDelete || productToDelete.deletedAt) {
 			throw {
@@ -222,6 +278,16 @@ const deleteOne = async id => {
 			{ _id: productToDelete.sections },
 			{ $pull: { products: productToDelete.id } }
 		);
+
+		switch (productToDelete.type.name) {
+			case 'Книга':
+			case 'Електронна книга':
+			case 'Аудіокнига':
+				await Book.updateOne({
+					product: productToDelete.id
+				});
+				break;
+		}
 
 		await productToDelete.deleteOne();
 

@@ -15,8 +15,8 @@ const productSchema = new Schema(
 			required: true
 		},
 		specificProduct: {
-			type: Schema.Types.Mixed,
-			required: true
+			type: ObjectId,
+			required: false
 		},
 		code: {
 			type: String,

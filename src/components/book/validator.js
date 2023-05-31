@@ -121,8 +121,7 @@ const validateCreate = [
 		.withMessage("Book binding type can't be empty"),
 	body('illustrationsType')
 		.optional()
-		.trim()
-		.notEmpty()
+		.isArray()
 		.withMessage("Book illustrations type can't be empty"),
 	body('literaturePeriod')
 		.optional()
@@ -130,8 +129,7 @@ const validateCreate = [
 		.withMessage('Book literature period must be an array'),
 	body('literatureCountry')
 		.optional()
-		.trim()
-		.notEmpty()
+		.isArray()
 		.withMessage("Book literature country can't be empty"),
 	body('foreignLiterature')
 		.optional()
@@ -139,8 +137,7 @@ const validateCreate = [
 		.withMessage('Book foreign literature must be a boolean'),
 	body('timePeriod')
 		.optional()
-		.trim()
-		.notEmpty()
+		.isArray()
 		.withMessage("Book time period can't be empty"),
 	body('grade')
 		.optional()
@@ -168,7 +165,8 @@ const validateCreate = [
 	body('suitableFor')
 		.optional()
 		.isArray()
-		.withMessage('Book suitable for must be an array')
+		.withMessage('Book suitable for must be an array'),
+	body('key').trim().notEmpty().withMessage('Book key is required')
 ];
 
 const validateUpdate = [
@@ -290,27 +288,24 @@ const validateUpdate = [
 		.withMessage("Book binding type can't be empty"),
 	body('illustrationsType')
 		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Book illustrations type can't be empty"),
+		.isArray()
+		.withMessage('Book illustrations type must be an array'),
 	body('literaturePeriod')
 		.optional()
 		.isArray()
 		.withMessage('Book literature period must be an array'),
 	body('literatureCountry')
 		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Book literature country can't be empty"),
+		.isArray()
+		.withMessage('Book literature country must be an array'),
 	body('foreignLiterature')
 		.optional()
 		.isBoolean()
 		.withMessage('Book foreign literature must be a boolean'),
 	body('timePeriod')
 		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Book time period can't be empty"),
+		.isArray()
+		.withMessage('Book time period must be an array'),
 	body('grade')
 		.optional()
 		.trim()
@@ -337,7 +332,12 @@ const validateUpdate = [
 	body('suitableFor')
 		.optional()
 		.isArray()
-		.withMessage('Book suitable for must be an array')
+		.withMessage('Book suitable for must be an array'),
+	body('key')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage('Book key is required')
 ];
 
 const validator = { validateId, validateCreate, validateUpdate };
