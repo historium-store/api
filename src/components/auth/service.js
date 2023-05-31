@@ -1,9 +1,25 @@
+import { Vonage } from '@vonage/server-sdk';
 import { randomBytes, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import nodemalier from 'nodemailer';
 import { hashPassword, verifyJWT } from '../../utils.js';
 import User from '../user/model.js';
 import userService from '../user/service.js';
+
+const transporter = nodemalier.createTransport({
+	port: 465,
+	host: 'smtp.privateemail.com',
+	auth: {
+		user: 'noreply@historium.store',
+		pass: process.env.EMAIL_PASSWORD
+	},
+	secure: true
+});
+
+const vonage = new Vonage({
+	apiKey: process.env.VONAGE_API_KEY,
+	apiSecret: process.env.VONAGE_API_SECRET
+});
 
 const signup = async userData => {
 	try {
@@ -146,18 +162,8 @@ const restorePassword = async loginData => {
 			};
 		}
 
+		const restorationToken = randomBytes(4).toString('hex');
 		if (email) {
-			const transporter = nodemalier.createTransport({
-				port: 465,
-				host: 'smtp.privateemail.com',
-				auth: {
-					user: 'noreply@historium.store',
-					pass: process.env.EMAIL_PASSWORD
-				},
-				secure: true
-			});
-
-			const restorationToken = randomBytes(4).toString('hex');
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
 				to: foundUser.email,
@@ -166,6 +172,14 @@ const restorePassword = async loginData => {
 			};
 
 			await transporter.sendMail(mailData);
+
+			await foundUser.updateOne({ $set: { restorationToken } });
+		} else {
+			const from = 'Historium';
+			const to = phoneNumber;
+			const text = `Restoration token: ${restorationToken}\n\n`;
+
+			await vonage.sms.send({ to, from, text });
 
 			await foundUser.updateOne({ $set: { restorationToken } });
 		}
