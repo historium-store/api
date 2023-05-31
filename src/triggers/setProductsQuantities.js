@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const increaseProductsQuantities = async () => {
+export const increaseProductsQuantities = async () => {
 	try {
 		await mongoose.connection
 			.collection('productsQuantities')
@@ -13,7 +13,7 @@ const increaseProductsQuantities = async () => {
 	}
 };
 
-const decreaseProductsQuantities = async () => {
+export const decreaseProductsQuantities = async () => {
 	try {
 		await mongoose.connection
 			.collection('productsQuantities')
@@ -24,9 +24,4 @@ const decreaseProductsQuantities = async () => {
 			message: err.message ?? err
 		};
 	}
-};
-
-export default {
-	increaseProductsQuantities,
-	decreaseProductsQuantities
 };
