@@ -185,7 +185,7 @@ const bookSchema = new Schema(
 	}
 );
 
-productSchema.methods.deleteOne = async function () {
+bookSchema.methods.deleteOne = async function () {
 	await deleteDocument(this);
 };
 
