@@ -6,17 +6,30 @@ import validator from './validator.js';
 
 const productRouter = Router();
 
-productRouter.use(authController.authenticate, checkRole(['admin']));
-
 productRouter
 	.route('/')
 	.get(validateQueryParams, controller.getAll)
-	.post(validator.validateCreate, controller.createOne);
+	.post(
+		authController.authenticate,
+		checkRole(['admin', 'seller']),
+		validator.validateCreate,
+		controller.createOne
+	);
 
 productRouter
 	.route('/:id')
 	.get(validator.validateId, controller.getOne)
-	.patch(validator.validateUpdate, controller.updateOne)
-	.delete(validator.validateId, controller.deleteOne);
+	.patch(
+		authController.authenticate,
+		checkRole(['admin', 'seller']),
+		validator.validateUpdate,
+		controller.updateOne
+	)
+	.delete(
+		authController.authenticate,
+		checkRole(['admin', 'seller']),
+		validator.validateId,
+		controller.deleteOne
+	);
 
 export default productRouter;
