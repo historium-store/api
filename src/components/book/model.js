@@ -21,6 +21,10 @@ const bookSchema = new Schema(
 				required: true
 			}
 		],
+		type: {
+			type: String,
+			required: true
+		},
 		publishedIn: {
 			type: Number,
 			required: true
@@ -173,12 +177,7 @@ const bookSchema = new Schema(
 				type: String,
 				required: false
 			}
-		],
-		key: {
-			type: String,
-			required: true,
-			unique: true
-		}
+		]
 	},
 	{
 		versionKey: false

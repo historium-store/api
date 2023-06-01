@@ -7,6 +7,11 @@ const productTypeSchema = new Schema(
 			type: String,
 			required: true
 		},
+		key: {
+			type: String,
+			required: true,
+			unique: true
+		},
 		createdAt: {
 			type: Number
 		},

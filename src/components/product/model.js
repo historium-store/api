@@ -23,6 +23,11 @@ const productSchema = new Schema(
 			required: false,
 			unique: true
 		},
+		key: {
+			type: String,
+			required: true,
+			unique: true
+		},
 		price: {
 			type: Number,
 			required: true,
