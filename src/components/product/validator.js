@@ -12,6 +12,11 @@ const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Product name is required'),
+	body('key')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Product key can't be empty"),
 	body('type')
 		.exists()
 		.withMessage('Product type is required')
@@ -54,6 +59,11 @@ const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Product name can't be empty"),
+	body('key')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Product key can't be empty"),
 	body('type')
 		.optional()
 		.isMongoId()

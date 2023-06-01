@@ -10,7 +10,11 @@ const validateCreate = [
 	body('name')
 		.trim()
 		.notEmpty()
-		.withMessage('Product type name is required')
+		.withMessage('Product type name is required'),
+	body('key')
+		.trim()
+		.notEmpty()
+		.withMessage('Product type key is required')
 ];
 
 const validateUpdate = [
@@ -19,7 +23,12 @@ const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Product type name can't be empty")
+		.withMessage("Product type name can't be empty"),
+	body('key')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Product type key can't be empty")
 ];
 
 const validator = { validateId, validateCreate, validateUpdate };

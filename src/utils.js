@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { extname } from 'path';
+import { transliterate } from 'transliteration';
 import { promisify } from 'util';
 import validator from 'validator';
 
@@ -78,3 +79,10 @@ export const isArrayOfIsbns = value => {
 
 	return true;
 };
+
+export const transliterateToKey = string =>
+	transliterate(string)
+		.trim()
+		.toLowerCase()
+		.replaceAll(/\s+/g, '-')
+		.replace(/[^a-zA-Z0-9-]/g, '');

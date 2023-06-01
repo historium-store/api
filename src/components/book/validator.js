@@ -12,6 +12,11 @@ const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Product name is required'),
+	body('product.key')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Product key can't be empty"),
 	body('product.type')
 		.exists()
 		.withMessage('Product type is required')
@@ -165,8 +170,7 @@ const validateCreate = [
 	body('suitableFor')
 		.optional()
 		.isArray()
-		.withMessage('Book suitable for must be an array'),
-	body('key').trim().notEmpty().withMessage('Book key is required')
+		.withMessage('Book suitable for must be an array')
 ];
 
 const validateUpdate = [
@@ -176,6 +180,11 @@ const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Product name can't be empty"),
+	body('product.key')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Product key can't be empty"),
 	body('product.type')
 		.optional()
 		.isMongoId()
@@ -208,6 +217,7 @@ const validateUpdate = [
 	body('product.sections')
 		.optional()
 		.custom(isArrayOfMongoIds('Product', 'sections')),
+
 	body('type')
 		.optional()
 		.trim()
@@ -332,12 +342,7 @@ const validateUpdate = [
 	body('suitableFor')
 		.optional()
 		.isArray()
-		.withMessage('Book suitable for must be an array'),
-	body('key')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Book key is required')
+		.withMessage('Book suitable for must be an array')
 ];
 
 const validator = { validateId, validateCreate, validateUpdate };

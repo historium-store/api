@@ -10,6 +10,8 @@ import Translator from '../translator/model.js';
 import Book from './model.js';
 
 const createOne = async bookData => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	let {
 		publisher,
 		authors,
@@ -26,36 +28,26 @@ const createOne = async bookData => {
 	editors = editors ?? [];
 
 	try {
-		//#region check existence
-
-		const existingPublisher = await Publisher.exists({
+		// проверка на существование
+		// входного издателя книги
+		const publisherExists = await Publisher.exists({
 			_id: publisher,
 			deletedAt: { $exists: false }
 		});
 
-		if (!existingPublisher) {
+		if (!publisherExists) {
 			throw {
 				status: 404,
 				message: `Publisher with id '${publisher}' not found`
 			};
 		}
 
-		if (series) {
-			const existsingBookSeries = await BookSeries.exists({
-				_id: series,
-				deletedAt: { $exists: false }
-			});
-
-			if (!existsingBookSeries) {
-				throw {
-					status: 404,
-					message: `Book series with id '${series}' not found`
-				};
-			}
-		}
-
+		// проверка на существование
+		// входных авторов книги
 		let notFoundIndex = (
-			await Author.find({ _id: authors })
+			await Author.find({
+				_id: authors
+			})
 		).findIndex(a => !a || a.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
@@ -64,8 +56,12 @@ const createOne = async bookData => {
 			};
 		}
 
+		// проверка на существование
+		// входных составителей книги
 		notFoundIndex = (
-			await Compiler.find({ _id: compilers })
+			await Compiler.find({
+				_id: compilers
+			})
 		).findIndex(c => !c || c.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
@@ -74,8 +70,12 @@ const createOne = async bookData => {
 			};
 		}
 
+		// проверка на существование
+		// входных переводчиков книги
 		notFoundIndex = (
-			await Translator.find({ _id: translators })
+			await Translator.find({
+				_id: translators
+			})
 		).findIndex(t => !t || t.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
@@ -84,8 +84,12 @@ const createOne = async bookData => {
 			};
 		}
 
+		// проверка на существование
+		// входных иллюстраторов книги
 		notFoundIndex = (
-			await Illustrator.find({ _id: illustrators })
+			await Illustrator.find({
+				_id: illustrators
+			})
 		).findIndex(i => !i || i.deletedAt);
 		if (notFoundIndex > -1) {
 			throw {
@@ -94,6 +98,8 @@ const createOne = async bookData => {
 			};
 		}
 
+		// проверка на существование
+		// входных редакторов книги
 		notFoundIndex = (
 			await Editor.find({
 				_id: editors
@@ -106,53 +112,84 @@ const createOne = async bookData => {
 			};
 		}
 
-		//#endregion
+		// проверка на существование
+		// входной серии книг
+		if (series) {
+			const bookSeriesExists = await BookSeries.exists({
+				_id: series,
+				deletedAt: { $exists: false }
+			});
 
+			if (!bookSeriesExists) {
+				throw {
+					status: 404,
+					message: `Book series with id '${series}' not found`
+				};
+			}
+		}
+
+		// создание продукта
+		// и привязка его id
+		// к входным данным книги
 		const newProduct = await productService.createOne({
 			...bookData.product
 		});
 		bookData.product = newProduct.id;
 
+		// создание книги
+		// и привязка её id
+		// к созданному продукту
 		const newBook = await Book.create(bookData);
+		newProduct.specificProduct = newBook.id;
 
-		//#region updates
-
+		// добавление ссылки на новую книгу
+		// соответствующему издателю
 		await Publisher.updateOne(
 			{ _id: publisher },
 			{ $push: { books: newBook.id } }
 		);
 
-		await BookSeries.updateOne(
-			{ _id: series },
-			{ $push: { books: newBook.id } }
-		);
-
+		// добавление ссылки на новую книгу
+		// соответствующим авторам
 		await Author.updateMany(
 			{ _id: authors },
 			{ $push: { books: newBook.id } }
 		);
 
+		// добавление ссылки на новую книгу
+		// соответствующим составителям
 		await Compiler.updateMany(
 			{ _id: compilers },
 			{ $push: { books: newBook.id } }
 		);
 
+		// добавление ссылки на новую книгу
+		// соответствующим переводчикам
 		await Translator.updateMany(
 			{ _id: translators },
 			{ $push: { books: newBook.id } }
 		);
 
+		// добавление ссылки на новую книгу
+		// соответствующим иллюстраторам
 		await Illustrator.updateMany(
 			{ _id: illustrators },
 			{ $push: { books: newBook.id } }
 		);
 
+		// добавление ссылки на новую книгу
+		// соответствующим редакторам
 		await Editor.updateMany(
 			{ _id: editors },
 			{ $push: { books: newBook.id } }
 		);
 
-		//#endregion
+		// добавление ссылки на новую книгу
+		// соответствующей серии книг
+		await BookSeries.updateOne(
+			{ _id: series },
+			{ $push: { books: newBook.id } }
+		);
 
 		return newBook;
 	} catch (err) {
@@ -165,7 +202,26 @@ const createOne = async bookData => {
 
 const getOne = async id => {
 	try {
-		const foundBook = await Book.findById(id);
+		const foundBook = await Book.findById(id).populate([
+			{
+				path: 'product',
+				populate: [
+					{ path: 'type', select: 'name key' },
+					{ path: 'sections', select: 'name key' }
+				],
+				select: '-specificProduct'
+			},
+			{ path: 'publisher', select: 'name' },
+			{
+				path: 'authors',
+				select: 'fullName pictures biography'
+			},
+			{ path: 'compilers', select: 'fullName' },
+			{ path: 'translators', select: 'fullName' },
+			{ path: 'illustrators', select: 'fullName' },
+			{ path: 'editors', select: 'fullName' },
+			{ path: 'series', select: 'name' }
+		]);
 
 		if (!foundBook || foundBook.deletedAt) {
 			throw {
@@ -184,14 +240,38 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip, key } = queryParams;
+	const { limit, offset: skip } = queryParams;
+	const filter = {
+		deletedAt: { $exists: false }
+	};
 
 	try {
-		const filter = {
-			deletedAt: { $exists: false }
-		};
+		// поиск продуктов, ограничение, смещение,
+		// заполнение и выбор нужных полей
+		const foundBooks = await Book.find(filter)
+			.limit(limit)
+			.skip(skip)
+			.populate([
+				{
+					path: 'product',
+					populate: [{ path: 'type', select: '-_id name key' }],
+					select: '-_id name price quantity code images'
+				},
+				{ path: 'authors', select: '-_id fullName' }
+			])
+			.select('authors');
 
-		return await Book.find(filter).limit(limit).skip(skip);
+		const booksToReturn = [];
+
+		for (let book of foundBooks) {
+			book = book.toObject();
+			book.image = book.product.images[0];
+			delete book.product.images;
+			book.authors = book.authors.map(a => a.fullName);
+			booksToReturn.push(book);
+		}
+
+		return booksToReturn;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -504,23 +584,10 @@ const deleteOne = async id => {
 		};
 	}
 };
-
-const isUniqueKey = async key => {
-	try {
-		return (await Book.exists({ key })) === null;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
-	}
-};
-
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne,
-	isUniqueKey
+	deleteOne
 };

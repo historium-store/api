@@ -1,10 +1,10 @@
 import { Schema, model } from 'mongoose';
-import deleteDocument from '../../triggers/deleteDocument.js';
-import setProductCode from '../../triggers/setProductCode.js';
+import deleteDocument from '../../triggers/delete-document.js';
+import { setProductCode } from '../../triggers/product-code.js';
 import {
-	decreaseProductsQuantities,
-	increaseProductsQuantities
-} from '../../triggers/setProductsQuantities.js';
+	decreaseProductsQuantity,
+	increaseProductsQuantity
+} from '../../triggers/products-quantity.js';
 
 const { ObjectId } = Schema.Types;
 
@@ -83,13 +83,13 @@ const productSchema = new Schema(
 
 productSchema.pre('save', async function (next) {
 	await setProductCode(this);
-	await increaseProductsQuantities();
+	await increaseProductsQuantity();
 	next();
 });
 
 productSchema.methods.deleteOne = async function () {
 	await deleteDocument(this);
-	await decreaseProductsQuantities();
+	await decreaseProductsQuantity();
 };
 
 const Product = model('Product', productSchema);

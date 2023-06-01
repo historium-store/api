@@ -1,3 +1,5 @@
+import { getProductCode } from '../../triggers/product-code.js';
+import { transliterateToKey } from '../../utils.js';
 import Book from '../book/model.js';
 import ProductType from '../product-type/model.js';
 import Review from '../review/model.js';
@@ -5,26 +7,32 @@ import Section from '../section/model.js';
 import Product from './model.js';
 
 const createOne = async productData => {
-	let { type, sections, reviews } = productData;
+	// деструктуризация входных данных
+	// для более удобного использования
+	let { name, key, type, sections } = productData;
 	sections = sections ?? [];
-	reviews = reviews ?? [];
 
 	try {
-		const existingProductType = await ProductType.exists({
+		// проверка на существование
+		// входного типа продукта
+		const productTypeExists = await ProductType.exists({
 			_id: type,
 			deletedAt: { $exists: false }
 		});
 
-		if (!existingProductType) {
+		if (!productTypeExists) {
 			throw {
 				status: 404,
 				message: `Product type with id '${type}' not found`
 			};
 		}
 
-		let notFoundIndex = (
+		// проверка на существование
+		// входных разделов продукта
+		const notFoundIndex = (
 			await Section.find({ _id: sections })
 		).findIndex(s => !s || s.deletedAt);
+
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -32,28 +40,30 @@ const createOne = async productData => {
 			};
 		}
 
-		notFoundIndex = (
-			await Review.find({
-				_id: reviews
-			})
-		).findIndex(r => !r || r.deletedAt);
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Review with id '${reviews[notFoundIndex]}' not found`
-			};
+		// проверка на существование
+		// входного ключа продукта
+		// генерация при отсутствии
+		if (!key) {
+			productData.key = key = transliterateToKey(name);
+		}
+
+		// проверка на уникальность
+		// входного ключа продукта
+		// добавление кода продукта
+		// в конец при неуникальности
+		const productExists = await Product.exists({ key });
+
+		if (productExists) {
+			productData.key += `-${await getProductCode()}`;
 		}
 
 		const newProduct = await Product.create(productData);
 
+		// добавление ссылки на новый продукт
+		// в соответствущие разделы
 		await Section.updateMany(
 			{ _id: sections },
 			{ $push: { products: newProduct.id } }
-		);
-
-		await Review.updateMany(
-			{ _id: reviews },
-			{ $set: { product: newProduct.id } }
 		);
 
 		return newProduct;
@@ -67,41 +77,55 @@ const createOne = async productData => {
 
 const getOne = async id => {
 	try {
-		const foundProduct = await Product.findById(id).populate([
+		// проверка на существование
+		// продукта с входным id
+		const foundProduct = await Product.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		}).populate([
 			{ path: 'type', select: 'name' },
 			{ path: 'sections', select: 'name key' }
 		]);
 
-		if (!foundProduct || foundProduct.deletedAt) {
+		if (!foundProduct) {
 			throw {
 				status: 404,
 				message: `Product with id '${id}' not found`
 			};
 		}
 
+		// настройка заполнения specificProduct
+		// в зависимости от типа продукта
+		const paths = [
+			{ path: 'type', select: 'name key' },
+			{ path: 'sections', select: 'name key' }
+		];
+
 		switch (foundProduct.type.name) {
 			case 'Книга':
 			case 'Електронна книга':
 			case 'Аудіокнига':
-				return {
-					...foundProduct._doc,
-					specificProduct: await Book.findById(
-						foundProduct.specificProduct
-					)
-						.populate([
-							{ path: 'publisher', select: 'name' },
-							{
-								path: 'authors',
-								select: 'fullName pictures biography'
-							},
-							{ path: 'compilers', select: 'fullName' },
-							{ path: 'translators', select: 'fullName' },
-							{ path: 'illustrators', select: 'fullName' },
-							{ path: 'editors', select: 'fullName' }
-						])
-						.select('-product')
-				};
+				paths.push({
+					path: 'specificProduct',
+					model: 'Book',
+					populate: [
+						{ path: 'publisher', select: 'name' },
+						{
+							path: 'authors',
+							select: 'fullName pictures biography'
+						},
+						{ path: 'compilers', select: 'fullName' },
+						{ path: 'translators', select: 'fullName' },
+						{ path: 'illustrators', select: 'fullName' },
+						{ path: 'editors', select: 'fullName' },
+						{ path: 'series', select: 'name' }
+					],
+					select: '-product'
+				});
+				break;
 		}
+
+		return await Product.findById(id).populate(paths);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -112,41 +136,59 @@ const getOne = async id => {
 
 const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
+	const filter = {
+		deletedAt: { $exists: false }
+	};
 
 	try {
-		const foundProducts = await Product.find({
-			deletedAt: { $exists: false }
-		})
+		// поиск продуктов, ограничение, смещение,
+		// заполнение и выбор нужных полей
+		const foundProducts = await Product.find(filter)
 			.limit(limit)
 			.skip(skip)
-			.populate([{ path: 'type', select: '-_id name' }])
-			.select('name code price quantity images specificProduct');
+			.populate([{ path: 'type', select: '-_id name key' }])
+			.select('type');
 
-		return await Promise.all(
-			foundProducts.map(async p => {
-				switch (p.type.name) {
-					case 'Книга':
-					case 'Електронна книга':
-					case 'Аудіокнига':
-						const foundBook = await Book.findById(p.specificProduct)
+		const productsToReturn = [];
+
+		for (let product of foundProducts) {
+			switch (product.type.name) {
+				case 'Книга':
+				case 'Електронна книга':
+				case 'Аудіокнига':
+					const foundProduct = (
+						await Product.findById(product.id)
 							.populate([
+								{ path: 'type', select: '-_id name key' },
 								{
-									path: 'authors',
-									select: ' -_id fullName'
+									path: 'specificProduct',
+									model: 'Book',
+									populate: [
+										{ path: 'authors', select: '-_id fullName' }
+									],
+									select: '-_id authors'
 								}
 							])
-							.select('-_id authors');
+							.select('name price quantity code images')
+					).toObject();
 
-						return {
-							...p._doc,
-							image: p._doc.images[0],
-							images: undefined,
-							specificProduct: undefined,
-							authors: foundBook?.authors.map(a => a.fullName)
-						};
-				}
-			})
-		);
+					foundProduct.image = foundProduct.images[0];
+
+					delete foundProduct.images;
+
+					foundProduct.authors =
+						foundProduct.specificProduct?.authors.map(
+							a => a.fullName
+						);
+
+					delete foundProduct.specificProduct;
+
+					productsToReturn.push(foundProduct);
+					break;
+			}
+		}
+
+		return productsToReturn;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -156,25 +198,48 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	const { type, sections, reviews } = changes;
+	// деструктуризация входных данных
+	// для более удобного использования
+	const { key, type, sections } = changes;
 
 	try {
-		const productToUpdate = await Product.findById(id);
+		// проверка на существование
+		// продукта с входным id
+		const productToUpdate = await Product.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!productToUpdate || productToUpdate.deletedAt) {
+		if (!productToUpdate) {
 			throw {
 				status: 404,
 				message: `Product with id '${id}' not found`
 			};
 		}
 
-		if (type) {
-			const existingProductType = await ProductType.exists({
+		// проверка на уникальность
+		// входного ключа продукта
+		// если он был изменён,
+		// добавление кода продукта
+		// в конец при неуникальности
+		if (key && productToUpdate.key !== key) {
+			const productExists = await Product.exists({ key });
+
+			if (productExists) {
+				changes.key = `${key}-${productToUpdate.code}`;
+			}
+		}
+
+		// проверка на существование
+		// входного типа продукта
+		// если он был изменён
+		if (type && type !== productToUpdate.type.toHexString()) {
+			const productTypeExists = await ProductType.exists({
 				_id: type,
 				deletedAt: { $exists: false }
 			});
 
-			if (!existingProductType) {
+			if (!productTypeExists) {
 				throw {
 					status: 404,
 					message: `Product type with id '${type}' not found`
@@ -182,12 +247,15 @@ const updateOne = async (id, changes) => {
 			}
 		}
 
+		// проверка на существование
+		// входных разделов продукта
 		let addedSectionIds = [];
 		let removedSectionIds = [];
 		if (sections) {
 			const notFoundIndex = (
 				await Section.find({ _id: sections })
 			).findIndex(s => !s || s.deletedAt);
+
 			if (notFoundIndex > -1) {
 				throw {
 					status: 404,
@@ -196,63 +264,31 @@ const updateOne = async (id, changes) => {
 			}
 
 			const oldSectionIds = productToUpdate.sections.map(s =>
-				s.id.toString('hex')
+				s.id.toHexString()
 			);
 
 			addedSectionIds = sections.filter(
 				s => !oldSectionIds.includes(s)
 			);
-
 			removedSectionIds = oldSectionIds.filter(
 				s => !sections.includes(s)
 			);
 		}
 
-		let addedReviewIds = [];
-		let removedReviewIds = [];
-		if (reviews) {
-			const notFoundIndex = (
-				await Review.find({ _id: reviews })
-			).findIndex(r => !r || r.deletedAt);
-			if (notFoundIndex > -1) {
-				throw {
-					status: 404,
-					message: `Review with id '${reviews[notFoundIndex]}' not found`
-				};
-			}
-
-			const oldReviewIds = productToUpdate.reviews.map(s =>
-				s.id.toString('hex')
-			);
-
-			addedReviewIds = reviews.filter(s => !oldReviewIds.includes(s));
-
-			removedReviewIds = oldReviewIds.filter(
-				s => !reviews.includes(s)
-			);
-		}
-
+		// обновление соответствующих
+		// разделов продукта
 		await Section.updateMany(
 			{ _id: addedSectionIds },
-			{ $push: { products: productToUpdate.id } }
+			{ $addToSet: { products: productToUpdate.id } }
 		);
 		await Section.updateMany(
 			{ _id: removedSectionIds },
 			{ $pull: { products: productToUpdate.id } }
 		);
 
-		await Review.updateMany(
-			{ _id: addedReviewIds },
-			{ $set: { product: productToUpdate.id } }
-		);
-		await Review.updateMany(
-			{ _id: removedReviewIds },
-			{ $unset: { product: true } }
-		);
-
 		await productToUpdate.updateOne(changes);
 
-		return await Product.findByIdAndUpdate(id);
+		return await Product.findById(id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -263,11 +299,12 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const productToDelete = await Product.findById(id).populate([
-			{ path: 'type', select: 'name' }
-		]);
+		const productToDelete = await Product.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		}).populate([{ path: 'type', select: 'name' }]);
 
-		if (!productToDelete || productToDelete.deletedAt) {
+		if (!productToDelete) {
 			throw {
 				status: 404,
 				message: `Product with id '${id}' not found`
@@ -283,7 +320,7 @@ const deleteOne = async id => {
 			case 'Книга':
 			case 'Електронна книга':
 			case 'Аудіокнига':
-				await Book.updateOne({
+				await Book.deleteOne({
 					product: productToDelete.id
 				});
 				break;
