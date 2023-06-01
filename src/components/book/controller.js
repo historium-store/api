@@ -72,10 +72,27 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
+const isUniqueKey = async (req, res, next) => {
+	try {
+		const { key } = req.query;
+
+		const isUniqueKey = await service.isUniqueKey(key);
+
+		if (isUniqueKey) {
+			return res.sendStatus(204);
+		}
+
+		res.sendStatus(409);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne
+	deleteOne,
+	isUniqueKey
 };

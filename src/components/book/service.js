@@ -184,14 +184,14 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip } = queryParams;
+	const { limit, offset: skip, key } = queryParams;
 
 	try {
-		return await Book.find({
+		const filter = {
 			deletedAt: { $exists: false }
-		})
-			.limit(limit)
-			.skip(skip);
+		};
+
+		return await Book.find(filter).limit(limit).skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -505,10 +505,22 @@ const deleteOne = async id => {
 	}
 };
 
+const isUniqueKey = async key => {
+	try {
+		return (await Book.exists({ key })) === null;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne
+	deleteOne,
+	isUniqueKey
 };

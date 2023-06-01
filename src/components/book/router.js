@@ -16,6 +16,8 @@ bookRouter
 		controller.createOne
 	);
 
+bookRouter.get('/unique-key', controller.isUniqueKey);
+
 bookRouter
 	.route('/:id')
 	.get(validator.validateId, controller.getOne)
