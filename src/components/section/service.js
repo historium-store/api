@@ -2,22 +2,28 @@ import Product from '../product/model.js';
 import Section from './model.js';
 
 const createOne = async sectionData => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	let { name, products } = sectionData;
 	products = products ?? [];
 
 	try {
-		const existingSection = await Section.exists({
+		// проверка существования раздела
+		// с входным названием
+		const sectionExists = await Section.exists({
 			name,
 			deletedAt: { $exists: false }
 		});
 
-		if (existingSection) {
+		if (sectionExists) {
 			throw {
 				status: 409,
 				message: `Section with name '${name}' already exists`
 			};
 		}
 
+		// проверка существования
+		// входных продуктов раздела
 		const notFoundIndex = (
 			await Product.find({ _id: products })
 		).findIndex(p => !p || p.deletedAt);
@@ -30,6 +36,8 @@ const createOne = async sectionData => {
 
 		const newSection = await Section.create(sectionData);
 
+		// добавление ссылки на новый раздел
+		// соответствующим продуктам
 		await Product.updateMany(
 			{ _id: products },
 			{ $push: { sections: newSection.id } }
@@ -46,9 +54,14 @@ const createOne = async sectionData => {
 
 const getOne = async id => {
 	try {
-		const foundSection = await Section.findById(id);
+		// проверка существования раздела
+		// с входным id
+		const foundSection = await Section.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!foundSection || foundSection.deletedAt) {
+		if (!foundSection) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
@@ -65,6 +78,8 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { limit, offset: skip } = queryParams;
 
 	try {
@@ -82,30 +97,43 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { name, products } = changes;
 
 	try {
-		const sectionToUpdate = await Section.findById(id);
+		// проверка существования раздела
+		// с входным id
+		const sectionToUpdate = await Section.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!sectionToUpdate || sectionToUpdate.deletedAt) {
+		if (!sectionToUpdate) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
 			};
 		}
 
-		const existingSection = await Section.exists({
+		// проверка существования раздела
+		// с входным названием
+		const sectionExists = await Section.exists({
 			name,
 			deletedAt: { $exists: false }
 		});
 
-		if (existingSection) {
+		if (sectionExists) {
 			throw {
 				status: 409,
 				message: `Section with name '${name}' already exists`
 			};
 		}
 
+		// проверка существования
+		// входных продуктов
+		// если они есть в изменениях
+		// обновление соответствующих продуктов
 		if (products) {
 			const notFoundIndex = (
 				await Product.find({ _id: products })
@@ -151,15 +179,22 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const sectionToDelete = await Section.findById(id);
+		// проверка существования раздела
+		// с входным id
+		const sectionToDelete = await Section.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!sectionToDelete || sectionToDelete.deletedAt) {
+		if (!sectionToDelete) {
 			throw {
 				status: 404,
 				message: `Section with id '${id}' not found`
 			};
 		}
 
+		// прерывание операции удаления
+		// при наличии продуктов у раздела
 		if (sectionToDelete.products.length) {
 			throw {
 				status: 400,
