@@ -92,6 +92,12 @@ productSchema.methods.deleteOne = async function () {
 	await decreaseProductsQuantity();
 };
 
+productSchema.index({ name: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ sections: 1 });
+productSchema.index({ type: 1 });
+productSchema.index({ quantity: 1 });
+
 const Product = model('Product', productSchema);
 
 export default Product;
