@@ -33,14 +33,19 @@ const signup = async userData => {
 };
 
 const login = async loginData => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { phoneNumber, email, password } = loginData;
 
 	try {
 		const foundUser = await User.findOne({
-			$or: [{ phoneNumber }, { email }]
+			$or: [
+				{ phoneNumber, deletedAt: { $exists: false } },
+				{ email, deletedAt: { $exists: false } }
+			]
 		});
 
-		if (!foundUser || foundUser.deletedAt) {
+		if (!foundUser) {
 			throw {
 				status: 404,
 				message:
@@ -110,9 +115,13 @@ const authenticate = async authHeader => {
 			tokenParts[1],
 			process.env.SECRET
 		);
-		const foundUser = await User.findById(id);
 
-		if (!foundUser || foundUser.deletedAt) {
+		const foundUser = await User.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
+
+		if (!foundUser) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`
@@ -143,14 +152,21 @@ const authenticate = async authHeader => {
 };
 
 const restorePassword = async loginData => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { phoneNumber, email } = loginData;
 
 	try {
+		// проверка существования пользователя
+		// с входным номером телефона или почтой
 		const foundUser = await User.findOne({
-			$or: [{ phoneNumber }, { email }]
+			$or: [
+				{ phoneNumber, deletedAt: { $exists: false } },
+				{ email, deletedAt: { $exists: false } }
+			]
 		});
 
-		if (!foundUser || foundUser.deletedAt) {
+		if (!foundUser) {
 			throw {
 				status: 404,
 				message:
@@ -163,6 +179,10 @@ const restorePassword = async loginData => {
 		}
 
 		const restorationToken = randomBytes(4).toString('hex');
+
+		// если в качестве логина передали почту
+		// отправляется письмо
+		// иначе - СМС с кодом подтверждения
 		if (email) {
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
@@ -172,17 +192,15 @@ const restorePassword = async loginData => {
 			};
 
 			await transporter.sendMail(mailData);
-
-			await foundUser.updateOne({ $set: { restorationToken } });
 		} else {
 			const from = 'Historium';
 			const to = phoneNumber;
 			const text = `Restoration token: ${restorationToken}\n\n`;
 
 			await vonage.sms.send({ to, from, text });
-
-			await foundUser.updateOne({ $set: { restorationToken } });
 		}
+
+		await foundUser.updateOne({ $set: { restorationToken } });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -192,14 +210,21 @@ const restorePassword = async loginData => {
 };
 
 const verifyRestore = async resetData => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { phoneNumber, email, restorationToken } = resetData;
 
 	try {
+		// проверка существования пользователя
+		// с входным номером телефона или почтой
 		const foundUser = await User.findOne({
-			$or: [{ phoneNumber }, { email }]
+			$or: [
+				{ phoneNumber, deletedAt: { $exists: false } },
+				{ email, deletedAt: { $exists: false } }
+			]
 		});
 
-		if (!foundUser || foundUser.deletedAt) {
+		if (!foundUser) {
 			throw {
 				status: 404,
 				message:
