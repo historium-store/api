@@ -140,7 +140,9 @@ const createOne = async bookData => {
 		// и привязка её id
 		// к созданному продукту
 		const newBook = await Book.create(bookData);
-		newProduct.specificProduct = newBook.id;
+		await newProduct.updateOne({
+			specificProduct: newBook.id
+		});
 
 		// добавление ссылки на новую книгу
 		// соответствующему издателю
