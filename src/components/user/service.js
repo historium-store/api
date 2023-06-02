@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { hashPassword } from '../../utils.js';
+import { Basket } from '../basket/model.js';
 import User from './model.js';
 
 const createOne = async userData => {
@@ -42,7 +43,11 @@ const createOne = async userData => {
 		userData.password = hashedPassword.toString('hex');
 		userData.salt = salt.toString('hex');
 
-		return await User.create(userData);
+		const newUser = await User.create(userData);
+
+		await Basket.create({ user: newUser.id });
+
+		return newUser;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -176,6 +181,8 @@ const deleteOne = async id => {
 				message: `User with id '${id}' not found`
 			};
 		}
+
+		await Basket.deleteOne({ user: id });
 
 		await userToDelete.deleteOne();
 
