@@ -13,7 +13,7 @@ const createOne = async productData => {
 	sections = sections ?? [];
 
 	try {
-		// проверка на существование
+		// проверка существования
 		// входного типа продукта
 		const productTypeExists = await ProductType.exists({
 			_id: type,
@@ -27,7 +27,7 @@ const createOne = async productData => {
 			};
 		}
 
-		// проверка на существование
+		// проверка существования
 		// входных разделов продукта
 		const notFoundIndex = (
 			await Section.find({ _id: sections })
@@ -40,8 +40,8 @@ const createOne = async productData => {
 			};
 		}
 
-		// проверка на существование
-		// входного ключа продукта
+		// проверка существования
+		// входного ключа продукта,
 		// генерация при отсутствии
 		if (!key) {
 			productData.key = key = transliterateToKey(name);
@@ -77,8 +77,8 @@ const createOne = async productData => {
 
 const getOne = async id => {
 	try {
-		// проверка на существование
-		// продукта с входным id
+		// проверка существования продукта
+		// с входным id
 		const foundProduct = await Product.findOne({
 			_id: id,
 			deletedAt: { $exists: false }
@@ -94,13 +94,13 @@ const getOne = async id => {
 			};
 		}
 
-		// настройка заполнения specificProduct
-		// в зависимости от типа продукта
 		const paths = [
 			{ path: 'type', select: 'name key' },
 			{ path: 'sections', select: 'name key' }
 		];
 
+		// заполнение specificProduct
+		// в зависимости от типа продукта
 		switch (foundProduct.type.name) {
 			case 'Книга':
 			case 'Електронна книга':
@@ -135,14 +135,17 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { limit, offset: skip } = queryParams;
+
 	const filter = {
 		deletedAt: { $exists: false }
 	};
 
 	try {
 		// поиск продуктов, ограничение, смещение,
-		// заполнение и выбор нужных полей
+		// заполнение и выбор необходимых полей
 		const foundProducts = await Product.find(filter)
 			.limit(limit)
 			.skip(skip)
@@ -203,8 +206,8 @@ const updateOne = async (id, changes) => {
 	const { key, type, sections } = changes;
 
 	try {
-		// проверка на существование
-		// продукта с входным id
+		// проверка существования продукта
+		// с входным id
 		const productToUpdate = await Product.findOne({
 			_id: id,
 			deletedAt: { $exists: false }
@@ -230,7 +233,7 @@ const updateOne = async (id, changes) => {
 			}
 		}
 
-		// проверка на существование
+		// проверка существования
 		// входного типа продукта
 		// если он был изменён
 		if (type && type !== productToUpdate.type.toHexString()) {
@@ -247,7 +250,7 @@ const updateOne = async (id, changes) => {
 			}
 		}
 
-		// проверка на существование
+		// проверка существования
 		// входных разделов продукта
 		let addedSectionIds = [];
 		let removedSectionIds = [];
@@ -299,6 +302,8 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
+		// проверка существования продукта
+		// с входным id
 		const productToDelete = await Product.findOne({
 			_id: id,
 			deletedAt: { $exists: false }
@@ -311,11 +316,15 @@ const deleteOne = async id => {
 			};
 		}
 
+		// удаление ссылки на продукт
+		// в соответствующих секциях
 		await Section.updateMany(
 			{ _id: productToDelete.sections },
 			{ $pull: { products: productToDelete.id } }
 		);
 
+		// удаление конкретного продукта
+		// в зависимости от типа продукта
 		switch (productToDelete.type.name) {
 			case 'Книга':
 			case 'Електронна книга':

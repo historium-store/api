@@ -3,14 +3,21 @@ import { hashPassword } from '../../utils.js';
 import User from './model.js';
 
 const createOne = async userData => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { phoneNumber, email } = userData;
 
 	try {
+		// проверка существования пользователя
+		// с входным номером телефона или почтой
 		const foundUser = await User.findOne({
-			$or: [{ phoneNumber }, { email }]
+			$or: [
+				{ phoneNumber, deletedAt: { $exists: false } },
+				{ email, deletedAt: { $exists: false } }
+			]
 		});
 
-		if (foundUser && !foundUser.deletedAt) {
+		if (foundUser) {
 			throw {
 				status: 409,
 				message:
@@ -22,6 +29,8 @@ const createOne = async userData => {
 			};
 		}
 
+		// генерация соли, хеширование пароля
+		// и их привязка к входным данным
 		const salt = randomBytes(16);
 		const hashedPassword = await hashPassword(
 			userData.password,
@@ -44,16 +53,21 @@ const createOne = async userData => {
 
 const getOne = async id => {
 	try {
-		const user = await User.findById(id);
+		// проверка существования
+		// пользователя с входным id
+		const foundUser = await User.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!user || user.deletedAt) {
+		if (!foundUser) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`
 			};
 		}
 
-		return user;
+		return foundUser;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -63,14 +77,16 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { limit, offset: skip } = queryParams;
 
+	const filter = {
+		deletedAt: { $exists: false }
+	};
+
 	try {
-		return await User.find({
-			deletedAt: { $exists: false }
-		})
-			.limit(limit)
-			.skip(skip);
+		return await User.find(filter).limit(limit).skip(skip);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -80,27 +96,35 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { phoneNumber, email } = changes;
 
 	try {
-		const userToUpdate = await User.findById(id);
+		// проверка существования
+		// пользователя с входным id
+		const userToUpdate = await User.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!userToUpdate || userToUpdate.deletedAt) {
+		if (!userToUpdate) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`
 			};
 		}
 
+		// проверка существования пользователя
+		// с входным номером телефона или почтой
 		const foundUser = await User.findOne({
-			$or: [{ phoneNumber }, { email }]
+			$or: [
+				{ phoneNumber, deletedAt: { $exists: false } },
+				{ email, deletedAt: { $exists: false } }
+			]
 		});
 
-		if (
-			foundUser &&
-			!foundUser.deletedAt &&
-			foundUser._id.toHexString() !== id
-		) {
+		if (foundUser) {
 			throw {
 				status: 409,
 				message:
@@ -112,6 +136,9 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
+		// генерация новой соли
+		// и хеширование пароля
+		// если он был изменён
 		if (changes.password) {
 			const salt = randomBytes(16);
 			const hashedPassword = await hashPassword(
@@ -121,7 +148,6 @@ const updateOne = async (id, changes) => {
 				32,
 				'sha256'
 			);
-
 			changes.password = hashedPassword.toString('hex');
 			changes.salt = salt.toString('hex');
 		}
@@ -137,9 +163,14 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const userToDelete = await User.findById(id);
+		// проверка существования
+		// пользователя с входным id
+		const userToDelete = await User.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!userToDelete || userToDelete.deletedAt) {
+		if (!userToDelete) {
 			throw {
 				status: 404,
 				message: `User with id '${id}' not found`

@@ -2,22 +2,28 @@ import Book from '../book/model.js';
 import Translator from './model.js';
 
 const createOne = async translatorData => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	let { fullName, books } = translatorData;
 	books = books ?? [];
 
 	try {
-		const existingTranslator = await Translator.exists({
+		// проверка существования переводчика
+		// с входным полным именем
+		const translatorExists = await Translator.exists({
 			fullName,
 			deletedAt: { $exists: false }
 		});
 
-		if (existingTranslator) {
+		if (translatorExists) {
 			throw {
 				status: 409,
 				message: `Translator with full name '${fullName}' already exists`
 			};
 		}
 
+		// проверка существования
+		// входных книг переводчика
 		const notFoundIndex = (
 			await Book.find({
 				_id: books
@@ -32,6 +38,8 @@ const createOne = async translatorData => {
 
 		const newTranslator = await Translator.create(translatorData);
 
+		// добавление ссылки на нового переводчика
+		// соответствующим книгам
 		await Book.updateMany(
 			{ _id: books },
 			{ $push: { translators: newTranslator.id } }
@@ -48,9 +56,14 @@ const createOne = async translatorData => {
 
 const getOne = async id => {
 	try {
-		const foundTranslator = await Translator.findById(id);
+		// проверка существования переводчика
+		// с входным id
+		const foundTranslator = await Translator.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!foundTranslator || foundTranslator.deletedAt) {
+		if (!foundTranslator) {
 			throw {
 				status: 404,
 				message: `Translator with id '${id}' not found`
@@ -67,13 +80,15 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { limit, offset: skip } = queryParams;
 
-	try {
-		const filter = {
-			deletedAt: { $exists: false }
-		};
+	const filter = {
+		deletedAt: { $exists: false }
+	};
 
+	try {
 		return await Translator.find(filter).limit(limit).skip(skip);
 	} catch (err) {
 		throw {
@@ -84,33 +99,43 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
+	// деструктуризация входных данных
+	// для более удобного использования
 	const { fullName, books } = changes;
 
 	try {
-		const translatorToUpdate = await Translator.findById(id);
+		// проверка существования переводчика
+		// с входным id
+		const translatorToUpdate = await Translator.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!translatorToUpdate || translatorToUpdate.deletedAt) {
+		if (!translatorToUpdate) {
 			throw {
 				status: 404,
 				message: `Translator with id '${id}' not found`
 			};
 		}
 
-		const existingTranslator = await Translator.exists({
+		// проверка существования переводчика
+		// с входным полным именем
+		const translatorExists = await Translator.exists({
 			fullName,
 			deletedAt: { $exists: false }
 		});
 
-		if (
-			existingTranslator &&
-			existingTranslato._id.toHexString() !== id
-		) {
+		if (translatorExists) {
 			throw {
 				status: 409,
 				message: `Translator with full name '${fullName}' already exists`
 			};
 		}
 
+		// проверка существования
+		// входных книг
+		// если они есть в изменениях
+		// обновление соответствующих книг
 		if (books) {
 			const notFoundIndex = (
 				await Book.find({ _id: books })
@@ -154,15 +179,22 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const translatorToDelete = await Translator.findById(id);
+		// проверка существования переводчика
+		// с входным id
+		const translatorToDelete = await Translator.findOne({
+			_id: id,
+			deletedAt: { $exists: false }
+		});
 
-		if (!translatorToDelete || translatorToDelete.deletedAt) {
+		if (!translatorToDelete) {
 			throw {
 				status: 404,
 				message: `Translator with id '${id}' not found`
 			};
 		}
 
+		// удаление ссылки на переводчика
+		// в соответствующих книгах
 		await Book.updateMany(
 			{ _id: translatorToDelete.books },
 			{ $pull: { translators: translatorToDelete.id } }
