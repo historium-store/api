@@ -257,7 +257,7 @@ const getAll = async queryParams => {
 				{
 					path: 'product',
 					populate: [{ path: 'type', select: '-_id name key' }],
-					select: '-_id name price quantity code images'
+					select: '-_id name key price quantity code images'
 				},
 				{ path: 'authors', select: '-_id fullName' }
 			])

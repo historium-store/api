@@ -169,7 +169,7 @@ const getAll = async queryParams => {
 									select: '-_id authors'
 								}
 							])
-							.select('name price quantity code images')
+							.select('name key price quantity code images')
 					).toObject();
 
 					foundProduct.image = foundProduct.images[0];
