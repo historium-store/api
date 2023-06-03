@@ -11,7 +11,11 @@ const getByIdFromToken = async id => {
 				message: `Basket with id '${id}' not found`
 			};
 		}
-		return foundBasket;
+
+		return {
+			...foundBasket.toObject(),
+			totalPrice: await foundBasket.totalPrice
+		};
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
