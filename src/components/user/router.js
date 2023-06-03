@@ -5,8 +5,9 @@ import {
 	validateQueryParams
 } from '../../middleware.js';
 import authController from '../auth/controller.js';
+import basketItemController from '../basket-item/controller.js';
+import basketItemValidator from '../basket-item/validator.js';
 import basketController from '../basket/controller.js';
-import basketValidator from '../basket/validator.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -27,8 +28,21 @@ userRouter.use('/basket', authController.authenticate);
 userRouter
 	.route('/basket')
 	.get(basketController.getByIdFromToken)
-	.patch(basketValidator.validateAddItem, basketController.addItem)
+
 	.delete(basketController.clearItems);
+
+userRouter.use('/basket-item', authController.authenticate);
+
+userRouter
+	.route('/basket-item')
+	.post(
+		basketItemValidator.validateItem,
+		basketItemController.addItem
+	)
+	.delete(
+		basketItemValidator.validateItem,
+		basketItemController.removeItem
+	);
 
 userRouter.use('/:id', authController.authenticate);
 
