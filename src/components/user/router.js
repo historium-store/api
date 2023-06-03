@@ -6,6 +6,7 @@ import {
 } from '../../middleware.js';
 import authController from '../auth/controller.js';
 import basketController from '../basket/controller.js';
+import basketValidator from '../basket/validator.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -21,11 +22,13 @@ userRouter.get(
 
 userRouter.get('/account', authController.authenticateAndReturn);
 
-userRouter.get(
-	'/basket',
-	authController.authenticate,
-	basketController.getByUserId
-);
+userRouter.use('/basket', authController.authenticate);
+
+userRouter
+	.route('/basket')
+	.get(basketController.getByIdFromToken)
+	.patch(basketValidator.validateAddItem, basketController.addItem)
+	.delete(basketController.clearItems);
 
 userRouter.use('/:id', authController.authenticate);
 
