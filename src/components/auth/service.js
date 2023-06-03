@@ -140,7 +140,7 @@ const authenticate = async authHeader => {
 				break;
 			case 'JsonWebTokenError':
 				status = 401;
-				message = 'Invalid token format';
+				message = "Token is invalid or doesn't exist";
 				break;
 			default:
 				status = err.status ?? 500;
