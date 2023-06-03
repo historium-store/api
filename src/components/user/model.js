@@ -53,6 +53,11 @@ const userSchema = new Schema(
 				required: false
 			}
 		],
+		basket: {
+			type: ObjectId,
+			ref: 'Basket',
+			require: true
+		},
 		createdAt: {
 			type: Number
 		},

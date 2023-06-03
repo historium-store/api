@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import { hashPassword } from '../../utils.js';
-import { Basket } from '../basket/model.js';
+import Basket from '../basket/model.js';
 import User from './model.js';
 
 const createOne = async userData => {

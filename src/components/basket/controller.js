@@ -4,7 +4,6 @@ import service from './service.js';
 
 const getByIdFromToken = async (req, res, next) => {
 	const { basket } = req.user;
-
 	try {
 		res.json(await service.getByIdFromToken(basket));
 	} catch (err) {

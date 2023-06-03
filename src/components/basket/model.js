@@ -1,35 +1,7 @@
 import { Schema, model } from 'mongoose';
+import getBasketTotalPrice from '../../triggers/basket-total-price.js';
 
 const { ObjectId } = Schema.Types;
-
-const basketItemSchema = new Schema(
-	{
-		basket: {
-			type: ObjectId,
-			ref: 'Basket',
-			required: true
-		},
-		product: {
-			type: ObjectId,
-			ref: 'Product',
-			required: true
-		},
-		quantity: {
-			type: Number,
-			required: true
-		},
-		createdAt: {
-			type: Number
-		},
-		updatedAt: {
-			type: Number
-		}
-	},
-	{
-		versionKey: false,
-		timestamps: true
-	}
-);
 
 const basketSchema = new Schema(
 	{
@@ -59,5 +31,10 @@ const basketSchema = new Schema(
 	}
 );
 
-export const BasketItem = model('BasketItem', basketItemSchema);
-export const Basket = model('Basket', basketSchema);
+basketSchema.virtual('totalPrice').get(async function () {
+	return await getBasketTotalPrice(this);
+});
+
+const Basket = model('Basket', basketSchema);
+
+export default Basket;

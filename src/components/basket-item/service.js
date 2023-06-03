@@ -1,5 +1,6 @@
-import { Basket, BasketItem } from '../basket/model.js';
+import Basket from '../basket/model.js';
 import Product from '../product/model.js';
+import BasketItem from './model.js';
 
 const addItem = async (basket, product) => {
 	try {

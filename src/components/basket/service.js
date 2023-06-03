@@ -1,4 +1,5 @@
-import { Basket, BasketItem } from './model.js';
+import BasketItem from '../basket-item/model.js';
+import Basket from './model.js';
 
 const getByIdFromToken = async id => {
 	try {
@@ -10,7 +11,6 @@ const getByIdFromToken = async id => {
 				message: `Basket with id '${id}' not found`
 			};
 		}
-
 		return foundBasket;
 	} catch (err) {
 		throw {
