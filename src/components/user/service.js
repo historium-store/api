@@ -45,7 +45,9 @@ const createOne = async userData => {
 
 		const newUser = await User.create(userData);
 
-		await Basket.create({ user: newUser.id });
+		const newBasket = await Basket.create({ user: newUser.id });
+
+		await newUser.updateOne({ basket: newBasket.id });
 
 		return newUser;
 	} catch (err) {
