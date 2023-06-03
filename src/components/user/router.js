@@ -5,6 +5,7 @@ import {
 	validateQueryParams
 } from '../../middleware.js';
 import authController from '../auth/controller.js';
+import basketController from '../basket/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -19,6 +20,12 @@ userRouter.get(
 );
 
 userRouter.get('/account', authController.authenticateAndReturn);
+
+userRouter.get(
+	'/basket',
+	authController.authenticate,
+	basketController.getByUserId
+);
 
 userRouter.use('/:id', authController.authenticate);
 
