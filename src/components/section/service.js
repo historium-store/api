@@ -54,10 +54,12 @@ const createOne = async sectionData => {
 	}
 };
 
-const populateRecursively = async id => {
+const populateRecursively = async (id, withProducts) => {
 	const section = await Section.findById(id)
 		.populate('sections')
-		.select('-createdAt -updatedAt -products');
+		.select(
+			`-createdAt -updatedAt ${withProducts ? '' : '-products'}`
+		);
 
 	if (!section) {
 		return null;
@@ -65,7 +67,7 @@ const populateRecursively = async id => {
 
 	const populatedSubsections = await Promise.all(
 		section.sections.map(async subsection => {
-			return await populateRecursively(subsection._id);
+			return await populateRecursively(subsection._id, withProducts);
 		})
 	);
 
@@ -74,7 +76,7 @@ const populateRecursively = async id => {
 	return section;
 };
 
-const getOne = async id => {
+const getOne = async (id, withProducts) => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
@@ -94,7 +96,7 @@ const getOne = async id => {
 			};
 		}
 
-		return await populateRecursively(section);
+		return await populateRecursively(section, withProducts);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -106,7 +108,7 @@ const getOne = async id => {
 const getAll = async queryParams => {
 	// деструктуризация входных данных
 	// для более удобного использования
-	const { limit, offset: skip } = queryParams;
+	const { limit, offset: skip, withProducts } = queryParams;
 
 	const filter = {
 		deletedAt: { $exists: false }
@@ -120,7 +122,9 @@ const getAll = async queryParams => {
 		const sectionsToReturn = [];
 
 		for (let section of foundSections) {
-			sectionsToReturn.push(await populateRecursively(section));
+			sectionsToReturn.push(
+				await populateRecursively(section, withProducts)
+			);
 		}
 
 		return sectionsToReturn;

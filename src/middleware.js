@@ -51,5 +51,9 @@ export const validateQueryParams = [
 		.isInt({ min: 0 })
 		.withMessage(
 			"Query parameter 'offset' must be a positive integer"
-		)
+		),
+	query('withProducts')
+		.optional()
+		.if(query('withProducts').exists())
+		.customSanitizer(() => true)
 ];

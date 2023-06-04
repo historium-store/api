@@ -20,7 +20,9 @@ const getOne = async (req, res, next) => {
 	const { id } = req.params;
 
 	try {
-		res.json(await service.getOne(id));
+		const { withProducts } = matchedData(req);
+
+		res.json(await service.getOne(id, withProducts));
 	} catch (err) {
 		next(createError(err));
 	}

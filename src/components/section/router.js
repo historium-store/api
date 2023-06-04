@@ -18,7 +18,7 @@ sectionRouter
 
 sectionRouter
 	.route('/:id')
-	.get(controller.getOne)
+	.get(validateQueryParams, controller.getOne)
 	.patch(
 		authController.authenticate,
 		checkRole(['admin']),
