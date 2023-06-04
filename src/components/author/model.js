@@ -9,10 +9,12 @@ const authorSchema = new Schema(
 			type: String,
 			required: true
 		},
+
 		biography: {
 			type: String,
 			required: false
 		},
+
 		books: [
 			{
 				type: ObjectId,
@@ -20,15 +22,18 @@ const authorSchema = new Schema(
 				required: false
 			}
 		],
+
 		pictures: [
 			{
 				type: String,
 				required: false
 			}
 		],
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}

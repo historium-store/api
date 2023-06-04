@@ -9,19 +9,23 @@ const basketItemSchema = new Schema(
 			ref: 'Basket',
 			required: true
 		},
+
 		product: {
 			type: ObjectId,
 			ref: 'Product',
 			required: true
 		},
+
 		quantity: {
 			type: Number,
 			required: true,
 			default: 1
 		},
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}

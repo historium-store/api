@@ -9,11 +9,13 @@ const sectionSchema = new Schema(
 			type: String,
 			required: true
 		},
+
 		key: {
 			type: String,
 			required: true,
 			unique: true
 		},
+
 		products: [
 			{
 				type: ObjectId,
@@ -21,6 +23,7 @@ const sectionSchema = new Schema(
 				required: false
 			}
 		],
+
 		sections: [
 			{
 				type: ObjectId,
@@ -28,9 +31,11 @@ const sectionSchema = new Schema(
 				required: false
 			}
 		],
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}

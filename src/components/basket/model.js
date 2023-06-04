@@ -12,15 +12,18 @@ const basketSchema = new Schema(
 				required: false
 			}
 		],
+
 		user: {
 			type: ObjectId,
 			ref: 'User',
 			required: true,
 			unique: true
 		},
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}

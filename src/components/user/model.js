@@ -9,32 +9,39 @@ const userSchema = new Schema(
 			type: String,
 			required: true
 		},
+
 		lastName: {
 			type: String,
 			required: true
 		},
+
 		phoneNumber: {
 			type: String,
 			required: true,
 			unique: true
 		},
+
 		email: {
 			type: String,
 			required: true,
 			unique: true
 		},
+
 		password: {
 			type: String,
 			required: true
 		},
+
 		salt: {
 			type: String,
 			required: true
 		},
+
 		role: {
 			type: String,
 			required: true
 		},
+
 		reviews: [
 			{
 				type: ObjectId,
@@ -42,10 +49,12 @@ const userSchema = new Schema(
 				required: false
 			}
 		],
+
 		restorationToken: {
 			type: String,
 			required: false
 		},
+
 		favorites: [
 			{
 				type: ObjectId,
@@ -53,14 +62,17 @@ const userSchema = new Schema(
 				required: false
 			}
 		],
+
 		basket: {
 			type: ObjectId,
 			ref: 'Basket',
 			require: true
 		},
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}

@@ -9,6 +9,7 @@ const publisherSchema = new Schema(
 			type: String,
 			required: true
 		},
+
 		bookSeries: [
 			{
 				type: ObjectId,
@@ -16,6 +17,7 @@ const publisherSchema = new Schema(
 				required: false
 			}
 		],
+
 		books: [
 			{
 				type: ObjectId,
@@ -23,17 +25,21 @@ const publisherSchema = new Schema(
 				required: false
 			}
 		],
+
 		description: {
 			type: String,
 			required: false
 		},
+
 		logo: {
 			type: String,
 			required: false
 		},
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}

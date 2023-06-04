@@ -10,21 +10,25 @@ const bookSchema = new Schema(
 			ref: 'Product',
 			required: true
 		},
+
 		publisher: {
 			type: ObjectId,
 			ref: 'Publisher',
 			required: true
 		},
+
 		languages: [
 			{
 				type: String,
 				required: true
 			}
 		],
+
 		type: {
 			type: String,
 			required: true
 		},
+
 		publishedIn: {
 			type: Number,
 			required: true
@@ -37,6 +41,7 @@ const bookSchema = new Schema(
 				required: false
 			}
 		],
+
 		compilers: [
 			{
 				type: ObjectId,
@@ -44,6 +49,7 @@ const bookSchema = new Schema(
 				required: false
 			}
 		],
+
 		translators: [
 			{
 				type: ObjectId,
@@ -51,6 +57,7 @@ const bookSchema = new Schema(
 				required: false
 			}
 		],
+
 		illustrators: [
 			{
 				type: ObjectId,
@@ -58,6 +65,7 @@ const bookSchema = new Schema(
 				required: false
 			}
 		],
+
 		editors: [
 			{
 				type: ObjectId,
@@ -71,36 +79,44 @@ const bookSchema = new Schema(
 			ref: 'BookSeries',
 			required: false
 		},
+
 		copies: {
 			type: Number,
 			required: false
 		},
+
 		isbns: [
 			{
 				type: String,
 				required: false
 			}
 		],
+
 		firstPublishedIn: {
 			type: Number,
 			required: false
 		},
+
 		originalName: {
 			type: String,
 			required: false
 		},
+
 		font: {
 			type: String,
 			required: false
 		},
+
 		format: {
 			type: String,
 			required: false
 		},
+
 		pages: {
 			type: Number,
 			required: false
 		},
+
 		weight: {
 			type: Number,
 			required: false
@@ -110,10 +126,12 @@ const bookSchema = new Schema(
 			type: String,
 			required: false
 		},
+
 		bindingType: {
 			type: String,
 			required: false
 		},
+
 		illustrationsType: [
 			{
 				type: String,
@@ -127,16 +145,19 @@ const bookSchema = new Schema(
 				required: false
 			}
 		],
+
 		literatureCountry: [
 			{
 				type: String,
 				required: false
 			}
 		],
+
 		foreignLiterature: {
 			type: Boolean,
 			required: false
 		},
+
 		timePeriod: [
 			{
 				type: String,
@@ -160,18 +181,21 @@ const bookSchema = new Schema(
 			type: String,
 			required: false
 		},
+
 		occasion: [
 			{
 				type: String,
 				required: false
 			}
 		],
+
 		style: [
 			{
 				type: String,
 				reqired: false
 			}
 		],
+
 		suitableFor: [
 			{
 				type: String,

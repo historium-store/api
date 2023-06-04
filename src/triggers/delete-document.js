@@ -2,6 +2,7 @@ const deleteDocument = async doc => {
 	try {
 		if (!doc.hasOwnProperty('deletedAt')) {
 			doc.set('deletedAt', Date.now());
+
 			await doc.save();
 		} else
 			throw new Error(

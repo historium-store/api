@@ -7,13 +7,16 @@ const bannerSchema = new Schema(
 			type: String,
 			required: true
 		},
+
 		image: {
 			type: String,
 			required: true
 		},
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}

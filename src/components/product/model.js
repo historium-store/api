@@ -14,35 +14,42 @@ const productSchema = new Schema(
 			type: String,
 			required: true
 		},
+
 		specificProduct: {
 			type: ObjectId,
 			required: false
 		},
+
 		code: {
 			type: String,
 			required: false,
 			unique: true
 		},
+
 		key: {
 			type: String,
 			required: true,
 			unique: true
 		},
+
 		price: {
 			type: Number,
 			required: true,
 			min: 0
 		},
+
 		quantity: {
 			type: Number,
 			required: false,
 			min: 0
 		},
+
 		type: {
 			type: ObjectId,
 			ref: 'ProductType',
 			required: true
 		},
+
 		sections: [
 			{
 				type: ObjectId,
@@ -50,10 +57,12 @@ const productSchema = new Schema(
 				required: true
 			}
 		],
+
 		description: {
 			type: String,
 			required: false
 		},
+
 		reviews: [
 			{
 				type: ObjectId,
@@ -61,15 +70,18 @@ const productSchema = new Schema(
 				required: false
 			}
 		],
+
 		images: [
 			{
 				type: String,
 				required: true
 			}
 		],
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}
@@ -92,11 +104,13 @@ productSchema.methods.deleteOne = async function () {
 	await decreaseProductsQuantity();
 };
 
-productSchema.index({ name: 1 });
-productSchema.index({ price: 1 });
-productSchema.index({ sections: 1 });
-productSchema.index({ type: 1 });
-productSchema.index({ quantity: 1 });
+productSchema.index({
+	name: 1,
+	price: 1,
+	sections: 1,
+	type: 1,
+	quantity: 1
+});
 
 const Product = model('Product', productSchema);
 

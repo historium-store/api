@@ -9,6 +9,7 @@ const translatorSchema = new Schema(
 			type: String,
 			required: true
 		},
+
 		books: [
 			{
 				type: ObjectId,
@@ -16,9 +17,11 @@ const translatorSchema = new Schema(
 				required: false
 			}
 		],
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}

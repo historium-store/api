@@ -9,6 +9,7 @@ const compilerSchema = new Schema(
 			type: String,
 			require: true
 		},
+
 		books: [
 			{
 				type: ObjectId,
@@ -16,9 +17,11 @@ const compilerSchema = new Schema(
 				required: false
 			}
 		],
+
 		createdAt: {
 			type: Number
 		},
+
 		updatedAt: {
 			type: Number
 		}
