@@ -1,6 +1,8 @@
 import Product from '../product/model.js';
 import Section from './model.js';
 
+import validator from 'validator';
+
 const createOne = async sectionData => {
 	// деструктуризация входных данных
 	// для более удобного использования
@@ -52,23 +54,47 @@ const createOne = async sectionData => {
 	}
 };
 
+const populateRecursively = async id => {
+	const section = await Section.findById(id)
+		.populate('sections')
+		.select('-createdAt -updatedAt -products');
+
+	if (!section) {
+		return null;
+	}
+
+	const populatedSubsections = await Promise.all(
+		section.sections.map(async subsection => {
+			return await populateRecursively(subsection._id);
+		})
+	);
+
+	section.sections = populatedSubsections;
+
+	return section;
+};
+
 const getOne = async id => {
 	try {
+		const isMongoId = validator.isMongoId(id);
+
 		// проверка существования раздела
 		// с входным id
-		const foundSection = await Section.findOne({
-			_id: id,
+		const section = await Section.exists({
+			...(isMongoId ? { _id: id } : { key: id }),
 			deletedAt: { $exists: false }
 		});
 
-		if (!foundSection) {
+		if (!section) {
 			throw {
 				status: 404,
-				message: `Section with id '${id}' not found`
+				message: `Section with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
 			};
 		}
 
-		return foundSection;
+		return await populateRecursively(section);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -82,12 +108,22 @@ const getAll = async queryParams => {
 	// для более удобного использования
 	const { limit, offset: skip } = queryParams;
 
+	const filter = {
+		deletedAt: { $exists: false }
+	};
+
 	try {
-		return await Section.find({
-			deletedAt: { $exists: false }
-		})
+		const foundSections = await Section.find(filter)
 			.limit(limit)
 			.skip(skip);
+
+		const sectionsToReturn = [];
+
+		for (let section of foundSections) {
+			sectionsToReturn.push(await populateRecursively(section));
+		}
+
+		return sectionsToReturn;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

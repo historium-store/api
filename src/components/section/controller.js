@@ -17,13 +17,9 @@ const createOne = async (req, res, next) => {
 };
 
 const getOne = async (req, res, next) => {
+	const { id } = req.params;
+
 	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
-
-		const { id } = matchedData(req);
-
 		res.json(await service.getOne(id));
 	} catch (err) {
 		next(createError(err));

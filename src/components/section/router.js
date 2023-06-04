@@ -18,7 +18,7 @@ sectionRouter
 
 sectionRouter
 	.route('/:id')
-	.get(validator.validateId, controller.getOne)
+	.get(controller.getOne)
 	.patch(
 		authController.authenticate,
 		checkRole(['admin']),
@@ -28,7 +28,6 @@ sectionRouter
 	.delete(
 		authController.authenticate,
 		checkRole(['admin']),
-		validator.validateId,
 		controller.deleteOne
 	);
 

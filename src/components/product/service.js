@@ -1,10 +1,11 @@
-import validator from 'validator';
-import { getProductCode } from '../../triggers/product-code.js';
-import { transliterateToKey } from '../../utils.js';
 import Book from '../book/model.js';
 import ProductType from '../product-type/model.js';
 import Section from '../section/model.js';
 import Product from './model.js';
+
+import validator from 'validator';
+import { getProductCode } from '../../triggers/product-code.js';
+import { transliterateToKey } from '../../utils.js';
 
 const createOne = async productData => {
 	// деструктуризация входных данных
