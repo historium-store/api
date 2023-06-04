@@ -1,8 +1,8 @@
+import validator from 'validator';
 import { getProductCode } from '../../triggers/product-code.js';
 import { transliterateToKey } from '../../utils.js';
 import Book from '../book/model.js';
 import ProductType from '../product-type/model.js';
-import Review from '../review/model.js';
 import Section from '../section/model.js';
 import Product from './model.js';
 
@@ -77,10 +77,12 @@ const createOne = async productData => {
 
 const getOne = async id => {
 	try {
+		const isMongoId = validator.isMongoId(id);
+
 		// проверка существования продукта
 		// с входным id
 		const foundProduct = await Product.findOne({
-			_id: id,
+			...(isMongoId ? { _id: id } : { key: id }),
 			deletedAt: { $exists: false }
 		}).populate([
 			{ path: 'type', select: 'name' },
@@ -90,7 +92,9 @@ const getOne = async id => {
 		if (!foundProduct) {
 			throw {
 				status: 404,
-				message: `Product with id '${id}' not found`
+				message: `Product with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
 			};
 		}
 
@@ -125,7 +129,9 @@ const getOne = async id => {
 				break;
 		}
 
-		return await Product.findById(id).populate(paths);
+		return await Product.findOne(
+			isMongoId ? { _id: id } : { key: id }
+		).populate(paths);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

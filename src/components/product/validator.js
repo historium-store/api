@@ -1,12 +1,6 @@
 import { body, param } from 'express-validator';
 import { isArrayOfMongoIds } from '../../utils.js';
 
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Product id must be a valid mongo id')
-];
-
 const validateCreate = [
 	body('name')
 		.trim()
@@ -53,7 +47,6 @@ const validateCreate = [
 ];
 
 const validateUpdate = [
-	...validateId,
 	body('name')
 		.optional()
 		.trim()
@@ -100,6 +93,6 @@ const validateUpdate = [
 		.custom(isArrayOfMongoIds('Product', 'sections'))
 ];
 
-const validator = { validateId, validateCreate, validateUpdate };
+const validator = { validateCreate, validateUpdate };
 
 export default validator;

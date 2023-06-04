@@ -16,7 +16,7 @@ productRouter.route('/').get(validateQueryParams, controller.getAll);
 
 productRouter
 	.route('/:id')
-	.get(validator.validateId, controller.getOne)
+	.get(controller.getOne)
 	// .patch(
 	// 	authController.authenticate,
 	// 	checkRole(['admin']),
@@ -26,7 +26,6 @@ productRouter
 	.delete(
 		authController.authenticate,
 		checkRole(['admin']),
-		validator.validateId,
 		controller.deleteOne
 	);
 
