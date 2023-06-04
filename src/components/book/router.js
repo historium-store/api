@@ -18,7 +18,7 @@ bookRouter
 
 bookRouter
 	.route('/:id')
-	.get(validator.validateId, controller.getOne)
+	.get(controller.getOne)
 	.patch(
 		authController.authenticate,
 		checkRole(['admin', 'seller']),
@@ -28,7 +28,6 @@ bookRouter
 	.delete(
 		authController.authenticate,
 		checkRole(['admin', 'seller']),
-		validator.validateId,
 		controller.deleteOne
 	);
 

@@ -1,12 +1,6 @@
 import { body, param } from 'express-validator';
 import { isArrayOfIsbns, isArrayOfMongoIds } from '../../utils.js';
 
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Book id must be a valid mongo id')
-];
-
 const validateCreate = [
 	body('product.name')
 		.trim()
@@ -174,7 +168,6 @@ const validateCreate = [
 ];
 
 const validateUpdate = [
-	...validateId,
 	body('product.name')
 		.optional()
 		.trim()
@@ -345,6 +338,6 @@ const validateUpdate = [
 		.withMessage('Book suitable for must be an array')
 ];
 
-const validator = { validateId, validateCreate, validateUpdate };
+const validator = { validateCreate, validateUpdate };
 
 export default validator;

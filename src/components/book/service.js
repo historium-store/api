@@ -5,9 +5,12 @@ import BookSeries from '../book-series/model.js';
 import Compiler from '../compiler/model.js';
 import Editor from '../editor/model.js';
 import Illustrator from '../illustrator/model.js';
+import Product from '../product/model.js';
 import Publisher from '../publisher/model.js';
 import Translator from '../translator/model.js';
 import Book from './model.js';
+
+import validator from 'validator';
 
 const createOne = async bookData => {
 	// деструктуризация входных данных
@@ -204,13 +207,22 @@ const createOne = async bookData => {
 
 const getOne = async id => {
 	try {
+		const isMongoId = validator.isMongoId(id);
+
+		let filter = { deletedAt: { $exists: false } };
+
+		if (isMongoId) {
+			filter._id = id;
+		} else {
+			const foundProduct = await Product.exists({ key: id });
+
+			filter.product = foundProduct._id;
+		}
+
 		// проверка существования книги
 		// с входным id,
 		// заполнение необходимых полей
-		const foundBook = await Book.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		}).populate([
+		const foundBook = await Book.findOne(filter).populate([
 			{
 				path: 'product',
 				populate: [
@@ -234,7 +246,9 @@ const getOne = async id => {
 		if (!foundBook) {
 			throw {
 				status: 404,
-				message: `Book with id '${id}' not found`
+				message: `Book with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
 			};
 		}
 
@@ -281,7 +295,7 @@ const getAll = async queryParams => {
 			book.image = book.product.images[0];
 			delete book.product.images;
 			book.authors = book.authors.map(a => a.fullName);
-			booksToReturn.addToSet(book);
+			booksToReturn.push(book);
 		}
 
 		return booksToReturn;
@@ -383,10 +397,10 @@ const updateOne = async (id, changes) => {
 				a.id.toString('hex')
 			);
 
-			addedAuthorIds.addToSet(
+			addedAuthorIds.push(
 				...authors.filter(a => !oldAuthorIds.includes(a))
 			);
-			removedAuthorIds.addToSet(
+			removedAuthorIds.push(
 				...oldAuthorIds.filter(a => !authors.includes(a))
 			);
 		}
@@ -411,10 +425,10 @@ const updateOne = async (id, changes) => {
 				c.id.toString('hex')
 			);
 
-			addedCompilerIds.addToSet(
+			addedCompilerIds.push(
 				...compilers.filter(c => !oldCompilerIds.includes(c))
 			);
-			removedCompilerIds.addToSet(
+			removedCompilerIds.push(
 				...oldCompilerIds.filter(c => !compilers.includes(c))
 			);
 		}
@@ -439,10 +453,10 @@ const updateOne = async (id, changes) => {
 				t.id.toString('hex')
 			);
 
-			addedTranslatorIds.addToSet(
+			addedTranslatorIds.push(
 				...translators.filter(c => !oldTranslatorIds.includes(c))
 			);
-			removedTranslatorIds.addToSet(
+			removedTranslatorIds.push(
 				...oldTranslatorIds.filter(c => !translators.includes(c))
 			);
 		}
@@ -467,10 +481,10 @@ const updateOne = async (id, changes) => {
 				t.id.toString('hex')
 			);
 
-			addedIllustratorIds.addToSet(
+			addedIllustratorIds.push(
 				...illustrators.filter(c => !oldIllustratorIds.includes(c))
 			);
-			removedIllustratorIds.addToSet(
+			removedIllustratorIds.push(
 				...oldIllustratorIds.filter(c => !illustrators.includes(c))
 			);
 		}
@@ -495,10 +509,10 @@ const updateOne = async (id, changes) => {
 				t.id.toString('hex')
 			);
 
-			addedEditorIds.addToSet(
+			addedEditorIds.push(
 				...editors.filter(c => !oldEditorIds.includes(c))
 			);
-			removedEditorIds.addToSet(
+			removedEditorIds.push(
 				...oldEditorIds.filter(c => !editors.includes(c))
 			);
 		}
