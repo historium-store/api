@@ -66,7 +66,7 @@ const userSchema = new Schema(
 		basket: {
 			type: ObjectId,
 			ref: 'Basket',
-			require: true
+			require: false
 		},
 
 		createdAt: {

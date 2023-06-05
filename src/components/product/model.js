@@ -105,6 +105,7 @@ productSchema.methods.deleteOne = async function () {
 };
 
 productSchema.index({
+	_id: 1,
 	name: 1,
 	price: 1,
 	sections: 1,
