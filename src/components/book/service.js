@@ -264,7 +264,7 @@ const getOne = async id => {
 const getAll = async queryParams => {
 	// деструктуризация входных данных
 	// для более удобного использования
-	const { limit, offset: skip } = queryParams;
+	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	const filter = {
 		deletedAt: { $exists: false }
@@ -276,6 +276,7 @@ const getAll = async queryParams => {
 		const foundBooks = await Book.find(filter)
 			.limit(limit)
 			.skip(skip)
+			.sort({ [orderBy]: order })
 			.populate([
 				{
 					path: 'product',
@@ -658,6 +659,7 @@ const deleteOne = async id => {
 		};
 	}
 };
+
 export default {
 	createOne,
 	getOne,

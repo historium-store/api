@@ -76,14 +76,19 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip } = queryParams;
+	// деструктуризация входных данных
+	// для более удобного использования
+	const { limit, offset: skip, orderBy, order } = queryParams;
+
+	const filter = {
+		deletedAt: { $exists: false }
+	};
 
 	try {
-		return await Review.find({
-			deletedAt: { $exists: false }
-		})
+		return await Review.find(filter)
 			.limit(limit)
-			.skip(skip);
+			.skip(skip)
+			.sort({ [orderBy]: order });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -194,4 +199,10 @@ const deleteOne = async id => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne
+};

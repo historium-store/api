@@ -86,14 +86,17 @@ const getOne = async id => {
 const getAll = async queryParams => {
 	// деструктуризация входных данных
 	// для более удобного использования
-	const { limit, offset: skip } = queryParams;
+	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	const filter = {
 		deletedAt: { $exists: false }
 	};
 
 	try {
-		return await User.find(filter).limit(limit).skip(skip);
+		return await User.find(filter)
+			.limit(limit)
+			.skip(skip)
+			.sort({ [orderBy]: order });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

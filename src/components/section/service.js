@@ -108,7 +108,13 @@ const getOne = async (id, withProducts) => {
 const getAll = async queryParams => {
 	// деструктуризация входных данных
 	// для более удобного использования
-	const { limit, offset: skip, withProducts } = queryParams;
+	const {
+		limit,
+		offset: skip,
+		withProducts,
+		orderBy,
+		order
+	} = queryParams;
 
 	const filter = {
 		deletedAt: { $exists: false }
@@ -117,7 +123,8 @@ const getAll = async queryParams => {
 	try {
 		const foundSections = await Section.find(filter)
 			.limit(limit)
-			.skip(skip);
+			.skip(skip)
+			.sort({ [orderBy]: order });
 
 		const sectionsToReturn = [];
 
@@ -251,4 +258,10 @@ const deleteOne = async id => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne
+};

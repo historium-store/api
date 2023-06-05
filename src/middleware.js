@@ -55,5 +55,15 @@ export const validateQueryParams = [
 	query('withProducts')
 		.optional()
 		.if(query('withProducts').exists())
-		.customSanitizer(() => true)
+		.customSanitizer(() => true),
+	query('orderBy')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Query parameter 'orderBy' must have a value"),
+	query('order')
+		.if(query('orderBy').exists())
+		.default('ascending')
+		.isIn(['ascending', 'descending'])
+		.withMessage('Invalid order direction')
 ];

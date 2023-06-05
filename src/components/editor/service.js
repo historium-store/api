@@ -67,14 +67,17 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip } = queryParams;
+	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
 		const filter = {
 			deletedAt: { $exists: false }
 		};
 
-		return await Editor.find(filter).limit(limit).skip(skip);
+		return await Editor.find(filter)
+			.limit(limit)
+			.skip(skip)
+			.sort({ [orderBy]: order });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -176,4 +179,10 @@ const deleteOne = async id => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne
+};

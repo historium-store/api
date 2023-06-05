@@ -84,14 +84,15 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset } = queryParams;
+	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
 		return await Publisher.find({
 			deletedAt: { $exists: false }
 		})
 			.limit(limit)
-			.skip(offset);
+			.skip(skip)
+			.sort({ [orderBy]: order });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -240,4 +241,10 @@ const deleteOne = async id => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne
+};
