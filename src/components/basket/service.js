@@ -1,9 +1,22 @@
 import BasketItem from '../basket-item/model.js';
+import Book from '../book/model.js';
+import Product from '../product/model.js';
 import Basket from './model.js';
 
 const getByIdFromToken = async id => {
 	try {
-		const foundBasket = await Basket.findById(id).populate('items');
+		let foundBasket = await Basket.findById(id)
+			.populate({
+				path: 'items',
+				populate: {
+					path: 'product',
+					populate: { path: 'type', select: '-_id name key' },
+					select:
+						'-_id name price quantity code images specificProduct'
+				},
+				select: 'quantity'
+			})
+			.select('-_id');
 
 		if (!foundBasket) {
 			throw {
@@ -12,10 +25,39 @@ const getByIdFromToken = async id => {
 			};
 		}
 
-		return {
-			...foundBasket.toObject(),
-			totalPrice: await foundBasket.totalPrice
-		};
+		const totalPrice = await foundBasket.totalPrice;
+
+		foundBasket = foundBasket.toObject();
+		foundBasket.totalPrice = totalPrice;
+
+		foundBasket.items.forEach(i => delete i._id);
+
+		const bookTypes = ['Книга', 'Електронна книга', 'Аудіокнига'];
+		let product;
+		let productType;
+		let specificProductId;
+		let book;
+
+		for (let item of foundBasket.items) {
+			product = item.product;
+			productType = product.type.name;
+			specificProductId = product.specificProduct;
+
+			product.image = product.images[0];
+			delete product.images;
+
+			if (bookTypes.includes(productType)) {
+				book = await Book.findById(specificProductId)
+					.populate({ path: 'authors', select: 'fullName' })
+					.select('authors');
+
+				product.authors = book.authors.map(a => a.fullName);
+			}
+
+			delete product.specificProduct;
+		}
+
+		return foundBasket;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
