@@ -54,7 +54,6 @@ export const validateQueryParams = [
 		),
 	query('withProducts')
 		.optional()
-		.if(query('withProducts').exists())
 		.customSanitizer(() => true),
 	query('orderBy')
 		.optional()
@@ -65,5 +64,8 @@ export const validateQueryParams = [
 		.if(query('orderBy').exists())
 		.default('ascending')
 		.isIn(['ascending', 'descending', 'asc', 'desc'])
-		.withMessage('Invalid order direction')
+		.withMessage('Invalid order direction'),
+	query('preview')
+		.optional()
+		.customSanitizer(() => true)
 ];

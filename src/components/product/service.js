@@ -76,7 +76,7 @@ const createOne = async productData => {
 	}
 };
 
-const getOne = async id => {
+const getOne = async (id, preview) => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
@@ -86,7 +86,7 @@ const getOne = async id => {
 			...(isMongoId ? { _id: id } : { key: id }),
 			deletedAt: { $exists: false }
 		}).populate([
-			{ path: 'type', select: 'name' },
+			{ path: 'type', select: 'name key' },
 			{ path: 'sections', select: 'name key' }
 		]);
 
@@ -99,40 +99,56 @@ const getOne = async id => {
 			};
 		}
 
-		const paths = [
-			{ path: 'type', select: 'name key' },
-			{ path: 'sections', select: 'name key' }
-		];
+		const bookTypes = ['Книга', 'Електронна книга', 'Аудіокнига'];
+		const productType = foundProduct.type.name;
 
 		// заполнение specificProduct
 		// в зависимости от типа продукта
-		switch (foundProduct.type.name) {
-			case 'Книга':
-			case 'Електронна книга':
-			case 'Аудіокнига':
-				paths.push({
-					path: 'specificProduct',
-					model: 'Book',
-					populate: [
-						{ path: 'publisher', select: 'name' },
-						{
-							path: 'authors',
-							select: 'fullName pictures biography'
-						},
-						{ path: 'compilers', select: 'fullName' },
-						{ path: 'translators', select: 'fullName' },
-						{ path: 'illustrators', select: 'fullName' },
-						{ path: 'editors', select: 'fullName' },
-						{ path: 'series', select: 'name' }
-					],
-					select: '-product'
-				});
-				break;
+		if (bookTypes.includes(productType)) {
+			await foundProduct.populate({
+				path: 'specificProduct',
+				model: 'Book',
+				populate: [
+					{ path: 'publisher', select: 'name' },
+					{
+						path: 'authors',
+						select: 'fullName pictures biography'
+					},
+					{ path: 'compilers', select: 'fullName' },
+					{ path: 'translators', select: 'fullName' },
+					{ path: 'illustrators', select: 'fullName' },
+					{ path: 'editors', select: 'fullName' },
+					{ path: 'series', select: 'name' }
+				],
+				select: '-product'
+			});
 		}
 
-		return await Product.findOne(
-			isMongoId ? { _id: id } : { key: id }
-		).populate(paths);
+		if (preview) {
+			const productPreview = {};
+
+			productPreview.id = foundProduct.id;
+			productPreview.name = foundProduct.name;
+			productPreview.key = foundProduct.key;
+			productPreview.price = foundProduct.price;
+			productPreview.quantity = foundProduct.quantity;
+			productPreview.type = {
+				name: foundProduct.type.name,
+				key: foundProduct.type.key
+			};
+			productPreview.createdAt = foundProduct.createdAt;
+			productPreview.code = foundProduct.code;
+			productPreview.image = foundProduct.images[0];
+
+			if (bookTypes.includes(productType)) {
+				productPreview.authors =
+					foundProduct.specificProduct.authors.map(a => a.fullName);
+			}
+
+			return productPreview;
+		}
+
+		return foundProduct;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

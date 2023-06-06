@@ -16,7 +16,7 @@ productRouter.route('/').get(validateQueryParams, controller.getAll);
 
 productRouter
 	.route('/:id')
-	.get(controller.getOne)
+	.get(validateQueryParams, controller.getOne)
 	// .patch(
 	// 	authController.authenticate,
 	// 	checkRole(['admin']),

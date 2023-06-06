@@ -20,7 +20,13 @@ const getOne = async (req, res, next) => {
 	const { id } = req.params;
 
 	try {
-		res.json(await service.getOne(id));
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { preview } = matchedData(req);
+
+		res.json(await service.getOne(id, preview));
 	} catch (err) {
 		next(createError(err));
 	}
