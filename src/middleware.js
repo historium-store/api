@@ -64,6 +64,6 @@ export const validateQueryParams = [
 	query('order')
 		.if(query('orderBy').exists())
 		.default('ascending')
-		.isIn(['ascending', 'descending'])
+		.isIn(['ascending', 'descending', 'asc', 'desc'])
 		.withMessage('Invalid order direction')
 ];
