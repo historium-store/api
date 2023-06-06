@@ -10,13 +10,12 @@ const getByIdFromToken = async id => {
 				path: 'items',
 				populate: {
 					path: 'product',
-					populate: { path: 'type', select: '-_id name key' },
-					select:
-						'-_id name price quantity code images specificProduct'
+					populate: { path: 'type', select: '-_id name' },
+					select: 'name price quantity code images specificProduct'
 				},
-				select: 'quantity'
+				select: 'quantity createdAt'
 			})
-			.select('-_id');
+			.select('-_id items');
 
 		if (!foundBasket) {
 			throw {
@@ -49,12 +48,12 @@ const getByIdFromToken = async id => {
 			if (bookTypes.includes(productType)) {
 				book = await Book.findById(specificProductId)
 					.populate({ path: 'authors', select: 'fullName' })
-					.select('authors');
+					.select('type authors')
+					.lean();
 
 				product.authors = book.authors.map(a => a.fullName);
+				product.type = book.type;
 			}
-
-			delete product.specificProduct;
 		}
 
 		return foundBasket;
