@@ -41,6 +41,7 @@ const getByIdFromToken = async id => {
 			product = item.product;
 			productType = product.type.name;
 			specificProductId = product.specificProduct;
+			delete product.specificProduct;
 
 			product.image = product.images[0];
 			delete product.images;

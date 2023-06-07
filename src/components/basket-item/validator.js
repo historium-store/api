@@ -6,7 +6,11 @@ const validateItem = [
 		.withMessage('Product id is required')
 		.bail()
 		.isMongoId()
-		.withMessage('Product id must be a valid mongo id')
+		.withMessage('Product id must be a valid mongo id'),
+	body('quantity')
+		.optional()
+		.isInt({ min: 1 })
+		.withMessage('Product quantity must be an integer')
 ];
 
 const validator = { validateItem };

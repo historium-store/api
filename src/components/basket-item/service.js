@@ -2,7 +2,9 @@ import Basket from '../basket/model.js';
 import Product from '../product/model.js';
 import BasketItem from './model.js';
 
-const addItem = async (basket, product) => {
+const addItem = async (basket, itemData) => {
+	const { product, quantity } = itemData;
+
 	try {
 		const productExists = await Product.exists({
 			_id: product,
@@ -32,7 +34,9 @@ const addItem = async (basket, product) => {
 		);
 
 		if (existingItem) {
-			await existingItem.updateOne({ $inc: { quantity: 1 } });
+			await existingItem.updateOne(
+				quantity ? { $set: { quantity } } : { $inc: { quantity: 1 } }
+			);
 
 			return;
 		}

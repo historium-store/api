@@ -28,9 +28,9 @@ const removeItem = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { product } = matchedData(req);
+		const itemData = matchedData(req);
 
-		await service.removeItem(basket, product);
+		await service.removeItem(basket, itemData);
 
 		res.sendStatus(204);
 	} catch (err) {
