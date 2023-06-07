@@ -38,6 +38,13 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
+		if (changes.role && req.user.role !== 'admin') {
+			throw {
+				status: 403,
+				message: 'No permission to update role'
+			};
+		}
+
 		res.json(await service.updateOne(id, changes));
 	} catch (err) {
 		next(createError(err));
