@@ -16,6 +16,8 @@ bookRouter
 		controller.createOne
 	);
 
+bookRouter.get('/filters', controller.getFilters);
+
 bookRouter
 	.route('/:id')
 	.get(controller.getOne)

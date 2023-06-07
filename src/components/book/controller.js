@@ -68,10 +68,19 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
+const getFilters = async (req, res, next) => {
+	try {
+		res.json(await service.getFilters());
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne
+	deleteOne,
+	getFilters
 };

@@ -660,10 +660,39 @@ const deleteOne = async id => {
 	}
 };
 
+const getFilters = async () => {
+	const books = await Book.find()
+		.populate([
+			{ path: 'product', select: 'price' },
+			{ path: 'publisher', select: 'name' },
+			{ path: 'authors', select: 'fullName' }
+		])
+		.lean();
+
+	const filters = {
+		trends: ['Новинки', 'Знижка'],
+		types: [...new Set(books.map(b => b.type))],
+		publishers: [...new Set(books.map(b => b.publisher.name))],
+		languages: [...new Set(books.map(b => b.languages).flat())],
+		authors: [
+			...new Set(
+				books.map(b => b.authors.map(a => a.fullName)).flat()
+			)
+		],
+		price: {
+			min: Math.min(...books.map(b => b.product.price)),
+			max: Math.max(...books.map(b => b.product.price))
+		}
+	};
+
+	return filters;
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne
+	deleteOne,
+	getFilters
 };
