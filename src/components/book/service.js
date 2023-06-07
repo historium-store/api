@@ -262,17 +262,57 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	// деструктуризация входных данных
-	// для более удобного использования
-	const { limit, offset: skip, orderBy, order } = queryParams;
+	const {
+		limit,
+		offset: skip,
+		orderBy,
+		order,
+		bookType: type,
+		publisher,
+		language,
+		author,
+		price
+	} = queryParams;
 
 	const filter = {
 		deletedAt: { $exists: false }
 	};
 
+	if (type) {
+		filter.type = type;
+	}
+
+	if (publisher) {
+		const foundPublishers = await Publisher.find({
+			name: publisher,
+			deletedAt: { $exists: false }
+		});
+
+		filter.publisher = foundPublishers.map(p => p.id);
+	}
+
+	if (language) {
+		filter.languages = language;
+	}
+
+	if (author) {
+		const foundAuthors = await Author.find({
+			fullName: author,
+			deletedAt: { $exists: false }
+		});
+
+		filter.authors = foundAuthors.map(p => p.id);
+	}
+
+	if (price) {
+		const foundProducts = await Product.find({
+			price: { $gte: price[0], $lte: price[1] }
+		});
+
+		filter.product = foundProducts.map(p => p.id);
+	}
+
 	try {
-		// поиск книг, ограничение, смещение,
-		// заполнение и выбор необходимых полей
 		const foundBooks = await Book.find(filter)
 			.limit(limit)
 			.skip(skip)
@@ -289,8 +329,6 @@ const getAll = async queryParams => {
 
 		const booksToReturn = [];
 
-		// уборка лишней информации
-		// и видоизменение необходимой
 		for (let book of foundBooks) {
 			book = book.toObject();
 			book.image = book.product.images[0];

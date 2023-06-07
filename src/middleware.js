@@ -67,5 +67,20 @@ export const validateQueryParams = [
 		.withMessage('Invalid order direction'),
 	query('preview')
 		.optional()
-		.customSanitizer(() => true)
+		.customSanitizer(() => true),
+	query('bookType')
+		.optional()
+		.customSanitizer(value => value.split(';')),
+	query('publisher')
+		.optional()
+		.customSanitizer(value => value.split(';')),
+	query('language')
+		.optional()
+		.customSanitizer(value => value.split(';')),
+	query('author')
+		.optional()
+		.customSanitizer(value => value.split(';')),
+	query('price')
+		.optional()
+		.customSanitizer(value => value.split('-'))
 ];
