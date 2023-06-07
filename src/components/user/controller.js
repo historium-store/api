@@ -58,4 +58,9 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
-export default { getOne, getAll, updateOne, deleteOne };
+export default {
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne
+};

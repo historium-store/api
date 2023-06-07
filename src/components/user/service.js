@@ -4,13 +4,9 @@ import Basket from '../basket/model.js';
 import User from './model.js';
 
 const createOne = async userData => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { phoneNumber, email } = userData;
 
 	try {
-		// проверка существования пользователя
-		// с входным номером телефона или почтой
 		const foundUser = await User.findOne({
 			$or: [
 				{ phoneNumber, deletedAt: { $exists: false } },
@@ -30,8 +26,6 @@ const createOne = async userData => {
 			};
 		}
 
-		// генерация соли, хеширование пароля
-		// и их привязка к входным данным
 		const salt = randomBytes(16);
 		const hashedPassword = await hashPassword(
 			userData.password,
@@ -49,7 +43,7 @@ const createOne = async userData => {
 
 		await newUser.updateOne({ basket: newBasket.id });
 
-		return newUser;
+		return await User.findById(newUser.id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -60,8 +54,6 @@ const createOne = async userData => {
 
 const getOne = async id => {
 	try {
-		// проверка существования
-		// пользователя с входным id
 		const foundUser = await User.findOne({
 			_id: id,
 			deletedAt: { $exists: false }
@@ -84,8 +76,6 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	const filter = {
@@ -106,13 +96,9 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { phoneNumber, email } = changes;
 
 	try {
-		// проверка существования
-		// пользователя с входным id
 		const userToUpdate = await User.findOne({
 			_id: id,
 			deletedAt: { $exists: false }
@@ -125,8 +111,6 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		// проверка существования пользователя
-		// с входным номером телефона или почтой
 		const foundUser = await User.findOne({
 			$or: [
 				{ phoneNumber, deletedAt: { $exists: false } },
@@ -146,9 +130,6 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		// генерация новой соли
-		// и хеширование пароля
-		// если он был изменён
 		if (changes.password) {
 			const salt = randomBytes(16);
 			const hashedPassword = await hashPassword(
@@ -173,8 +154,6 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		// проверка существования
-		// пользователя с входным id
 		const userToDelete = await User.findOne({
 			_id: id,
 			deletedAt: { $exists: false }
