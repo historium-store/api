@@ -1,25 +1,13 @@
-import { Vonage } from '@vonage/server-sdk';
 import { randomBytes, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
-import nodemalier from 'nodemailer';
-import { hashPassword, verifyJWT } from '../../utils.js';
+import {
+	hashPassword,
+	transporter,
+	verifyJWT,
+	vonage
+} from '../../utils.js';
 import User from '../user/model.js';
 import userService from '../user/service.js';
-
-const transporter = nodemalier.createTransport({
-	port: 465,
-	host: 'smtp.privateemail.com',
-	auth: {
-		user: 'noreply@historium.store',
-		pass: process.env.EMAIL_PASSWORD
-	},
-	secure: true
-});
-
-const vonage = new Vonage({
-	apiKey: process.env.VONAGE_API_KEY,
-	apiSecret: process.env.VONAGE_API_SECRET
-});
 
 const signup = async userData => {
 	try {

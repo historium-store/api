@@ -1,9 +1,11 @@
+import { Vonage } from '@vonage/server-sdk';
 import AWS from 'aws-sdk';
 import { pbkdf2, randomUUID } from 'crypto';
 import createHttpError from 'http-errors';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
+import nodemailer from 'nodemailer';
 import { extname } from 'path';
 import { transliterate } from 'transliteration';
 import { promisify } from 'util';
@@ -26,6 +28,21 @@ export const upload = multer({
 			cb(null, `${randomUUID()}${extension}`);
 		}
 	})
+});
+
+export const transporter = nodemailer.createTransport({
+	port: 465,
+	host: 'smtp.privateemail.com',
+	auth: {
+		user: 'noreply@historium.store',
+		pass: process.env.EMAIL_PASSWORD
+	},
+	secure: true
+});
+
+export const vonage = new Vonage({
+	apiKey: process.env.VONAGE_API_KEY,
+	apiSecret: process.env.VONAGE_API_SECRET
 });
 
 export const createError = err => {
