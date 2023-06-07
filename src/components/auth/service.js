@@ -21,8 +21,6 @@ const signup = async userData => {
 };
 
 const login = async loginData => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { phoneNumber, email, password } = loginData;
 
 	try {
@@ -62,13 +60,16 @@ const login = async loginData => {
 			};
 		}
 
-		const payload = { sub: foundUser.id };
+		const payload = {
+			sub: foundUser.id
+		};
 		const options = {
 			expiresIn: process.env.JWT_EXPIRATION,
 			noTimestamp: true
 		};
+		const token = jwt.sign(payload, process.env.SECRET, options);
 
-		return jwt.sign(payload, process.env.SECRET, options);
+		return token;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -94,15 +95,13 @@ const authenticate = async authHeader => {
 		};
 	}
 
-	if (!tokenParts[1]) {
+	const token = tokenParts[1];
+	if (!token) {
 		throw { status: 401, message: 'Token not provided' };
 	}
 
 	try {
-		const { sub: id } = await verifyJWT(
-			tokenParts[1],
-			process.env.SECRET
-		);
+		const { sub: id } = await verifyJWT(token, process.env.SECRET);
 
 		const foundUser = await User.findOne({
 			_id: id,
@@ -140,13 +139,9 @@ const authenticate = async authHeader => {
 };
 
 const restorePassword = async loginData => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { phoneNumber, email } = loginData;
 
 	try {
-		// проверка существования пользователя
-		// с входным номером телефона или почтой
 		const foundUser = await User.findOne({
 			$or: [
 				{ phoneNumber, deletedAt: { $exists: false } },
@@ -198,13 +193,9 @@ const restorePassword = async loginData => {
 };
 
 const verifyRestore = async resetData => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { phoneNumber, email, restorationToken } = resetData;
 
 	try {
-		// проверка существования пользователя
-		// с входным номером телефона или почтой
 		const foundUser = await User.findOne({
 			$or: [
 				{ phoneNumber, deletedAt: { $exists: false } },
@@ -242,7 +233,9 @@ const verifyRestore = async resetData => {
 			$unset: { restorationToken: true }
 		});
 
-		const payload = { sub: foundUser.id };
+		const payload = {
+			sub: foundUser.id
+		};
 		const options = {
 			expiresIn: process.env.JWT_EXPIRATION,
 			noTimestamp: true

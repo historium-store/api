@@ -43,11 +43,7 @@ const validateSignup = [
 		.withMessage('User password is required')
 		.bail()
 		.isLength({ min: 8, max: 50 })
-		.withMessage('User password must be between 8 and 50 characters'),
-	body('role')
-		.default('user')
-		.isIn(['user', 'seller', 'admin'])
-		.withMessage('Invalid user role')
+		.withMessage('User password must be between 8 and 50 characters')
 ];
 
 const validateLogin = [
@@ -63,6 +59,8 @@ const validateLogin = [
 		}),
 	body('password')
 		.trim()
+		.notEmpty()
+		.withMessage('User password is required')
 		.isLength({ min: 8, max: 50 })
 		.withMessage('User password must be between 8 and 50 characters')
 ];
