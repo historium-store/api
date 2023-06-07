@@ -69,7 +69,7 @@ const login = async loginData => {
 		};
 		const token = jwt.sign(payload, process.env.SECRET, options);
 
-		return token;
+		return { token };
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -192,8 +192,8 @@ const restorePassword = async loginData => {
 	}
 };
 
-const verifyRestore = async resetData => {
-	const { phoneNumber, email, restorationToken } = resetData;
+const verifyRestore = async restoreData => {
+	const { phoneNumber, email, restorationToken } = restoreData;
 
 	try {
 		const foundUser = await User.findOne({

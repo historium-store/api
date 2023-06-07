@@ -26,13 +26,13 @@ const login = async (req, res, next) => {
 		const { login, password } = matchedData(req);
 
 		const loginData = {
-			...(validator.isMobilePhone(login, 'uk-UA')
-				? { phoneNumber: login }
-				: { email: login }),
+			...(validator.isEmail(login)
+				? { email: login }
+				: { phoneNumber: login }),
 			password
 		};
 
-		res.json({ token: await service.login(loginData) });
+		res.json(await service.login(loginData));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -63,13 +63,14 @@ const restorePassword = async (req, res, next) => {
 			.throw();
 
 		const { login } = matchedData(req);
-		const restorationData = {
-			...(validator.isMobilePhone(login, 'uk-UA')
-				? { phoneNumber: login }
-				: { email: login })
+
+		const loginData = {
+			...(validator.isEmail(login)
+				? { email: login }
+				: { phoneNumber: login })
 		};
 
-		await service.restorePassword(restorationData);
+		await service.restorePassword(loginData);
 
 		res.sendStatus(204);
 	} catch (err) {
@@ -85,14 +86,14 @@ const verifyRestore = async (req, res, next) => {
 
 		const { login, restorationToken } = matchedData(req);
 
-		const dataToVerify = {
-			...(validator.isMobilePhone(login, 'uk-UA')
-				? { phoneNumber: login }
-				: { email: login }),
+		const restoreData = {
+			...(validator.isEmail(login)
+				? { email: login }
+				: { phoneNumber: login }),
 			restorationToken
 		};
 
-		res.json(await service.verifyRestore(dataToVerify));
+		res.json(await service.verifyRestore(restoreData));
 	} catch (err) {
 		next(createError(err));
 	}

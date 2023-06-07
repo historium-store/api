@@ -61,6 +61,7 @@ const validateLogin = [
 		.trim()
 		.notEmpty()
 		.withMessage('User password is required')
+		.bail()
 		.isLength({ min: 8, max: 50 })
 		.withMessage('User password must be between 8 and 50 characters')
 ];
