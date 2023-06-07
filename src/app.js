@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express from 'express';
 import createHttpError from 'http-errors';
 import logger from 'morgan';
@@ -22,6 +23,7 @@ import userRouter from './components/user/router.js';
 
 const app = express();
 
+app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
 
