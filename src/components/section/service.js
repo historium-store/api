@@ -1,17 +1,13 @@
+import validator from 'validator';
+
 import Product from '../product/model.js';
 import Section from './model.js';
 
-import validator from 'validator';
-
 const createOne = async sectionData => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	let { name, products } = sectionData;
 	products = products ?? [];
 
 	try {
-		// проверка существования раздела
-		// с входным названием
 		const sectionExists = await Section.exists({
 			name,
 			deletedAt: { $exists: false }
@@ -24,11 +20,10 @@ const createOne = async sectionData => {
 			};
 		}
 
-		// проверка существования
-		// входных продуктов раздела
 		const notFoundIndex = (
 			await Product.find({ _id: products })
 		).findIndex(p => !p || p.deletedAt);
+
 		if (notFoundIndex > -1) {
 			throw {
 				status: 404,
@@ -38,8 +33,6 @@ const createOne = async sectionData => {
 
 		const newSection = await Section.create(sectionData);
 
-		// добавление ссылки на новый раздел
-		// соответствующим продуктам
 		await Product.updateMany(
 			{ _id: products },
 			{ $push: { sections: newSection.id } }
@@ -56,22 +49,52 @@ const createOne = async sectionData => {
 
 const populateRecursively = async (id, withProducts) => {
 	const section = await Section.findById(id)
-		.populate('sections')
-		.select(
-			`-createdAt -updatedAt ${withProducts ? '' : '-products'}`
+		.select(`-createdAt -updatedAt`)
+		.lean();
+
+	if (withProducts) {
+		const foundProducts = await Product.find({
+			_id: section.products
+		}).populate([{ path: 'type', select: '-_id name key' }]);
+
+		await Promise.all(
+			foundProducts.map(
+				async p =>
+					await p.populate({
+						path: 'specificProduct',
+						model: p.model,
+						populate: {
+							path: 'authors',
+							select: 'fullName'
+						},
+						select: 'authors'
+					})
+			)
 		);
 
-	if (!section) {
-		return null;
+		const productPreviews = foundProducts.map(p => ({
+			id: p.id,
+			name: p.name,
+			key: p.key,
+			price: p.price,
+			quantity: p.quantity,
+			type: p.type,
+			createdAt: p.createdAt,
+			code: p.code,
+			image: p.images[0],
+			authors: p.specificProduct.authors?.map(a => a.fullName)
+		}));
+
+		section.products = productPreviews;
 	}
 
-	const populatedSubsections = await Promise.all(
-		section.sections.map(async subsection => {
-			return await populateRecursively(subsection._id, withProducts);
+	const sections = await Promise.all(
+		section.sections.map(async s => {
+			return await populateRecursively(s, withProducts);
 		})
 	);
 
-	section.sections = populatedSubsections;
+	section.sections = sections;
 
 	return section;
 };
@@ -80,8 +103,6 @@ const getOne = async (id, withProducts) => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
-		// проверка существования раздела
-		// с входным id
 		const section = await Section.exists({
 			...(isMongoId ? { _id: id } : { key: id }),
 			deletedAt: { $exists: false }
@@ -106,8 +127,6 @@ const getOne = async (id, withProducts) => {
 };
 
 const getAll = async queryParams => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const {
 		limit,
 		offset: skip,
