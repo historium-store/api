@@ -50,6 +50,11 @@ const productSchema = new Schema(
 			required: true
 		},
 
+		model: {
+			type: String,
+			required: true
+		},
+
 		sections: [
 			{
 				type: ObjectId,
