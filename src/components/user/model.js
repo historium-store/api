@@ -67,7 +67,7 @@ const userSchema = new Schema(
 		cart: {
 			type: ObjectId,
 			ref: 'Cart',
-			require: false
+			required: false
 		},
 
 		createdAt: {
