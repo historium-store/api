@@ -1,0 +1,249 @@
+_id: spc_e8bc17a6bb9e499aa7c35ad97e5566db
+type: ApiSpec
+parentId: wrk_6e997b1138b143098bc108647d5bc77e
+modified: 1686218215099
+created: 1686218215099
+fileName: historium
+contents: "openapi: 3.0.3\r
+
+  info:\r
+
+  \  title: Historium API\r
+
+  \  description: This is a documentation for an API of Historium Book Store\r
+
+  \  version: 1.0.0\r
+
+  servers:\r
+
+  \ - url: http://localhost:3000\r
+
+  tags:\r
+
+  \  - name: user\r
+
+  paths:\r
+
+  \  /signup:\r
+
+  \    post:\r
+
+  \      tags:\r
+
+  \        - user\r
+
+  \      summary: Create user\r
+
+  \      requestBody:\r
+
+  \        content:\r
+
+  \          application/json:\r
+
+  \            schema:\r
+
+  \              $ref: '#/components/schemas/RequestUser'\r
+
+  \      responses:\r
+
+  \        '201':\r
+
+  \          description: User was created successfuly\r
+
+  \          content:\r
+
+  \            application/json:\r
+
+  \              schema:\r
+
+  \                $ref: '#/components/schemas/ResponseUser'\r
+
+  \        '409':\r
+
+  \          description: User already exists\r
+
+  \          content:\r
+
+  \            application/json:\r
+
+  \              schema:\r
+
+  \                $ref: '#/components/schemas/Error'\r
+
+  \              examples: \r
+
+  \                phoneNumberExists:\r
+
+  \                  summary: Phone number exists\r
+
+  \                  value:\r
+
+  \                    message: User with phone number '+380502239457' already
+  exists\r
+
+  \                emailExists:\r
+
+  \                  summary: Email exists\r
+
+  \                  value:\r
+
+  \                    message: User with email 'user@example.com' already
+  exists\r
+
+  components:\r
+
+  \  schemas:\r
+
+  \    RequestUser:\r
+
+  \      type: object\r
+
+  \      properties:\r
+
+  \        firstName:\r
+
+  \          type: string\r
+
+  \          example: John\r
+
+  \        lastName:\r
+
+  \          type: string\r
+
+  \          example: Williams\r
+
+  \        phoneNumber:\r
+
+  \          type: string\r
+
+  \          example: '+380502239457'\r
+
+  \        email:\r
+
+  \          type: string\r
+
+  \          format: email\r
+
+  \        password:\r
+
+  \          type: string\r
+
+  \          example: '12345678'\r
+
+  \    ResponseUser:\r
+
+  \      type: object\r
+
+  \      properties:\r
+
+  \        _id:\r
+
+  \          type: string\r
+
+  \          example: 615e86d03e2c19825f5a2d8c\r
+
+  \        firstName:\r
+
+  \          type: string\r
+
+  \          example: John\r
+
+  \        lastName:\r
+
+  \          type: string\r
+
+  \          example: Williams\r
+
+  \        phoneNumber:\r
+
+  \          type: string\r
+
+  \          example: '+380502239457'\r
+
+  \        email:\r
+
+  \          type: string\r
+
+  \          format: email\r
+
+  \        password:\r
+
+  \          type: string\r
+
+  \          example:
+  bae3c1dc3bfe45719c89229a5eb68b3ed5a0e9c35d0e4b1f92a347fc06a9d3e7\r
+
+  \        salt:\r
+
+  \          type: string\r
+
+  \          example: 4a7e34d5ab98c0f1e2d3b6a5c7f8e910\r
+
+  \        role:\r
+
+  \          type: string\r
+
+  \          example: user\r
+
+  \        reviews:\r
+
+  \          type: array\r
+
+  \          items:\r
+
+  \            type: object\r
+
+  \          default: []\r
+
+  \        favorites:\r
+
+  \          type: array\r
+
+  \          items:\r
+
+  \            type: object\r
+
+  \          default: []\r
+
+  \        createdAt:\r
+
+  \          type: number\r
+
+  \          format: int64\r
+
+  \          example: 1686214665493\r
+
+  \        updatedAt:\r
+
+  \          type: number\r
+
+  \          format: int64\r
+
+  \          example: 1686214665493\r
+
+  \        basket:\r
+
+  \          type: string\r
+
+  \          example: 60c156b936ee3545a84c14b3\r
+
+  \    Error:\r
+
+  \      type: object\r
+
+  \      properties:\r
+
+  \        message:\r
+
+  \          type: string\r
+
+  \  securitySchemes:\r
+
+  \    JWTAuth:\r
+
+  \      type: http\r
+
+  \      scheme: bearer\r
+
+  \      bearerFormat: JWT"
+contentType: yaml
