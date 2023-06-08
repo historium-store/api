@@ -80,15 +80,10 @@ const getOne = async (id, preview) => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
-		// проверка существования продукта
-		// с входным id
 		const foundProduct = await Product.findOne({
 			...(isMongoId ? { _id: id } : { key: id }),
 			deletedAt: { $exists: false }
-		}).populate([
-			{ path: 'type', select: 'name key' },
-			{ path: 'sections', select: 'name key' }
-		]);
+		}).populate({ path: 'type', select: '-_id name key' });
 
 		if (!foundProduct) {
 			throw {
@@ -99,15 +94,40 @@ const getOne = async (id, preview) => {
 			};
 		}
 
-		const bookTypes = ['Книга', 'Електронна книга', 'Аудіокнига'];
-		const productType = foundProduct.type.name;
-
-		// заполнение specificProduct
-		// в зависимости от типа продукта
-		if (bookTypes.includes(productType)) {
+		if (preview) {
 			await foundProduct.populate({
 				path: 'specificProduct',
-				model: 'Book',
+				model: foundProduct.model,
+				populate: {
+					path: 'authors',
+					select: 'fullName'
+				},
+				select: 'authors'
+			});
+
+			const productPreview = {
+				id: foundProduct.id,
+				name: foundProduct.name,
+				key: foundProduct.key,
+				price: foundProduct.price,
+				quantity: foundProduct.quantity,
+				type: foundProduct.type,
+				createdAt: foundProduct.createdAt,
+				code: foundProduct.code,
+				image: foundProduct.images[0],
+				authors: foundProduct.specificProduct.authors?.map(
+					a => a.fullName
+				)
+			};
+
+			return productPreview;
+		}
+
+		await foundProduct.populate([
+			{ path: 'sections', select: 'name key' },
+			{
+				path: 'specificProduct',
+				model: foundProduct.model,
 				populate: [
 					{ path: 'publisher', select: 'name' },
 					{
@@ -121,32 +141,8 @@ const getOne = async (id, preview) => {
 					{ path: 'series', select: 'name' }
 				],
 				select: '-product'
-			});
-		}
-
-		if (preview) {
-			const productPreview = {};
-
-			productPreview.id = foundProduct.id;
-			productPreview.name = foundProduct.name;
-			productPreview.key = foundProduct.key;
-			productPreview.price = foundProduct.price;
-			productPreview.quantity = foundProduct.quantity;
-			productPreview.type = {
-				name: foundProduct.type.name,
-				key: foundProduct.type.key
-			};
-			productPreview.createdAt = foundProduct.createdAt;
-			productPreview.code = foundProduct.code;
-			productPreview.image = foundProduct.images[0];
-
-			if (bookTypes.includes(productType)) {
-				productPreview.authors =
-					foundProduct.specificProduct.authors.map(a => a.fullName);
 			}
-
-			return productPreview;
-		}
+		]);
 
 		return foundProduct;
 	} catch (err) {
@@ -158,8 +154,6 @@ const getOne = async (id, preview) => {
 };
 
 const getAll = async queryParams => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	const filter = {
@@ -167,56 +161,42 @@ const getAll = async queryParams => {
 	};
 
 	try {
-		// поиск продуктов, ограничение, смещение,
-		// заполнение и выбор необходимых полей
 		const foundProducts = await Product.find(filter)
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order })
-			.populate([{ path: 'type', select: '-_id name key' }])
-			.select('type');
+			.populate([{ path: 'type', select: '-_id name key' }]);
 
-		const productsToReturn = [];
+		await Promise.all(
+			foundProducts.map(
+				async p =>
+					await p.populate({
+						path: 'specificProduct',
+						model: p.model,
+						populate: {
+							path: 'authors',
+							select: 'fullName'
+						},
+						select: 'authors'
+					})
+			)
+		);
 
-		for (let product of foundProducts) {
-			switch (product.type.name) {
-				case 'Книга':
-				case 'Електронна книга':
-				case 'Аудіокнига':
-					const foundProduct = (
-						await Product.findById(product.id)
-							.populate([
-								{ path: 'type', select: '-_id name key' },
-								{
-									path: 'specificProduct',
-									model: 'Book',
-									populate: [
-										{ path: 'authors', select: '-_id fullName' }
-									],
-									select: '-_id authors'
-								}
-							])
-							.select('name key price quantity code images createdAt')
-					).toObject();
-
-					foundProduct.image = foundProduct.images[0];
-
-					delete foundProduct.images;
-
-					foundProduct.authors =
-						foundProduct.specificProduct?.authors.map(
-							a => a.fullName
-						);
-
-					delete foundProduct.specificProduct;
-
-					productsToReturn.push(foundProduct);
-					break;
-			}
-		}
+		const productPreviews = foundProducts.map(p => ({
+			id: p.id,
+			name: p.name,
+			key: p.key,
+			price: p.price,
+			quantity: p.quantity,
+			type: p.type,
+			createdAt: p.createdAt,
+			code: p.code,
+			image: p.images[0],
+			authors: p.specificProduct.authors?.map(a => a.fullName)
+		}));
 
 		return {
-			result: productsToReturn,
+			result: productPreviews,
 			total: await Product.countDocuments()
 		};
 	} catch (err) {
