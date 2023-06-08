@@ -5,9 +5,9 @@ import {
 	validateQueryParams
 } from '../../middleware.js';
 import authController from '../auth/controller.js';
-import basketItemController from '../basket-item/controller.js';
-import basketItemValidator from '../basket-item/validator.js';
-import basketController from '../basket/controller.js';
+import cartItemController from '../cart-item/controller.js';
+import cartItemValidator from '../cart-item/validator.js';
+import cartController from '../cart/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -23,25 +23,22 @@ userRouter.get(
 
 userRouter.get('/account', authController.authenticateAndReturn);
 
-userRouter.use('/basket', authController.authenticate);
+userRouter.use('/cart', authController.authenticate);
 
 userRouter
-	.route('/basket')
-	.get(basketController.getByIdFromToken)
+	.route('/cart')
+	.get(cartController.getByIdFromToken)
 
-	.delete(basketController.clearItems);
+	.delete(cartController.clearItems);
 
-userRouter.use('/basket-item', authController.authenticate);
+userRouter.use('/cart-item', authController.authenticate);
 
 userRouter
-	.route('/basket-item')
-	.post(
-		basketItemValidator.validateItem,
-		basketItemController.addItem
-	)
+	.route('/cart-item')
+	.post(cartItemValidator.validateItem, cartItemController.addItem)
 	.delete(
-		basketItemValidator.validateItem,
-		basketItemController.removeItem
+		cartItemValidator.validateItem,
+		cartItemController.removeItem
 	);
 
 userRouter.use('/:id', authController.authenticate);

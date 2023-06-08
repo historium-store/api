@@ -3,16 +3,16 @@ import { createError } from '../../utils.js';
 import service from './service.js';
 
 const getByIdFromToken = async (req, res, next) => {
-	const { basket } = req.user;
+	const { cart } = req.user;
 	try {
-		res.json(await service.getByIdFromToken(basket));
+		res.json(await service.getByIdFromToken(cart));
 	} catch (err) {
 		next(createError(err));
 	}
 };
 
 const addItem = async (req, res, next) => {
-	const { basket } = req.user;
+	const { cart } = req.user;
 
 	try {
 		validationResult(req)
@@ -21,7 +21,7 @@ const addItem = async (req, res, next) => {
 
 		const { product } = matchedData(req);
 
-		await service.addItem(basket, product);
+		await service.addItem(cart, product);
 
 		res.sendStatus(204);
 	} catch (err) {
@@ -30,10 +30,10 @@ const addItem = async (req, res, next) => {
 };
 
 const clearItems = async (req, res, next) => {
-	const { basket } = req.user;
+	const { cart } = req.user;
 
 	try {
-		await service.clearItems(basket);
+		await service.clearItems(cart);
 
 		res.sendStatus(204);
 	} catch (err) {

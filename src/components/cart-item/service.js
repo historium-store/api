@@ -1,8 +1,8 @@
-import Basket from '../basket/model.js';
+import Cart from '../cart/model.js';
 import Product from '../product/model.js';
-import BasketItem from './model.js';
+import CartItem from './model.js';
 
-const addItem = async (basket, itemData) => {
+const addItem = async (cart, itemData) => {
 	const { product, quantity } = itemData;
 
 	try {
@@ -18,18 +18,16 @@ const addItem = async (basket, itemData) => {
 			};
 		}
 
-		const foundBasket = await Basket.findById(basket).populate(
-			'items'
-		);
+		const foundCart = await Cart.findById(cart).populate('items');
 
-		if (!foundBasket) {
+		if (!foundCart) {
 			throw {
 				status: 404,
-				message: `Basket with id '${basket}' not found`
+				message: `Cart with id '${cart}' not found`
 			};
 		}
 
-		const existingItem = foundBasket.items.find(
+		const existingItem = foundCart.items.find(
 			i => i.product.toHexString() === product
 		);
 
@@ -41,14 +39,14 @@ const addItem = async (basket, itemData) => {
 			return;
 		}
 
-		const newBasketItem = await BasketItem.create({
-			basket: foundBasket.id,
+		const newCartItem = await CartItem.create({
+			cart: foundCart.id,
 			product,
 			quantity: 1
 		});
 
-		await foundBasket.updateOne({
-			$push: { items: newBasketItem.id }
+		await foundCart.updateOne({
+			$push: { items: newCartItem.id }
 		});
 	} catch (err) {
 		throw {
@@ -58,8 +56,8 @@ const addItem = async (basket, itemData) => {
 	}
 };
 
-const removeItem = async (basket, itemData) => {
-	const { product } = itemData;
+const removeItem = async (cart, itemData) => {
+	const { product, quantity } = itemData;
 	try {
 		const productExists = await Product.exists({
 			_id: product,
@@ -73,37 +71,33 @@ const removeItem = async (basket, itemData) => {
 			};
 		}
 
-		const foundBasket = await Basket.findById(basket).populate(
-			'items'
-		);
+		const foundCart = await Cart.findById(cart).populate('items');
 
-		if (!foundBasket) {
+		if (!foundCart) {
 			throw {
 				status: 404,
-				message: `Basket with id '${basket}' not found`
+				message: `Cart with id '${cart}' not found`
 			};
 		}
 
-		const existingItem = foundBasket.items.find(
+		const existingItem = foundCart.items.find(
 			i => i.product.toHexString() === product
 		);
 
 		if (!existingItem) {
 			throw {
 				status: 404,
-				message: `Basket doesn't contain product with id '${product}'`
+				message: `Cart doesn't contain product with id '${product}'`
 			};
 		}
 
-		if (--existingItem.quantity) {
-			await existingItem.updateOne({ $inc: { quantity: -1 } });
-
-			return;
+		if ((existingItem.quantity -= quantity ?? 1)) {
+			return await existingItem.updateOne({ $inc: { quantity: -1 } });
 		}
 
 		await existingItem.deleteOne();
 
-		await foundBasket.updateOne({
+		await foundCart.updateOne({
 			$pull: { items: existingItem.id }
 		});
 	} catch (err) {

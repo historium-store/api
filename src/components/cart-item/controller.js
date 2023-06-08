@@ -3,7 +3,7 @@ import { createError } from '../../utils.js';
 import service from './service.js';
 
 const addItem = async (req, res, next) => {
-	const { basket } = req.user;
+	const { cart } = req.user;
 
 	try {
 		validationResult(req)
@@ -12,7 +12,7 @@ const addItem = async (req, res, next) => {
 
 		const itemData = matchedData(req);
 
-		await service.addItem(basket, itemData);
+		await service.addItem(cart, itemData);
 
 		res.sendStatus(204);
 	} catch (err) {
@@ -21,7 +21,7 @@ const addItem = async (req, res, next) => {
 };
 
 const removeItem = async (req, res, next) => {
-	const { basket } = req.user;
+	const { cart } = req.user;
 
 	try {
 		validationResult(req)
@@ -30,7 +30,7 @@ const removeItem = async (req, res, next) => {
 
 		const itemData = matchedData(req);
 
-		await service.removeItem(basket, itemData);
+		await service.removeItem(cart, itemData);
 
 		res.sendStatus(204);
 	} catch (err) {

@@ -1,11 +1,10 @@
-import BasketItem from '../basket-item/model.js';
 import Book from '../book/model.js';
-import Product from '../product/model.js';
-import Basket from './model.js';
+import CartItem from '../cart-item/model.js';
+import Cart from './model.js';
 
 const getByIdFromToken = async id => {
 	try {
-		let foundBasket = await Basket.findById(id)
+		let foundCart = await Cart.findById(id)
 			.populate({
 				path: 'items',
 				populate: {
@@ -17,19 +16,19 @@ const getByIdFromToken = async id => {
 			})
 			.select('-_id items');
 
-		if (!foundBasket) {
+		if (!foundCart) {
 			throw {
 				status: 404,
-				message: `Basket with id '${id}' not found`
+				message: `Cart with id '${id}' not found`
 			};
 		}
 
-		const totalPrice = await foundBasket.totalPrice;
+		const totalPrice = await foundCart.totalPrice;
 
-		foundBasket = foundBasket.toObject();
-		foundBasket.totalPrice = totalPrice;
+		foundCart = foundCart.toObject();
+		foundCart.totalPrice = totalPrice;
 
-		foundBasket.items.forEach(i => delete i._id);
+		foundCart.items.forEach(i => delete i._id);
 
 		const bookTypes = ['Книга', 'Електронна книга', 'Аудіокнига'];
 		let product;
@@ -37,7 +36,7 @@ const getByIdFromToken = async id => {
 		let specificProductId;
 		let book;
 
-		for (let item of foundBasket.items) {
+		for (let item of foundCart.items) {
 			product = item.product;
 			productType = product.type.name;
 			specificProductId = product.specificProduct;
@@ -57,7 +56,7 @@ const getByIdFromToken = async id => {
 			}
 		}
 
-		return foundBasket;
+		return foundCart;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -66,20 +65,20 @@ const getByIdFromToken = async id => {
 	}
 };
 
-const clearItems = async basket => {
+const clearItems = async cart => {
 	try {
-		const foundBasket = await Basket.findById(basket);
+		const foundCart = await Cart.findById(cart);
 
-		if (!foundBasket) {
+		if (!foundCart) {
 			throw {
 				status: 404,
-				message: `Basket with id '${id}' not found`
+				message: `Cart with id '${id}' not found`
 			};
 		}
 
-		await BasketItem.deleteMany({ _id: foundBasket.items });
+		await CartItem.deleteMany({ _id: foundCart.items });
 
-		await foundBasket.updateOne({ items: [] });
+		await foundCart.updateOne({ items: [] });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

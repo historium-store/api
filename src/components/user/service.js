@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import { hashPassword } from '../../utils.js';
-import Basket from '../basket/model.js';
+import Cart from '../cart/model.js';
 import User from './model.js';
 
 const createOne = async userData => {
@@ -39,9 +39,9 @@ const createOne = async userData => {
 
 		const newUser = await User.create(userData);
 
-		const newBasket = await Basket.create({ user: newUser.id });
+		const newCart = await Cart.create({ user: newUser.id });
 
-		await newUser.updateOne({ basket: newBasket.id });
+		await newUser.updateOne({ cart: newCart.id });
 
 		return await User.findById(newUser.id);
 	} catch (err) {
@@ -166,7 +166,7 @@ const deleteOne = async id => {
 			};
 		}
 
-		await Basket.deleteOne({ user: id });
+		await Cart.deleteOne({ user: id });
 
 		await userToDelete.deleteOne();
 
