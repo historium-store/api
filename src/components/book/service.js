@@ -135,7 +135,8 @@ const createOne = async bookData => {
 		// и привязка его id
 		// к входным данным книги
 		const newProduct = await productService.createOne({
-			...bookData.product
+			...bookData.product,
+			model: 'Book'
 		});
 		bookData.product = newProduct.id;
 
