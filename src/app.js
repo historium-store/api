@@ -2,6 +2,8 @@ import cors from 'cors';
 import express from 'express';
 import createHttpError from 'http-errors';
 import logger from 'morgan';
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUI from 'swagger-ui-express';
 import { errorHandler } from './middleware.js';
 
 import authRouter from './components/auth/router.js';
@@ -43,6 +45,29 @@ app.use('/editor', editorRouter);
 app.use('/book-series', bookSeriesRouter);
 app.use('/search', searchRouter);
 app.use('/file', fileRouter);
+
+app.use(
+	'/docs',
+	swaggerUI.serve,
+	swaggerUI.setup(
+		swaggerJSDoc({
+			definition: {
+				openapi: '3.0.0',
+				info: {
+					title: 'Historium API',
+					description:
+						'This is a documentation for an API of Historium Book Store',
+					version: '1.0.0'
+				},
+				servers: [
+					{ url: `http://localhost:${process.env.PORT ?? 3000}` }
+				],
+				tags: [{ name: 'user' }]
+			},
+			apis: ['./src/components/*/router.js']
+		})
+	)
+);
 
 app.use((req, res, next) =>
 	next(createHttpError(404, 'Endpoint not found'))
