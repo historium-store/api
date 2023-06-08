@@ -10,9 +10,9 @@ const addItem = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { product } = matchedData(req);
+		const itemData = matchedData(req);
 
-		await service.addItem(basket, product);
+		await service.addItem(basket, itemData);
 
 		res.sendStatus(204);
 	} catch (err) {
