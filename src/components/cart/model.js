@@ -1,14 +1,14 @@
 import { Schema, model } from 'mongoose';
-import getBasketTotalPrice from '../../triggers/basket-total-price.js';
+import getCartTotalPrice from '../../triggers/cart-total-price.js';
 
 const { ObjectId } = Schema.Types;
 
-const basketSchema = new Schema(
+const cartSchema = new Schema(
 	{
 		items: [
 			{
 				type: ObjectId,
-				ref: 'BasketItem',
+				ref: 'CartItem',
 				required: false
 			}
 		],
@@ -34,10 +34,10 @@ const basketSchema = new Schema(
 	}
 );
 
-basketSchema.virtual('totalPrice').get(async function () {
-	return await getBasketTotalPrice(this);
+cartSchema.virtual('totalPrice').get(async function () {
+	return await getCartTotalPrice(this);
 });
 
-const Basket = model('Basket', basketSchema);
+const Cart = model('Cart', cartSchema);
 
-export default Basket;
+export default Cart;

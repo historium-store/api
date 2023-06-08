@@ -64,9 +64,9 @@ const userSchema = new Schema(
 			}
 		],
 
-		basket: {
+		cart: {
 			type: ObjectId,
-			ref: 'Basket',
+			ref: 'Cart',
 			require: false
 		},
 

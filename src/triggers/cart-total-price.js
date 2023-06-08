@@ -1,15 +1,15 @@
-import BasketItem from '../components/basket-item/model.js';
+import CartItem from '../components/cart-item/model.js';
 
-const getBasketTotalPrice = async doc => {
+const getCartTotalPrice = async doc => {
 	try {
 		let totalPrice = 0;
 
 		if (doc.items && doc.items.length > 0) {
-			const basketItems = await BasketItem.find({
+			const cartItems = await CartItem.find({
 				_id: { $in: doc.items }
 			}).populate('product');
 
-			for (const item of basketItems) {
+			for (const item of cartItems) {
 				totalPrice += item.product.price * item.quantity;
 			}
 		}
@@ -23,4 +23,4 @@ const getBasketTotalPrice = async doc => {
 	}
 };
 
-export default getBasketTotalPrice;
+export default getCartTotalPrice;

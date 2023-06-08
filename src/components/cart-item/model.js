@@ -2,11 +2,11 @@ import { Schema, model } from 'mongoose';
 
 const { ObjectId } = Schema.Types;
 
-const basketItemSchema = new Schema(
+const cartItemSchema = new Schema(
 	{
-		basket: {
+		cart: {
 			type: ObjectId,
-			ref: 'Basket',
+			ref: 'Cart',
 			required: true
 		},
 
@@ -36,6 +36,6 @@ const basketItemSchema = new Schema(
 	}
 );
 
-const BasketItem = model('BasketItem', basketItemSchema);
+const CartItem = model('CartItem', cartItemSchema);
 
-export default BasketItem;
+export default CartItem;
