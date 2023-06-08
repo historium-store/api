@@ -1,3 +1,5 @@
+import validator from 'validator';
+
 import productService from '../product/service.js';
 
 import Author from '../author/model.js';
@@ -9,8 +11,6 @@ import Product from '../product/model.js';
 import Publisher from '../publisher/model.js';
 import Translator from '../translator/model.js';
 import Book from './model.js';
-
-import validator from 'validator';
 
 const createOne = async bookData => {
 	// деструктуризация входных данных
@@ -337,7 +337,10 @@ const getAll = async queryParams => {
 			booksToReturn.push(book);
 		}
 
-		return booksToReturn;
+		return {
+			result: booksToReturn,
+			total: await Book.countDocuments()
+		};
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
