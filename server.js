@@ -1,10 +1,14 @@
 import mongoose from 'mongoose';
+import importData from './db-initialization.js';
 import app from './src/app.js';
 
+//importData().then(() => {
 const PORT = process.env.PORT || 3000;
 
 mongoose
-	.connect(process.env.CONNECTION_STRING)
+	.connect(process.env.CONNECTION_STRING, {
+		dbName: 'historium-db'
+	})
 	.then(() =>
 		app.listen(PORT, () =>
 			console.log(`API is listening on port ${PORT}`)
@@ -18,3 +22,4 @@ process.on('unhandledRejection', event => {
 	console.log(event.promise);
 	console.log(event.reason);
 });
+//});
