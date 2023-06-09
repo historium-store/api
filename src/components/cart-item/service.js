@@ -42,7 +42,7 @@ const addItem = async (cart, itemData) => {
 		const newCartItem = await CartItem.create({
 			cart: foundCart.id,
 			product,
-			quantity: 1
+			quantity: quantity ?? 1
 		});
 
 		await foundCart.updateOne({

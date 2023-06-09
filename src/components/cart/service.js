@@ -56,6 +56,11 @@ const getByIdFromToken = async id => {
 			}
 		}
 
+		foundCart.totalQuantity = foundCart.items.reduce(
+			(sum, item) => sum + item.quantity,
+			0
+		);
+
 		return foundCart;
 	} catch (err) {
 		throw {
