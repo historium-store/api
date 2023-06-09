@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import importData from './db-initialization.js';
+//import importData from './db-initialization.js';
 import app from './src/app.js';
 
 //importData().then(() => {
