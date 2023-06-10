@@ -33,3 +33,20 @@ productTypeRouter
 	);
 
 export default productTypeRouter;
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *
+ *     ProductType:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         key:
+ *           type: string
+ *       required:
+ *         - name
+ *         - key
+ */
