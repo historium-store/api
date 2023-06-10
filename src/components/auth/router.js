@@ -10,19 +10,40 @@ const authRouter = Router();
  *   post:
  *     tags:
  *       - user
- *     summary: Create user
+ *     summary: User signup
  *     requestBody:
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/RequestUser'
+ *             $ref: '#/components/schemas/SignupRequest'
+ *           example:
+ *             firstName: John
+ *             lastName: Williams
+ *             phoneNumber: '+380442138972'
+ *             email: john.williams@gmail.com
+ *             password: '12345678'
  *     responses:
  *       '201':
- *         description: User was created successfully
+ *         description: User successfully signed up
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ResponseUser'
+ *               $ref: '#/components/schemas/SignupResponse'
+ *             example:
+ *               _id: 617268ce1a9b261b6c35cc1d
+ *               firstName: John
+ *               lastName: Williams
+ *               phoneNumber: '+380442138972'
+ *               email: john.williams@gmail.com
+ *               password: d74eef53e89912dc618537ae00e91347d78747e1dd7f6fcfa26732f23fcfa79c
+ *               salt: c42af8db45f10eefb83d52cfd58a0b6e
+ *               role: user
+ *               reviews: []
+ *               favorites: []
+ *               createdAt: 1686387456078
+ *               updatedAt: 1686387456078
+ *               cart: 617c9e5d4c5ad0c2a95e9b1f
  *       '409':
  *         description: User already exists
  *         content:
@@ -33,19 +54,52 @@ const authRouter = Router();
  *               phoneNumberExists:
  *                 summary: Phone number exists
  *                 value:
- *                   message: User with phone number '+380502239457' already exists
+ *                   message: User with phone number '+380442138972' already exists
  *               emailExists:
  *                 summary: Email exists
  *                 value:
- *                   message: User with email 'user@example.com' already exists
+ *                   message: User with email 'john.williams@gmail.com' already exists
  */
-
 authRouter.post(
 	'/signup',
 	validator.validateSignup,
 	controller.signup
 );
 
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: User login
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *           examples:
+ *                 phoneNumber:
+ *                   summary: Using phone number
+ *                   value:
+ *                     login: '+380442138972'
+ *                     password: '12345678'
+ *                 emailExists:
+ *                   summary: Using email
+ *                   value:
+ *                     login: john.williams@gmail.com
+ *                     password: '12345678'
+ *     responses:
+ *       '200':
+ *         description: User successfully logged in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.7-MkFgEErMq9z-Q2D8bECKtmJivPITuL_k3j3zr5P68
+ */
 authRouter.post('/login', validator.validateLogin, controller.login);
 
 authRouter.post(
@@ -66,73 +120,75 @@ export default authRouter;
  * @swagger
  * components:
  *   schemas:
- *     RequestUser:
+ *
+ *     SignupRequest:
  *       type: object
  *       properties:
  *         firstName:
  *           type: string
- *           example: John
  *         lastName:
  *           type: string
- *           example: Williams
  *         phoneNumber:
  *           type: string
- *           example: '+380502239457'
  *         email:
  *           type: string
  *           format: email
  *         password:
  *           type: string
- *           example: '12345678'
+ *       required:
+ *         - firstName
+ *         - lastName
+ *         - phoneNumber
+ *         - email
+ *         - password
  *
- *     ResponseUser:
+ *     SignupResponse:
  *       type: object
  *       properties:
  *         _id:
  *           type: string
- *           example: 615e86d03e2c19825f5a2d8c
  *         firstName:
  *           type: string
- *           example: John
  *         lastName:
  *           type: string
- *           example: Williams
  *         phoneNumber:
  *           type: string
- *           example: '+380502239457'
  *         email:
  *           type: string
  *           format: email
  *         password:
  *           type: string
- *           example: bae3c1dc3bfe45719c89229a5eb68b3ed5a0e9c35d0e4b1f92a347fc06a9d3e7
  *         salt:
  *           type: string
- *           example: 4a7e34d5ab98c0f1e2d3b6a5c7f8e910
  *         role:
  *           type: string
- *           example: user
  *         reviews:
  *           type: array
  *           items:
- *             type: object
- *           default: []
+ *             type: string
  *         favorites:
  *           type: array
  *           items:
- *             type: object
- *           default: []
+ *             type: string
  *         createdAt:
  *           type: number
  *           format: int64
- *           example: 1686214665493
  *         updatedAt:
  *           type: number
  *           format: int64
- *           example: 1686214665493
- *         basket:
+ *         cart:
  *           type: string
- *           example: 60c156b936ee3545a84c14b3
+ *
+ *     LoginRequest:
+ *       type: object
+ *       properties:
+ *         login:
+ *           type: string
+ *         password:
+ *           type: string
+ *       required:
+ *         - login
+ *         - password
  *
  *     Error:
  *       type: object
