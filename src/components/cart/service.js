@@ -92,4 +92,46 @@ const clearItems = async cart => {
 	}
 };
 
-export default { getByIdFromToken, clearItems };
+const merge = async (items, cart) => {
+	try {
+		const foundCart = await Cart.findById(cart).populate('items');
+
+		if (!foundCart) {
+			throw {
+				status: 404,
+				message: `Cart with id '${id}' not found`
+			};
+		}
+
+		const itemsToUpdate = foundCart.items.map(i => ({
+			...i,
+			product: i.product.toHexString()
+		}));
+
+		let foundItem;
+		for (let item of items) {
+			foundItem = itemsToUpdate.find(i => i.product === item.product);
+
+			if (foundItem) {
+				await CartItem.updateOne(foundItem, {
+					$inc: { quantity: item.quantity }
+				});
+
+				continue;
+			}
+
+			await foundCart.updateOne({
+				$push: { items: await CartItem.create({ ...item, cart }) }
+			});
+		}
+
+		return await getByIdFromToken(cart);
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+export default { getByIdFromToken, clearItems, merge };
