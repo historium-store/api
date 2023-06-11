@@ -10,7 +10,8 @@ const getByIdFromToken = async id => {
 				populate: {
 					path: 'product',
 					populate: { path: 'type', select: '-_id name' },
-					select: 'name price quantity code images specificProduct'
+					select:
+						'name key price quantity code images specificProduct'
 				},
 				select: 'quantity createdAt'
 			})
