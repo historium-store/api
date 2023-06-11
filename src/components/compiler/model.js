@@ -7,7 +7,7 @@ const compilerSchema = new Schema(
 	{
 		fullName: {
 			type: String,
-			require: true
+			required: true
 		},
 
 		books: [

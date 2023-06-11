@@ -14,6 +14,7 @@ import compilerRouter from './components/compiler/router.js';
 import editorRouter from './components/editor/router.js';
 import fileRouter from './components/file/router.js';
 import illustratorRouter from './components/illustrator/router.js';
+import orderRouter from './components/order/router.js';
 import productTypeRouter from './components/product-type/router.js';
 import productRouter from './components/product/router.js';
 import publisherRouter from './components/publisher/router.js';
@@ -45,6 +46,7 @@ app.use('/editor', editorRouter);
 app.use('/book-series', bookSeriesRouter);
 app.use('/search', searchRouter);
 app.use('/file', fileRouter);
+app.use('/order', orderRouter);
 
 app.use(
 	'/docs',
@@ -62,7 +64,7 @@ app.use(
 				servers: [
 					{ url: `http://localhost:${process.env.PORT ?? 3000}` }
 				],
-				tags: [{ name: 'user' }]
+				tags: [{ name: 'user' }, { name: 'order' }]
 			},
 			apis: ['./src/components/*/router.js']
 		})

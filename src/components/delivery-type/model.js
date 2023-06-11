@@ -25,7 +25,7 @@ const deliveryTypeSchema = new Schema(
 
 		contactInfoRequired: {
 			type: Boolean,
-			require: true
+			required: true
 		},
 
 		fullAddressRequired: {

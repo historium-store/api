@@ -19,7 +19,7 @@ const orderSchema = new Schema(
 
 		gift: {
 			type: Boolean,
-			require: true
+			required: true
 		},
 
 		companyInfo: {
@@ -51,7 +51,8 @@ const orderSchema = new Schema(
 
 		status: {
 			type: String,
-			required: true
+			required: true,
+			default: 'new'
 		},
 
 		user: {
