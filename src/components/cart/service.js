@@ -103,17 +103,12 @@ const merge = async (items, cart) => {
 			};
 		}
 
-		const itemsToUpdate = foundCart.items.map(i => ({
-			...i,
-			product: i.product.toHexString()
-		}));
-
-		let foundItem;
+		let existingItem;
 		for (let item of items) {
-			foundItem = itemsToUpdate.find(i => i.product === item.product);
+			existingItem = await CartItem.exists({ product: item.product });
 
-			if (foundItem) {
-				await CartItem.updateOne(foundItem, {
+			if (existingItem) {
+				await CartItem.updateOne(existingItem, {
 					$inc: { quantity: item.quantity }
 				});
 
