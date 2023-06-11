@@ -23,6 +23,12 @@ const deliveryTypeSchema = new Schema(
 			}
 		],
 
+		freeDeliveryPrice: {
+			type: Number,
+			default: 300,
+			required: true
+		},
+
 		contactInfoRequired: {
 			type: Boolean,
 			required: true
