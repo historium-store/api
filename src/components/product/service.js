@@ -106,7 +106,7 @@ const getOne = async (id, preview) => {
 			});
 
 			const productPreview = {
-				id: foundProduct.id,
+				_id: foundProduct.id,
 				name: foundProduct.name,
 				key: foundProduct.key,
 				price: foundProduct.price,
@@ -183,7 +183,7 @@ const getAll = async queryParams => {
 		);
 
 		const productPreviews = foundProducts.map(p => ({
-			id: p.id,
+			_id: p.id,
 			name: p.name,
 			key: p.key,
 			price: p.price,
