@@ -62,10 +62,54 @@ const orderSchema = new Schema(
 			required: false
 		},
 
-		products: [
+		items: [
 			{
-				type: Schema.Types.Mixed,
-				required: false
+				product: {
+					id: {
+						type: ObjectId,
+						required: true
+					},
+
+					name: {
+						type: String,
+						required: true
+					},
+
+					specificProduct: {
+						type: ObjectId,
+						required: false
+					},
+
+					code: {
+						type: String,
+						required: false,
+						unique: true
+					},
+
+					key: {
+						type: String,
+						required: true,
+						unique: true
+					},
+
+					price: {
+						type: Number,
+						required: true,
+						min: 0
+					},
+
+					images: [
+						{
+							type: String,
+							required: true
+						}
+					]
+				},
+
+				quantity: {
+					type: Number,
+					required: true
+				}
 			}
 		],
 
