@@ -103,3 +103,13 @@ export const transliterateToKey = string =>
 		.toLowerCase()
 		.replaceAll(/\s+/g, '-')
 		.replace(/[^a-zA-Z0-9-]/g, '');
+
+export const isEmptyObject = obj => {
+	for (let key in obj) {
+		return typeof obj[key] === 'object'
+			? isEmptyObject(obj[key])
+			: obj.hasOwnProperty(key) && !obj[key];
+	}
+
+	return true;
+};

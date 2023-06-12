@@ -96,6 +96,12 @@ const validateCreate = [
 
 	body('callback').customSanitizer(value => Boolean(value)),
 
+	body('deliveryInfo')
+		.exists()
+		.withMessage('Delivery info is required')
+		.bail()
+		.isObject()
+		.withMessage('Delivery info must be an object'),
 	body('deliveryInfo.country')
 		.trim()
 		.notEmpty()
@@ -137,6 +143,7 @@ const validateCreate = [
 		.withMessage('Delivery apartment is required'),
 
 	body('deliveryInfo.contactInfo.firstName')
+		.optional()
 		.trim()
 		.notEmpty()
 		.withMessage('Delivery contact first name is required')
@@ -146,6 +153,7 @@ const validateCreate = [
 			'Delivery contact first name can only contain alphabet characters'
 		),
 	body('deliveryInfo.contactInfo.lastName')
+		.optional()
 		.trim()
 		.notEmpty()
 		.withMessage('Delivery contact last name is required')
@@ -155,6 +163,7 @@ const validateCreate = [
 			'Delivery contact last name can only contain alphabet characters'
 		),
 	body('deliveryInfo.contactInfo.middleName')
+		.optional()
 		.trim()
 		.notEmpty()
 		.withMessage('Delivery contact middle name is required')
@@ -172,7 +181,11 @@ const validateCreate = [
 		.optional()
 		.trim()
 		.isLength({ max: 500 })
-		.withMessage('Comment length can be up to 500 characters')
+		.withMessage('Comment length can be up to 500 characters'),
+	body('user')
+		.optional()
+		.isMongoId()
+		.withMessage('User id must be a valid mongo id')
 ];
 
 export default { validateCreate };
