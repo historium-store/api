@@ -2,32 +2,58 @@ import Book from '../book/model.js';
 import Product from '../product/model.js';
 
 const findProducts = async valueToFind => {
-	const productIds = (
-		await Product.find().where({
+	try {
+		const foundProducts = await Product.find({
 			$or: [
-				{ name: { $regex: valueToFind, $options: 'i' } },
-				{ code: valueToFind }
+				{
+					name: { $regex: valueToFind, $options: 'i' },
+					deletedAt: { $exists: false }
+				},
+				{
+					code: valueToFind,
+					deletedAt: { $exists: false }
+				}
 			]
-		})
-	).map(p => p.id);
+		}).populate([{ path: 'type', select: '-_id name key' }]);
 
-	return await Book.find({
-		product: productIds,
-		deletedAt: { $exists: false }
-	})
-		.populate([
-			'publisher',
-			'series',
-			'authors',
-			'compilers',
-			'translators',
-			'illustrators',
-			'editors'
-		])
-		.populate({
-			path: 'product',
-			populate: ['type', 'sections']
-		});
+		await Promise.all(
+			foundProducts.map(
+				async p =>
+					await p.populate({
+						path: 'specificProduct',
+						model: p.model,
+						populate: {
+							path: 'authors',
+							select: 'fullName'
+						},
+						select: 'authors'
+					})
+			)
+		);
+
+		const productPreviews = foundProducts.map(p => ({
+			_id: p.id,
+			name: p.name,
+			key: p.key,
+			price: p.price,
+			quantity: p.quantity,
+			type: p.type,
+			createdAt: p.createdAt,
+			code: p.code,
+			image: p.images[0],
+			authors: p.specificProduct.authors?.map(a => a.fullName)
+		}));
+
+		return {
+			result: productPreviews,
+			total: await Product.countDocuments()
+		};
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
 };
 
 export default { findProducts };
