@@ -64,7 +64,7 @@ const orderSchema = new Schema(
 
 		products: [
 			{
-				type: Product,
+				type: Schema.Types.Mixed,
 				required: false
 			}
 		],
@@ -79,7 +79,8 @@ const orderSchema = new Schema(
 	},
 	{
 		versionKey: false,
-		timestamps: true
+		timestamps: true,
+		strict: false
 	}
 );
 
