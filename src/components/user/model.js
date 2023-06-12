@@ -70,6 +70,11 @@ const userSchema = new Schema(
 			required: false
 		},
 
+		birthDate: {
+			type: Number,
+			required: false
+		},
+
 		createdAt: {
 			type: Number
 		},

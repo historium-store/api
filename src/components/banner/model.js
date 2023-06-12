@@ -8,9 +8,14 @@ const bannerSchema = new Schema(
 			required: true
 		},
 
-		image: {
+		imageRect: {
 			type: String,
 			required: true
+		},
+
+		imageSquare: {
+			type: String,
+			required: false
 		},
 
 		createdAt: {

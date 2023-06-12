@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose';
 import deleteDocument from '../../triggers/delete-document.js';
 
-const { ObjectId } = Schema.Types;
+const { ObjectId, Map } = Schema.Types;
 
 const deliveryTypeSchema = new Schema(
 	{
@@ -10,9 +10,14 @@ const deliveryTypeSchema = new Schema(
 			required: true
 		},
 
+		variablePrice: {
+			type: Boolean,
+			required: true
+		},
+
 		price: {
 			type: Number,
-			required: true
+			required: false
 		},
 
 		countries: [
@@ -23,10 +28,14 @@ const deliveryTypeSchema = new Schema(
 			}
 		],
 
-		freeDeliveryPrice: {
+		countryPrices: {
+			type: Map,
+			required: false
+		},
+
+		freeDeliveryFrom: {
 			type: Number,
-			default: 300,
-			required: true
+			required: false
 		},
 
 		contactInfoRequired: {
@@ -38,6 +47,13 @@ const deliveryTypeSchema = new Schema(
 			type: Boolean,
 			required: true
 		},
+
+		paymentTypes: [
+			{
+				type: String,
+				required: false
+			}
+		],
 
 		createdAt: {
 			type: Number

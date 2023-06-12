@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import deleteDocument from '../../triggers/delete-document.js';
+import Product from '../product/model.js';
 
 const { ObjectId } = Schema.Types;
 
@@ -60,6 +61,13 @@ const orderSchema = new Schema(
 			ref: 'User',
 			required: false
 		},
+
+		products: [
+			{
+				type: Product,
+				required: false
+			}
+		],
 
 		createdAt: {
 			type: Number

@@ -3,6 +3,11 @@ import deleteDocument from '../../triggers/delete-document.js';
 
 const addressInfoSchema = new Schema(
 	{
+		region: {
+			type: String,
+			required: false
+		},
+
 		address: {
 			type: String,
 			required: false
@@ -23,6 +28,11 @@ const addressInfoSchema = new Schema(
 			required: false
 		},
 
+		postcode: {
+			type: String,
+			required: false
+		},
+
 		createdAt: {
 			type: Number
 		},
@@ -33,7 +43,8 @@ const addressInfoSchema = new Schema(
 	},
 	{
 		versionKey: false,
-		timestamps: true
+		timestamps: true,
+		strict: false
 	}
 );
 
