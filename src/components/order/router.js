@@ -35,10 +35,10 @@ const orderRouter = Router();
  *                   - phoneNumber
  *                   - email
  *                 example:
- *                   firstName: John
- *                   lastName: Williams
- *                   phoneNumber: '+380442138972'
- *                   email: john.williams@gmail.com
+ *                   firstName: Michael
+ *                   lastName: Wheat
+ *                   phoneNumber: '+380445294771'
+ *                   email: michael.wheat@ukr.net
  *               receiverInfo:
  *                 type: object
  *                 properties:
@@ -53,7 +53,7 @@ const orderRouter = Router();
  *                   - lastName
  *                   - phoneNumber
  *                 example:
- *                   firstName: Michael
+ *                   firstName: Judy
  *                   lastName: Alvares
  *                   phoneNumber: '+380971123752'
  *               gift:
@@ -81,7 +81,7 @@ const orderRouter = Router();
  *                 required:
  *                   - name
  *                   - identificationNumber
- *                   - address
+ *                   - addressInfo
  *               callback:
  *                 type: boolean
  *                 default: false
@@ -90,13 +90,13 @@ const orderRouter = Router();
  *                 properties:
  *                   country:
  *                     type: string
- *                     example: 60c17a9f8d6a95001e62aaf5
+ *                     example: 6485a3c27f77c14cc954680e
  *                   city:
  *                     type: string
- *                     example: Kyoto
+ *                     example: Полтава
  *                   type:
  *                     type: string
- *                     example: 609c8d6e6f7cd4c30c862ee8
+ *                     example: 6485ac70c1aa743f45c89a42
  *                   addressInfo:
  *                     type: object
  *                     oneOf:
@@ -117,9 +117,9 @@ const orderRouter = Router();
  *                           - house
  *                           - apartment
  *                     example:
- *                       street: Stolbovaya
- *                       house: 5a
- *                       apartment: 19
+ *                       street: Фруктова
+ *                       house: '28'
+ *                       apartment: 74
  *                   contactInfo:
  *                     type: object
  *                     properties:
@@ -137,6 +137,11 @@ const orderRouter = Router();
  *                       firstName: Vitalii
  *                       lastName: Vitaliev
  *                       middleName: Vitalievich
+ *                 required:
+ *                   - country
+ *                   - city
+ *                   - type
+ *                   - addressInfo
  *               paymentType:
  *                 type: string
  *               comment:
