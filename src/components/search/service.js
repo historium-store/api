@@ -1,4 +1,3 @@
-import Book from '../book/model.js';
 import Product from '../product/model.js';
 
 const findProducts = async valueToFind => {
@@ -46,7 +45,7 @@ const findProducts = async valueToFind => {
 
 		return {
 			result: productPreviews,
-			total: await Product.countDocuments()
+			total: productPreviews.length
 		};
 	} catch (err) {
 		throw {
