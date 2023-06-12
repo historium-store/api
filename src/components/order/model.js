@@ -65,7 +65,7 @@ const orderSchema = new Schema(
 		items: [
 			{
 				product: {
-					id: {
+					_id: {
 						type: ObjectId,
 						required: true
 					},
@@ -75,9 +75,9 @@ const orderSchema = new Schema(
 						required: true
 					},
 
-					specificProduct: {
+					type: {
 						type: ObjectId,
-						required: false
+						required: true
 					},
 
 					code: {
@@ -98,12 +98,10 @@ const orderSchema = new Schema(
 						min: 0
 					},
 
-					images: [
-						{
-							type: String,
-							required: true
-						}
-					]
+					image: {
+						type: String,
+						required: true
+					}
 				},
 
 				quantity: {
