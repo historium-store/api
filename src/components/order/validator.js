@@ -215,7 +215,10 @@ const validateCreate = [
 	body('user')
 		.optional()
 		.isMongoId()
-		.withMessage('User id must be a valid mongo id')
+		.withMessage('User id must be a valid mongo id'),
+	body('items')
+		.isArray({ min: 1 })
+		.withMessage('Order must have at least 1 item')
 ];
 
 export default { validateCreate };

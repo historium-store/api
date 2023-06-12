@@ -155,8 +155,10 @@ const orderRouter = Router();
  *                   - addressInfo
  *               paymentType:
  *                 type: string
+ *                 example: Оплата карткою On-line
  *               comment:
  *                 type: string
+ *                 example: null
  *               items:
  *                 type: array
  *                 items:
