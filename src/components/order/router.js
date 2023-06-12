@@ -116,6 +116,17 @@ const orderRouter = Router();
  *                           - street
  *                           - house
  *                           - apartment
+ *                       - properties:
+ *                           region:
+ *                             type: string
+ *                           postcode:
+ *                             type: string
+ *                           street:
+ *                             type: string
+ *                         required:
+ *                           - region
+ *                           - postcode
+ *                           - street
  *                     example:
  *                       street: Фруктова
  *                       house: '28'
@@ -146,10 +157,41 @@ const orderRouter = Router();
  *                 type: string
  *               comment:
  *                 type: string
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     product:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         type:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                             key:
+ *                               type: string
+ *                         key:
+ *                           type: string
+ *                         image:
+ *                           type: string
+ *                         price:
+ *                           type: number
+ *                         code:
+ *                           type: string
+ *                     quantity:
+ *                       type: integer
+ *                       format: int32
  *             required:
  *               - contactInfo
  *               - deliveryInfo
  *               - paymentType
+ *               - products
  *     responses:
  *       '201':
  *         description: Order created successfully
