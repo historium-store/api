@@ -12,6 +12,7 @@ import bookSeriesRouter from './components/book-series/router.js';
 import bookRouter from './components/book/router.js';
 import compilerRouter from './components/compiler/router.js';
 import countryRouter from './components/country/router.js';
+import deliveryTypeRouter from './components/delivery-type/router.js';
 import editorRouter from './components/editor/router.js';
 import fileRouter from './components/file/router.js';
 import illustratorRouter from './components/illustrator/router.js';
@@ -48,6 +49,7 @@ app.use('/book-series', bookSeriesRouter);
 app.use('/search', searchRouter);
 app.use('/file', fileRouter);
 app.use('/country', countryRouter);
+app.use('/delivery-type', deliveryTypeRouter);
 app.use('/order', orderRouter);
 
 app.use(

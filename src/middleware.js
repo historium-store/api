@@ -82,5 +82,10 @@ export const validateQueryParams = [
 		.customSanitizer(value => value.split(';')),
 	query('price')
 		.optional()
-		.customSanitizer(value => value.split('-'))
+		.customSanitizer(value => value.split('-')),
+	query('country')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Query parameter 'country' must have a value")
 ];
