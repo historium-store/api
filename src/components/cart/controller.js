@@ -1,10 +1,10 @@
 import { matchedData, validationResult } from 'express-validator';
 import { createError } from '../../utils.js';
-
 import service from './service.js';
 
 const getByIdFromToken = async (req, res, next) => {
 	const { cart } = req.user;
+
 	try {
 		res.json(await service.getByIdFromToken(cart));
 	} catch (err) {

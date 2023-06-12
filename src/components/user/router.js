@@ -29,18 +29,19 @@ userRouter.use('/cart', authController.authenticate);
 userRouter
 	.route('/cart')
 	.get(cartController.getByIdFromToken)
-	.delete(cartController.clearItems)
-	.patch(cartValidator.validateMerge, cartController.merge);
+	.patch(cartValidator.validateMerge, cartController.merge)
+	.delete(cartController.clearItems);
 
-userRouter.use('/cart-item', authController.authenticate);
+userRouter.use(
+	'/cart-item',
+	authController.authenticate,
+	cartItemValidator.validateItem
+);
 
 userRouter
 	.route('/cart-item')
-	.post(cartItemValidator.validateItem, cartItemController.addItem)
-	.delete(
-		cartItemValidator.validateItem,
-		cartItemController.removeItem
-	);
+	.post(cartItemController.addItem)
+	.delete(cartItemController.removeItem);
 
 userRouter.use('/:id', authController.authenticate);
 

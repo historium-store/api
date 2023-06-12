@@ -18,7 +18,7 @@ const addItem = async (cart, itemData) => {
 			};
 		}
 
-		const foundCart = await Cart.findById(cart).populate('items');
+		const foundCart = await Cart.findById(cart);
 
 		if (!foundCart) {
 			throw {
@@ -27,9 +27,7 @@ const addItem = async (cart, itemData) => {
 			};
 		}
 
-		const existingItem = foundCart.items.find(
-			i => i.product.toHexString() === product
-		);
+		const existingItem = await CartItem.findOne({ cart, product });
 
 		if (existingItem) {
 			await existingItem.updateOne(
@@ -40,13 +38,13 @@ const addItem = async (cart, itemData) => {
 		}
 
 		const newCartItem = await CartItem.create({
-			cart: foundCart.id,
+			cart,
 			product,
 			quantity: quantity ?? 1
 		});
 
 		await foundCart.updateOne({
-			$push: { items: newCartItem.id }
+			$push: { items: newCartItem }
 		});
 	} catch (err) {
 		throw {
@@ -58,6 +56,7 @@ const addItem = async (cart, itemData) => {
 
 const removeItem = async (cart, itemData) => {
 	const { product, quantity } = itemData;
+
 	try {
 		const productExists = await Product.exists({
 			_id: product,
@@ -71,7 +70,7 @@ const removeItem = async (cart, itemData) => {
 			};
 		}
 
-		const foundCart = await Cart.findById(cart).populate('items');
+		const foundCart = await Cart.findById(cart);
 
 		if (!foundCart) {
 			throw {
@@ -80,9 +79,7 @@ const removeItem = async (cart, itemData) => {
 			};
 		}
 
-		const existingItem = foundCart.items.find(
-			i => i.product.toHexString() === product
-		);
+		const existingItem = await CartItem.findOne({ cart, product });
 
 		if (!existingItem) {
 			throw {
@@ -91,15 +88,15 @@ const removeItem = async (cart, itemData) => {
 			};
 		}
 
-		if ((existingItem.quantity -= quantity ?? 1)) {
-			return await existingItem.updateOne({ $inc: { quantity: -1 } });
+		if ((existingItem.quantity -= quantity ?? 1) > 0) {
+			await existingItem.updateOne({
+				$inc: { quantity: -(quantity ?? 1) }
+			});
+
+			return;
 		}
 
 		await existingItem.deleteOne();
-
-		await foundCart.updateOne({
-			$pull: { items: existingItem.id }
-		});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

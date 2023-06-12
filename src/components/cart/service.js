@@ -1,5 +1,5 @@
-import Book from '../book/model.js';
 import CartItem from '../cart-item/model.js';
+import Product from '../product/model.js';
 import Cart from './model.js';
 
 const getByIdFromToken = async id => {
@@ -7,15 +7,10 @@ const getByIdFromToken = async id => {
 		let foundCart = await Cart.findById(id)
 			.populate({
 				path: 'items',
-				populate: {
-					path: 'product',
-					populate: { path: 'type', select: '-_id name' },
-					select:
-						'name key price quantity code images specificProduct'
-				},
-				select: 'quantity createdAt'
+				select: '-_id product quantity createdAt'
 			})
-			.select('-_id items');
+			.select('-_id items')
+			.lean();
 
 		if (!foundCart) {
 			throw {
@@ -24,41 +19,52 @@ const getByIdFromToken = async id => {
 			};
 		}
 
-		const totalPrice = await foundCart.totalPrice;
+		const productIds = foundCart.items.map(i => i.product);
+		const products = await Product.find({ _id: productIds })
+			.populate({ path: 'type', select: '-_id name key' })
+			.select(
+				'name key price quantity images createdAt code specificProduct model'
+			);
 
-		foundCart = foundCart.toObject();
-		foundCart.totalPrice = totalPrice;
+		await Promise.all(
+			products.map(
+				async p =>
+					await p.populate({
+						path: 'specificProduct',
+						model: p.model,
+						populate: {
+							path: 'authors',
+							select: 'fullName'
+						},
+						select: 'authors'
+					})
+			)
+		);
 
-		foundCart.items.forEach(i => delete i._id);
-
-		const bookTypes = ['Книга', 'Електронна книга', 'Аудіокнига'];
-		let product;
-		let productType;
-		let specificProductId;
-		let book;
-
-		for (let item of foundCart.items) {
-			product = item.product;
-			productType = product.type.name;
-			specificProductId = product.specificProduct;
-			delete product.specificProduct;
-
-			product.image = product.images[0];
-			delete product.images;
-
-			if (bookTypes.includes(productType)) {
-				book = await Book.findById(specificProductId)
-					.populate({ path: 'authors', select: 'fullName' })
-					.select('type authors')
-					.lean();
-
-				product.authors = book.authors.map(a => a.fullName);
-				product.type = book.type;
-			}
+		for (let i = 0; i < products.length; ++i) {
+			foundCart.items[i].product = {
+				_id: products[i].id,
+				name: products[i].name,
+				key: products[i].key,
+				price: products[i].price,
+				quantity: products[i].quantity,
+				type: products[i].type,
+				createdAt: products[i].createdAt,
+				code: products[i].code,
+				image: products[i].images[0],
+				authors: products[i].specificProduct.authors?.map(
+					a => a.fullName
+				)
+			};
 		}
 
+		foundCart.totalPrice = foundCart.items.reduce(
+			(acc, item) => acc + item.product.price * item.quantity,
+			0
+		);
+
 		foundCart.totalQuantity = foundCart.items.reduce(
-			(sum, item) => sum + item.quantity,
+			(acc, item) => acc + item.quantity,
 			0
 		);
 
@@ -82,9 +88,7 @@ const clearItems = async cart => {
 			};
 		}
 
-		await CartItem.deleteMany({ _id: foundCart.items });
-
-		await foundCart.updateOne({ items: [] });
+		await CartItem.deleteMany();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -95,7 +99,7 @@ const clearItems = async cart => {
 
 const merge = async (items, cart) => {
 	try {
-		const foundCart = await Cart.findById(cart).populate('items');
+		const foundCart = await Cart.findById(cart);
 
 		if (!foundCart) {
 			throw {
@@ -105,10 +109,12 @@ const merge = async (items, cart) => {
 		}
 
 		let existingItem;
+		let newCartItem;
 		for (let item of items) {
-			existingItem = foundCart.items.find(
-				i => i.product.toHexString() === item.product
-			);
+			existingItem = await CartItem.findOne({
+				cart,
+				product: item.product
+			});
 
 			if (existingItem) {
 				await existingItem.updateOne({
@@ -118,8 +124,10 @@ const merge = async (items, cart) => {
 				continue;
 			}
 
+			newCartItem = await CartItem.create({ ...item, cart });
+
 			await foundCart.updateOne({
-				$push: { items: await CartItem.create({ ...item, cart }) }
+				$push: { items: newCartItem }
 			});
 		}
 

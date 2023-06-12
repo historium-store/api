@@ -165,7 +165,7 @@ const getAll = async queryParams => {
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order })
-			.populate([{ path: 'type', select: '-_id name key' }]);
+			.populate({ path: 'type', select: '-_id name key' });
 
 		await Promise.all(
 			foundProducts.map(
