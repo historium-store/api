@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import deleteDocument from '../../triggers/delete-document.js';
+import Product from '../product/model.js';
 
 const { ObjectId } = Schema.Types;
 
@@ -61,6 +62,62 @@ const orderSchema = new Schema(
 			required: false
 		},
 
+		items: [
+			{
+				product: {
+					_id: {
+						type: ObjectId,
+						required: true
+					},
+
+					name: {
+						type: String,
+						required: true
+					},
+
+					type: {
+						name: {
+							type: String,
+							required: true
+						},
+
+						key: {
+							type: String,
+							required: true
+						}
+					},
+
+					code: {
+						type: String,
+						required: false,
+						unique: true
+					},
+
+					key: {
+						type: String,
+						required: true,
+						unique: true
+					},
+
+					price: {
+						type: Number,
+						required: true,
+						min: 0
+					},
+
+					image: {
+						type: String,
+						required: true
+					}
+				},
+
+				quantity: {
+					type: Number,
+					required: true
+				}
+			}
+		],
+
 		createdAt: {
 			type: Number
 		},
@@ -71,7 +128,8 @@ const orderSchema = new Schema(
 	},
 	{
 		versionKey: false,
-		timestamps: true
+		timestamps: true,
+		strict: false
 	}
 );
 

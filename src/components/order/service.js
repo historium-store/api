@@ -1,5 +1,4 @@
 import { isEmptyObject } from '../../utils.js';
-
 import AddressInfo from '../address-info/model.js';
 import CompanyInfo from '../company-info/model.js';
 import ContactInfo from '../contact-info/model.js';
@@ -9,8 +8,13 @@ import DeliveryType from '../delivery-type/model.js';
 import Order from './model.js';
 
 const createOne = async orderData => {
-	const { contactInfo, receiverInfo, companyInfo, deliveryInfo } =
-		orderData;
+	const {
+		contactInfo,
+		receiverInfo,
+		companyInfo,
+		deliveryInfo,
+		paymentType
+	} = orderData;
 
 	try {
 		const foundCountry = await Country.findOne({
@@ -56,6 +60,13 @@ const createOne = async orderData => {
 			};
 		}
 
+		if (!foundDeliveryType.paymentTypes.includes(paymentType)) {
+			throw {
+				status: 400,
+				message: `Delivery type '${foundDeliveryType.name}' doesn't support payment type '${paymentType}'`
+			};
+		}
+
 		const companyInfoProvided = !isEmptyObject(companyInfo);
 
 		if (companyInfoProvided) {
@@ -79,8 +90,6 @@ const createOne = async orderData => {
 		orderData.contactInfo = (
 			await ContactInfo.create(contactInfo)
 		).id;
-
-		console.log(isEmptyObject(receiverInfo));
 
 		if (!isEmptyObject(receiverInfo)) {
 			orderData.receiverInfo = (

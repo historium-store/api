@@ -1,6 +1,12 @@
 import { body } from 'express-validator';
 
 const validateCreate = [
+	body('contactInfo')
+		.exists()
+		.withMessage('Contact info is required')
+		.bail()
+		.isObject()
+		.withMessage('Contact info must be an object'),
 	body('contactInfo.firstName')
 		.trim()
 		.notEmpty()
@@ -35,8 +41,12 @@ const validateCreate = [
 		.withMessage('Invalid contact email')
 		.normalizeEmail({ gmail_remove_dots: false }),
 
-	body('receiverInfo.firstName')
+	body('receiverInfo')
 		.optional()
+		.isObject()
+		.withMessage('Receiver info must be an object'),
+	body('receiverInfo.firstName')
+		.if(body('receiverInfo').exists())
 		.trim()
 		.notEmpty()
 		.withMessage('Receiver first name is required')
@@ -46,7 +56,7 @@ const validateCreate = [
 			'Receiver first name can only contain alphabet characters'
 		),
 	body('receiverInfo.lastName')
-		.optional()
+		.if(body('receiverInfo').exists())
 		.trim()
 		.notEmpty()
 		.withMessage('Receiver last name is required')
@@ -56,7 +66,7 @@ const validateCreate = [
 			'Receiver last name can only contain alphabet characters'
 		),
 	body('receiverInfo.phoneNumber')
-		.optional()
+		.if(body('receiverInfo').exists())
 		.trim()
 		.notEmpty()
 		.withMessage('Receiver phone number is required')
@@ -121,6 +131,12 @@ const validateCreate = [
 		.isMongoId()
 		.withMessage('Delivery type must be a valid mongo id'),
 
+	body('deliveryInfo.addressInfo')
+		.exists()
+		.withMessage('Delivery addressInfo is required')
+		.bail()
+		.isObject()
+		.withMessage('Delivery address info must be an object'),
 	body('deliveryInfo.addressInfo.address')
 		.optional()
 		.trim()
@@ -141,7 +157,21 @@ const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Delivery apartment is required'),
+	body('deliveryInfo.addressInfo.region')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage('Delivery region is required'),
+	body('deliveryInfo.addressInfo.postcode')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage('Delivery postcode is required'),
 
+	body('deliveryInfo.contactInfo')
+		.optional()
+		.isObject()
+		.withMessage('Delivery contact info must be an object'),
 	body('deliveryInfo.contactInfo.firstName')
 		.optional()
 		.trim()
@@ -185,7 +215,10 @@ const validateCreate = [
 	body('user')
 		.optional()
 		.isMongoId()
-		.withMessage('User id must be a valid mongo id')
+		.withMessage('User id must be a valid mongo id'),
+	body('items')
+		.isArray({ min: 1 })
+		.withMessage('Order must have at least 1 item')
 ];
 
 export default { validateCreate };

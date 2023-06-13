@@ -1,6 +1,5 @@
 import { matchedData, validationResult } from 'express-validator';
 import { createError } from '../../utils.js';
-
 import authService from '../auth/service.js';
 import service from './service.js';
 

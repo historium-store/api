@@ -65,7 +65,7 @@ const productSchema = new Schema(
 
 		description: {
 			type: String,
-			required: false
+			required: true
 		},
 
 		reviews: [
