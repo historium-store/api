@@ -51,7 +51,7 @@ const userSchema = new Schema(
 			}
 		],
 
-		restorationToken: {
+		temporaryPassword: {
 			type: String,
 			required: false
 		},

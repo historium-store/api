@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken';
 import {
 	hashPassword,
 	transporter,
-	verifyJWT,
-	vonage
+	verifyJWT /* ,
+    vonage */
 } from '../../utils.js';
 import User from '../user/model.js';
 import userService from '../user/service.js';
@@ -43,21 +43,27 @@ const login = async loginData => {
 			};
 		}
 
-		const hashedPassword = await hashPassword(
-			password,
-			Buffer.from(foundUser.salt, 'hex'),
-			310000,
-			32,
-			'sha256'
-		);
+		if (foundUser.temporaryPassword === password) {
+			await foundUser.updateOne({
+				$unset: { temporaryPassword: true }
+			});
+		} else {
+			const hashedPassword = await hashPassword(
+				password,
+				Buffer.from(foundUser.salt, 'hex'),
+				310000,
+				32,
+				'sha256'
+			);
 
-		const savedPassword = Buffer.from(foundUser.password, 'hex');
+			const savedPassword = Buffer.from(foundUser.password, 'hex');
 
-		if (!timingSafeEqual(savedPassword, hashedPassword)) {
-			throw {
-				status: 400,
-				message: 'Incorrect password'
-			};
+			if (!timingSafeEqual(savedPassword, hashedPassword)) {
+				throw {
+					status: 400,
+					message: 'Incorrect password'
+				};
+			}
 		}
 
 		const payload = {
@@ -161,29 +167,26 @@ const restorePassword = async loginData => {
 			};
 		}
 
-		const restorationToken = randomBytes(4).toString('hex');
+		const temporaryPassword = randomBytes(8).toString('hex');
 
-		// если в качестве логина передали почту
-		// отправляется письмо
-		// иначе - СМС с кодом подтверждения
 		if (email) {
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
 				to: foundUser.email,
 				subject: 'Password restoration',
-				html: `Restoration token: <b>${restorationToken}</b>`
+				html: `Temporary password: <b>${temporaryPassword}</b>`
 			};
 
 			await transporter.sendMail(mailData);
-		} else {
+		} /*  else {
 			const from = 'Historium';
 			const to = phoneNumber;
 			const text = `Restoration token: ${restorationToken}\n\n`;
 
 			await vonage.sms.send({ to, from, text });
-		}
+		} */
 
-		await foundUser.updateOne({ $set: { restorationToken } });
+		await foundUser.updateOne({ $set: { temporaryPassword } });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
