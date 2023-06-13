@@ -76,8 +76,15 @@ const orderSchema = new Schema(
 					},
 
 					type: {
-						type: ObjectId,
-						required: true
+						name: {
+							type: String,
+							required: true
+						},
+
+						key: {
+							type: String,
+							required: true
+						}
 					},
 
 					code: {

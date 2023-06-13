@@ -4,7 +4,7 @@
 	"scripts": {
 		"build": "npm install",
 		"start": "node -r dotenv/config server.js",
-		"dev": "nodemon -r dotenv/config",
+		"dev": "nodemon -r dotenv/config && mocha",
 		"test": "mocha"
 	},
 	"dependencies": {
