@@ -158,7 +158,7 @@ const orderRouter = Router();
  *                 example: Оплата карткою On-line
  *               comment:
  *                 type: string
- *                 example: null
+ *                 example: not required
  *               items:
  *                 type: array
  *                 items:
@@ -169,31 +169,40 @@ const orderRouter = Router();
  *                       properties:
  *                         _id:
  *                           type: string
+ *                           example: 6473b317569debe2438c784d
  *                         name:
  *                           type: string
+ *                           example: Я бачу, вас цікавить пітьма
  *                         type:
  *                           type: object
  *                           properties:
  *                             name:
  *                               type: string
+ *                               example: Книга
  *                             key:
  *                               type: string
+ *                               example: book
  *                         key:
  *                           type: string
+ *                           example: ya-bachu-vas-cikavit-pitma
  *                         image:
  *                           type: string
+ *                           example: https://historium-bucket-eu.s3.eu-central-1.amazonaws.com/5fd2d6a8-f84a-4bda-b86e-c524a2fb7feb.webp
  *                         price:
  *                           type: number
+ *                           example: 500
  *                         code:
  *                           type: string
+ *                           example: '115968'
  *                     quantity:
  *                       type: integer
  *                       format: int32
+ *                       example: 3
  *             required:
  *               - contactInfo
  *               - deliveryInfo
  *               - paymentType
- *               - products
+ *               - items
  *     responses:
  *       '201':
  *         description: Order created successfully
