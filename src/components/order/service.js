@@ -7,6 +7,7 @@ import Country from '../country/model.js';
 import DeliveryInfo from '../delivery-info/model.js';
 import DeliveryType from '../delivery-type/model.js';
 import User from '../user/model.js';
+import userService from '../user/service.js';
 import Order from './model.js';
 
 const createOne = async orderData => {
@@ -72,6 +73,39 @@ const createOne = async orderData => {
 			};
 		}
 
+		if (!user) {
+			const { phoneNumber, email } = contactInfo;
+			const userExists = await User.exists({
+				$or: [
+					{ phoneNumber, deletedAt: { $exists: false } },
+					{ email, deletedAt: { $exists: false } }
+				]
+			});
+
+			if (userExists) {
+				throw {
+					status: 409,
+					message: 'User exists. Authorization needed'
+				};
+			}
+
+			const password = randomBytes(8).toString('hex');
+
+			const mailData = {
+				from: '"Historium" noreply@historium.store',
+				to: email,
+				subject: 'Password restoration',
+				html: `Temporary password: <b>${password}</b>`
+			};
+
+			await transporter.sendMail(mailData);
+
+			orderData.user = await userService.createOne({
+				...contactInfo,
+				password
+			});
+		}
+
 		orderData.contactInfo = await ContactInfo.create(contactInfo);
 
 		if (isEmptyObject(receiverInfo)) {
@@ -101,36 +135,6 @@ const createOne = async orderData => {
 		}
 
 		orderData.deliveryInfo = await DeliveryInfo.create(deliveryInfo);
-
-		if (!user) {
-			const { phoneNumber, email } = contactInfo;
-			const userExists = await User.exists({
-				$or: [
-					{ phoneNumber, deletedAt: { $exists: false } },
-					{ email, deletedAt: { $exists: false } }
-				]
-			});
-
-			if (userExists) {
-				throw {
-					status: 409,
-					message: 'User exists. Authorization needed'
-				};
-			}
-
-			const password = randomBytes(8).toString('hex');
-
-			const mailData = {
-				from: '"Historium" noreply@historium.store',
-				to: email,
-				subject: 'Password restoration',
-				html: `Temporary password: <b>${password}</b>`
-			};
-
-			await transporter.sendMail(mailData);
-
-			orderData.user = await User.create({ ...contactInfo });
-		}
 
 		return await Order.create(orderData);
 	} catch (err) {
