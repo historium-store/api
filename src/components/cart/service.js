@@ -4,10 +4,14 @@ import Cart from './model.js';
 
 const getByIdFromToken = async id => {
 	try {
-		let foundCart = await Cart.findById(id)
+		const foundCart = await Cart.findById(id)
 			.populate({
 				path: 'items',
-				select: '-_id product quantity createdAt'
+				populate: {
+					path: 'product',
+					populate: { path: 'type', select: '-_id name key' }
+				},
+				select: '-_id quantity createdAt'
 			})
 			.select('-_id items')
 			.lean();
@@ -19,44 +23,33 @@ const getByIdFromToken = async id => {
 			};
 		}
 
-		const productIds = foundCart.items.map(i => i.product);
-		const products = await Product.find({ _id: productIds })
-			.populate({ path: 'type', select: '-_id name key' })
-			.select(
-				'name key price quantity images createdAt code specificProduct model'
-			);
-
 		await Promise.all(
-			products.map(
-				async p =>
-					await p.populate({
-						path: 'specificProduct',
-						model: p.model,
-						populate: {
-							path: 'authors',
-							select: 'fullName'
-						},
-						select: 'authors'
-					})
-			)
-		);
+			foundCart.items.map(async i => {
+				const product = await Product.findById(i.product)
+					.populate([
+						{ path: 'type', select: '-_id name key' },
+						{
+							path: 'specificProduct',
+							model: i.product.model,
+							populate: { path: 'authors', select: '-_id fullName' },
+							select: '-_id authors'
+						}
+					])
+					.select('name key price quantity images createdAt code')
+					.lean();
 
-		for (let i = 0; i < products.length; ++i) {
-			foundCart.items[i].product = {
-				_id: products[i].id,
-				name: products[i].name,
-				key: products[i].key,
-				price: products[i].price,
-				quantity: products[i].quantity,
-				type: products[i].type,
-				createdAt: products[i].createdAt,
-				code: products[i].code,
-				image: products[i].images[0],
-				authors: products[i].specificProduct.authors?.map(
-					a => a.fullName
-				)
-			};
-		}
+				i.product = {
+					_id: product._id,
+					name: product.name,
+					key: product.key,
+					price: product.price,
+					quantity: product.quantity,
+					image: product.images[0],
+					createdAt: product.createdAt,
+					code: product.code
+				};
+			})
+		);
 
 		foundCart.totalPrice = foundCart.items.reduce(
 			(acc, item) => acc + item.product.price * item.quantity,
