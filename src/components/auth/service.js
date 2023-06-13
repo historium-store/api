@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken';
 import {
 	hashPassword,
 	transporter,
-	verifyJWT /* ,
-    vonage */
+	verifyJWT,
+	vonage
 } from '../../utils.js';
 import User from '../user/model.js';
 import userService from '../user/service.js';
@@ -43,11 +43,7 @@ const login = async loginData => {
 			};
 		}
 
-		if (foundUser.temporaryPassword === password) {
-			await foundUser.updateOne({
-				$unset: { temporaryPassword: true }
-			});
-		} else {
+		if (!(foundUser.temporaryPassword === password)) {
 			const hashedPassword = await hashPassword(
 				password,
 				Buffer.from(foundUser.salt, 'hex'),
@@ -178,13 +174,13 @@ const restorePassword = async loginData => {
 			};
 
 			await transporter.sendMail(mailData);
-		} /*  else {
+		} else {
 			const from = 'Historium';
 			const to = phoneNumber;
-			const text = `Restoration token: ${restorationToken}\n\n`;
+			const text = `Temporary password: ${temporaryPassword}\n\n`;
 
 			await vonage.sms.send({ to, from, text });
-		} */
+		}
 
 		await foundUser.updateOne({ $set: { temporaryPassword } });
 	} catch (err) {

@@ -1,10 +1,12 @@
-import { isEmptyObject } from '../../utils.js';
+import { randomBytes } from 'crypto';
+import { isEmptyObject, transporter } from '../../utils.js';
 import AddressInfo from '../address-info/model.js';
 import CompanyInfo from '../company-info/model.js';
 import ContactInfo from '../contact-info/model.js';
 import Country from '../country/model.js';
 import DeliveryInfo from '../delivery-info/model.js';
 import DeliveryType from '../delivery-type/model.js';
+import User from '../user/model.js';
 import Order from './model.js';
 
 const createOne = async orderData => {
@@ -13,31 +15,34 @@ const createOne = async orderData => {
 		receiverInfo,
 		companyInfo,
 		deliveryInfo,
-		paymentType
+		paymentType,
+		user
 	} = orderData;
+
+	const { country, type } = deliveryInfo;
 
 	try {
 		const foundCountry = await Country.findOne({
-			_id: deliveryInfo.country,
+			_id: country,
 			deletedAt: { $exists: false }
 		});
 
 		if (!foundCountry) {
 			throw {
 				status: 404,
-				message: `Country with id '${deliveryInfo.country}' not found`
+				message: `Country with id '${country}' not found`
 			};
 		}
 
 		const foundDeliveryType = await DeliveryType.findOne({
-			_id: deliveryInfo.type,
+			_id: type,
 			deletedAt: { $exists: false }
 		});
 
 		if (!foundDeliveryType) {
 			throw {
 				status: 404,
-				message: `Delivery type with id '${deliveryInfo.type}' not found`
+				message: `Delivery type with id '${type}' not found`
 			};
 		}
 
@@ -49,11 +54,11 @@ const createOne = async orderData => {
 		}
 
 		const countryHasCities = foundCountry.cities.length;
-		const countryHasCity = foundCountry.cities.includes(
+		const existingCityProvided = foundCountry.cities.includes(
 			deliveryInfo.city
 		);
 
-		if (countryHasCities && !countryHasCity) {
+		if (countryHasCities && !existingCityProvided) {
 			throw {
 				status: 404,
 				message: `City '${deliveryInfo.city}' not found in country '${foundCountry.name}'`
@@ -67,45 +72,65 @@ const createOne = async orderData => {
 			};
 		}
 
-		const companyInfoProvided = !isEmptyObject(companyInfo);
+		orderData.contactInfo = await ContactInfo.create(contactInfo);
 
-		if (companyInfoProvided) {
-			companyInfo.addressInfo = (
-				await AddressInfo.create(companyInfo.addressInfo)
-			).id;
+		if (isEmptyObject(receiverInfo)) {
+			delete orderData.receiverInfo;
 		} else {
-			delete orderData.companyInfo;
+			orderData.receiverInfo = await ContactInfo.create(receiverInfo);
 		}
 
-		deliveryInfo.addressInfo = (
-			await AddressInfo.create(deliveryInfo.addressInfo)
-		).id;
+		if (isEmptyObject(companyInfo)) {
+			delete orderData.companyInfo;
+		} else {
+			companyInfo.addressInfo = await AddressInfo.create(
+				companyInfo.addressInfo
+			);
+
+			orderData.companyInfo = await CompanyInfo.create(companyInfo);
+		}
+
+		deliveryInfo.addressInfo = await AddressInfo.create(
+			deliveryInfo.addressInfo
+		);
 
 		if (deliveryInfo.contactInfo) {
-			deliveryInfo.contactInfo = (
-				await ContactInfo.create(deliveryInfo.contactInfo)
-			).id;
+			deliveryInfo.contactInfo = await ContactInfo.create(
+				deliveryInfo.contactInfo
+			);
 		}
 
-		orderData.contactInfo = (
-			await ContactInfo.create(contactInfo)
-		).id;
+		orderData.deliveryInfo = await DeliveryInfo.create(deliveryInfo);
 
-		if (!isEmptyObject(receiverInfo)) {
-			orderData.receiverInfo = (
-				await ContactInfo.create(receiverInfo)
-			).id;
+		if (!user) {
+			const { phoneNumber, email } = contactInfo;
+			const userExists = await User.exists({
+				$or: [
+					{ phoneNumber, deletedAt: { $exists: false } },
+					{ email, deletedAt: { $exists: false } }
+				]
+			});
+
+			if (userExists) {
+				throw {
+					status: 409,
+					message: 'User exists. Authorization needed'
+				};
+			}
+
+			const password = randomBytes(8).toString('hex');
+
+			const mailData = {
+				from: '"Historium" noreply@historium.store',
+				to: email,
+				subject: 'Password restoration',
+				html: `Temporary password: <b>${password}</b>`
+			};
+
+			await transporter.sendMail(mailData);
+
+			orderData.user = await User.create({ ...contactInfo });
 		}
-
-		if (companyInfoProvided) {
-			orderData.companyInfo = (
-				await CompanyInfo.create(companyInfo)
-			).id;
-		}
-
-		orderData.deliveryInfo = (
-			await DeliveryInfo.create(deliveryInfo)
-		).id;
 
 		return await Order.create(orderData);
 	} catch (err) {

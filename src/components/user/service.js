@@ -141,6 +141,10 @@ const updateOne = async (id, changes) => {
 			);
 			changes.password = hashedPassword.toString('hex');
 			changes.salt = salt.toString('hex');
+
+			await foundUser.updateOne({
+				$unset: { temporaryPassword: true }
+			});
 		}
 
 		return await User.findByIdAndUpdate(id, changes, { new: true });
