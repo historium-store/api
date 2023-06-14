@@ -371,7 +371,7 @@ const getProducts = async (id, queryParams) => {
 
 		return {
 			result: productPreviews,
-			total: await Product.countDocuments()
+			total: productPreviews.length
 		};
 	} catch (err) {
 		throw {
