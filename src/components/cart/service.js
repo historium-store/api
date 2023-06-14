@@ -39,7 +39,7 @@ const getByIdFromToken = async id => {
 					.lean();
 
 				i.product = {
-					_id: product.id,
+					_id: product._id,
 					name: product.name,
 					key: product.key,
 					price: product.price,
