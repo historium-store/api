@@ -7,7 +7,7 @@ const deliveryInfoSchema = new Schema(
 	{
 		country: {
 			type: ObjectId,
-			ref: 'CountryInfo',
+			ref: 'Country',
 			required: true
 		},
 
