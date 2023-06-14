@@ -209,4 +209,8 @@ const orderRouter = Router();
  */
 orderRouter.post('/', validator.validateCreate, controller.createOne);
 
+orderRouter
+	.route('/:id')
+	.get(validator.validateId, controller.getOne);
+
 export default orderRouter;

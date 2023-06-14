@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 const validateCreate = [
 	body('contactInfo')
@@ -221,4 +221,13 @@ const validateCreate = [
 		.withMessage('Order must have at least 1 item')
 ];
 
-export default { validateCreate };
+const validateId = [
+	param('id')
+		.isMongoId()
+		.withMessage('Order id must be a valid mongo id')
+];
+
+export default {
+	validateCreate,
+	validateId
+};

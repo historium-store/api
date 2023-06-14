@@ -100,10 +100,12 @@ const createOne = async orderData => {
 
 			await transporter.sendMail(mailData);
 
-			orderData.user = await userService.createOne({
+			const newUser = await userService.createOne({
 				...contactInfo,
 				password
 			});
+
+			orderData.user = newUser._id;
 		}
 
 		orderData.contactInfo = await ContactInfo.create(contactInfo);
@@ -145,4 +147,69 @@ const createOne = async orderData => {
 	}
 };
 
-export default { createOne };
+const getOne = async id => {
+	try {
+		const foundOrder = await Order.findById(id)
+			.populate([
+				{
+					path: 'contactInfo',
+					select: '-_id firstName lastName phoneNumber email'
+				},
+				{
+					path: 'receiverInfo',
+					select: '-_id firstName lastName phoneNumber'
+				},
+				{
+					path: 'companyInfo',
+					populate: { path: 'addressInfo', select: '-_id address' },
+					select: '-_id name identificationNumber'
+				},
+				{
+					path: 'deliveryInfo',
+					populate: [
+						{ path: 'country', select: '-_id name' },
+						{ path: 'type', select: '-_id name price' },
+						{
+							path: 'addressInfo',
+							select: '-_id -createdAt -updatedAt'
+						},
+						{
+							path: 'contactInfo',
+							select: '-_id firstName lastName middleName'
+						}
+					],
+					select: '-_id city'
+				},
+				{
+					path: 'user',
+					select: 'firstName lastName phoneNumber email'
+				}
+			])
+			.lean();
+
+		if (!foundOrder) {
+			throw {
+				status: 404,
+				message: `Order with id '${id}' not found`
+			};
+		}
+
+		if (foundOrder.companyInfo) {
+			foundOrder.companyInfo.address =
+				foundOrder.companyInfo.addressInfo.address;
+			delete foundOrder.companyInfo?.addressInfo;
+		}
+
+		foundOrder.deliveryInfo.country =
+			foundOrder.deliveryInfo.country.name;
+
+		return foundOrder;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+export default { createOne, getOne };
