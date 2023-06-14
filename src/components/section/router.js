@@ -16,6 +16,12 @@ sectionRouter
 		controller.createOne
 	);
 
+sectionRouter.get(
+	'/:id/products',
+	validateQueryParams,
+	controller.getProducts
+);
+
 sectionRouter
 	.route('/:id')
 	.get(validateQueryParams, controller.getOne)

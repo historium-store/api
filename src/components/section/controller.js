@@ -70,4 +70,27 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+const getProducts = async (req, res, next) => {
+	const { id } = req.params;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const queryParams = matchedData(req);
+
+		res.json(await service.getProducts(id, queryParams));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne,
+	getProducts
+};

@@ -277,10 +277,115 @@ const deleteOne = async id => {
 	}
 };
 
+const populateNestedSections = async sections => {
+	await Promise.all(
+		sections.map(async s => {
+			await s.populate('sections', 'sections');
+			if (s.sections.length) {
+				await populateNestedSections(s.sections);
+			}
+		})
+	);
+};
+
+const gatherSectionIds = sections => {
+	return sections.reduce((ids, section) => {
+		ids.push(section._id);
+		if (section.sections && section.sections.length > 0) {
+			const nestedIds = gatherSectionIds(section.sections);
+			ids.push(...nestedIds);
+		}
+		return ids;
+	}, []);
+};
+
+const getProducts = async (id, queryParams) => {
+	const { limit, offset: skip, orderBy, order } = queryParams;
+
+	try {
+		const isMongoId = validator.isMongoId(id);
+
+		const foundSection = await Section.findOne({
+			...(isMongoId ? { _id: id } : { key: id }),
+			deletedAt: { $exists: false }
+		})
+			.populate('sections')
+			.select('sections');
+
+		if (!foundSection) {
+			throw {
+				status: 404,
+				message: `Section with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
+			};
+		}
+
+		await populateNestedSections(foundSection.sections);
+
+		const sectionIds = [
+			foundSection.id.toString('hex'),
+			...new Set(
+				gatherSectionIds(foundSection.sections).map(id =>
+					id.toString('hex')
+				)
+			)
+		];
+
+		const products = await Product.find({
+			sections: { $in: sectionIds },
+			deletedAt: { $exists: false }
+		})
+			.limit(limit)
+			.skip(skip)
+			.sort({ [orderBy]: order })
+			.populate({ path: 'type', select: '-_id name key' });
+
+		await Promise.all(
+			products.map(
+				async p =>
+					await p.populate({
+						path: 'specificProduct',
+						model: p.model,
+						populate: {
+							path: 'authors',
+							select: 'fullName'
+						},
+						select: 'authors'
+					})
+			)
+		);
+
+		const productPreviews = products.map(p => ({
+			_id: p.id,
+			name: p.name,
+			key: p.key,
+			price: p.price,
+			quantity: p.quantity,
+			type: p.type,
+			createdAt: p.createdAt,
+			code: p.code,
+			image: p.images[0],
+			authors: p.specificProduct.authors?.map(a => a.fullName)
+		}));
+
+		return {
+			result: productPreviews,
+			total: await Product.countDocuments()
+		};
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne
+	deleteOne,
+	getProducts
 };
