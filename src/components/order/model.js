@@ -51,9 +51,15 @@ const orderSchema = new Schema(
 		},
 
 		status: {
-			type: String,
-			required: true,
-			default: 'new'
+			name: {
+				type: String,
+				required: true
+			},
+
+			key: {
+				type: String,
+				required: true
+			}
 		},
 
 		user: {
@@ -132,10 +138,6 @@ const orderSchema = new Schema(
 		strict: false
 	}
 );
-
-orderSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
 
 const Order = model('Order', orderSchema);
 
