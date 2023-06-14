@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { checkSameIdOrRole } from '../../middleware.js';
+import authController from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -211,6 +213,11 @@ orderRouter.post('/', validator.validateCreate, controller.createOne);
 
 orderRouter
 	.route('/:id')
-	.get(validator.validateId, controller.getOne);
+	.get(
+		authController.authenticate,
+		checkSameIdOrRole(['admin']),
+		validator.validateId,
+		controller.getOne
+	);
 
 export default orderRouter;
