@@ -1,6 +1,4 @@
 import { Schema, model } from 'mongoose';
-import deleteDocument from '../../triggers/delete-document.js';
-import Product from '../product/model.js';
 
 const { ObjectId } = Schema.Types;
 
