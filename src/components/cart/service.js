@@ -39,14 +39,18 @@ const getByIdFromToken = async id => {
 					.lean();
 
 				i.product = {
-					_id: product._id,
+					_id: product.id,
 					name: product.name,
 					key: product.key,
 					price: product.price,
 					quantity: product.quantity,
-					image: product.images[0],
+					type: product.type,
 					createdAt: product.createdAt,
-					code: product.code
+					code: product.code,
+					image: product.images[0],
+					authors: product.specificProduct.authors?.map(
+						a => a.fullName
+					)
 				};
 			})
 		);
