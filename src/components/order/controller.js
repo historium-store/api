@@ -53,8 +53,32 @@ const getAll = async (req, res, next) => {
 	}
 };
 
+const getStatuses = async (req, res, next) => {
+	try {
+		res.json(await service.getStatuses());
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+const updateStatus = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { id, status } = matchedData(req);
+
+		res.json(await service.updateStatus(id, status));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	createOne,
 	getOne,
-	getAll
+	getAll,
+	getStatuses,
+	updateStatus
 };

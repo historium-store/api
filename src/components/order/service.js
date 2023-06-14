@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import mongoose from 'mongoose';
 import { isEmptyObject, transporter } from '../../utils.js';
 import AddressInfo from '../address-info/model.js';
 import CompanyInfo from '../company-info/model.js';
@@ -262,4 +263,98 @@ const getAll = async queryParams => {
 	}
 };
 
-export default { createOne, getOne, getAll };
+const getStatuses = async () => {
+	try {
+		return (
+			await mongoose.connection
+				.collection('order_statuses')
+				.find()
+				.toArray()
+		).map(s => ({ key: s.key, name: s.name }));
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+const updateStatus = async (id, status) => {
+	try {
+		const orderExists = await Order.exists({ _id: id });
+
+		if (!orderExists) {
+			throw {
+				status: 404,
+				message: `Order with id '${id}' not found`
+			};
+		}
+
+		const foundStatus = (
+			await mongoose.connection
+				.collection('order_statuses')
+				.find()
+				.toArray()
+		).find(s => s.key === status || s.name === status);
+
+		if (!foundStatus) {
+			throw {
+				status: 400,
+				message: `Invalid order status '${status}'`
+			};
+		}
+
+		return await Order.findByIdAndUpdate(
+			id,
+			{ $set: { status: foundStatus.name } },
+			{ new: true }
+		).populate([
+			{
+				path: 'contactInfo',
+				select: '-_id firstName lastName phoneNumber email'
+			},
+			{
+				path: 'receiverInfo',
+				select: '-_id firstName lastName phoneNumber'
+			},
+			{
+				path: 'companyInfo',
+				populate: { path: 'addressInfo', select: '-_id address' },
+				select: '-_id name identificationNumber'
+			},
+			{
+				path: 'deliveryInfo',
+				populate: [
+					{ path: 'country', select: '-_id name' },
+					{ path: 'type', select: '-_id name price' },
+					{
+						path: 'addressInfo',
+						select: '-_id -createdAt -updatedAt'
+					},
+					{
+						path: 'contactInfo',
+						select: '-_id firstName lastName middleName'
+					}
+				],
+				select: '-_id city'
+			},
+			{
+				path: 'user',
+				select: 'firstName lastName phoneNumber email'
+			}
+		]);
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+export default {
+	createOne,
+	getOne,
+	getAll,
+	getStatuses,
+	updateStatus
+};

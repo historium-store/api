@@ -227,7 +227,16 @@ const validateId = [
 		.withMessage('Order id must be a valid mongo id')
 ];
 
+const validateUpdateStatus = [
+	...validateId,
+	body('status')
+		.trim()
+		.notEmpty()
+		.withMessage('Order status is required')
+];
+
 export default {
 	validateCreate,
-	validateId
+	validateId,
+	validateUpdateStatus
 };

@@ -218,6 +218,14 @@ orderRouter
 	.get(checkRole(['admin']), validateQueryParams, controller.getAll)
 	.post(validator.validateCreate, controller.createOne);
 
+orderRouter.get('/statuses', controller.getStatuses);
+
+orderRouter.patch(
+	'/status/:id',
+	validator.validateUpdateStatus,
+	controller.updateStatus
+);
+
 orderRouter
 	.route('/:id')
 	.get(
