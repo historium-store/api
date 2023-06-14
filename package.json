@@ -5,7 +5,7 @@
 		"build": "npm install",
 		"start": "node -r dotenv/config server.js",
 		"dev": "nodemon -r dotenv/config",
-		"test": "mocha"
+		"test": "mocha -r dotenv/config"
 	},
 	"dependencies": {
 		"@vonage/server-sdk": "^3.5.1",
