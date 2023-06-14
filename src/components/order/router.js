@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { checkSameIdOrRole } from '../../middleware.js';
+import {
+	checkRole,
+	checkSameIdOrRole,
+	validateQueryParams
+} from '../../middleware.js';
 import authController from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -209,7 +213,10 @@ const orderRouter = Router();
  *       '201':
  *         description: Order created successfully
  */
-orderRouter.post('/', validator.validateCreate, controller.createOne);
+orderRouter
+	.route('/')
+	.get(checkRole(['admin']), validateQueryParams, controller.getAll)
+	.post(validator.validateCreate, controller.createOne);
 
 orderRouter
 	.route('/:id')

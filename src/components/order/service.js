@@ -212,4 +212,54 @@ const getOne = async id => {
 	}
 };
 
-export default { createOne, getOne };
+const getAll = async queryParams => {
+	const { limit, offset: skip } = queryParams;
+
+	try {
+		return await Order.find()
+			.limit(limit)
+			.skip(skip)
+			.populate([
+				{
+					path: 'contactInfo',
+					select: '-_id firstName lastName phoneNumber email'
+				},
+				{
+					path: 'receiverInfo',
+					select: '-_id firstName lastName phoneNumber'
+				},
+				{
+					path: 'companyInfo',
+					populate: { path: 'addressInfo', select: '-_id address' },
+					select: '-_id name identificationNumber'
+				},
+				{
+					path: 'deliveryInfo',
+					populate: [
+						{ path: 'country', select: '-_id name' },
+						{ path: 'type', select: '-_id name price' },
+						{
+							path: 'addressInfo',
+							select: '-_id -createdAt -updatedAt'
+						},
+						{
+							path: 'contactInfo',
+							select: '-_id firstName lastName middleName'
+						}
+					],
+					select: '-_id city'
+				},
+				{
+					path: 'user',
+					select: 'firstName lastName phoneNumber email'
+				}
+			]);
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+export default { createOne, getOne, getAll };
