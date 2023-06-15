@@ -39,11 +39,15 @@ const createOne = async userData => {
 
 		const newUser = await User.create(userData);
 
-		const newCart = await Cart.create({ user: newUser.id });
+		const newCart = await Cart.create({ user: newUser });
 
-		await newUser.updateOne({ cart: newCart.id });
-
-		return await User.findById(newUser.id);
+		return await User.findByIdAndUpdate(
+			newUser,
+			{
+				$set: { cart: newCart }
+			},
+			{ new: true }
+		);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

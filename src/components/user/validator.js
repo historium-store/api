@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body, header, param } from 'express-validator';
 
 const validateId = [
 	param('id')
