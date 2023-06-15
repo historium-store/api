@@ -10,21 +10,11 @@ const validateCreate = [
 	body('contactInfo.firstName')
 		.trim()
 		.notEmpty()
-		.withMessage('Contact first name is required')
-		.bail()
-		.isAlpha()
-		.withMessage(
-			'Contact first name can only contain alphabet characters'
-		),
+		.withMessage('Contact first name is required'),
 	body('contactInfo.lastName')
 		.trim()
 		.notEmpty()
-		.withMessage('Contact last name is required')
-		.bail()
-		.isAlpha()
-		.withMessage(
-			'Contact last name can only contain alphabet characters'
-		),
+		.withMessage('Contact last name is required'),
 	body('contactInfo.phoneNumber')
 		.trim()
 		.notEmpty()
@@ -49,22 +39,12 @@ const validateCreate = [
 		.if(body('receiverInfo').exists())
 		.trim()
 		.notEmpty()
-		.withMessage('Receiver first name is required')
-		.bail()
-		.isAlpha()
-		.withMessage(
-			'Receiver first name can only contain alphabet characters'
-		),
+		.withMessage('Receiver first name is required'),
 	body('receiverInfo.lastName')
 		.if(body('receiverInfo').exists())
 		.trim()
 		.notEmpty()
-		.withMessage('Receiver last name is required')
-		.bail()
-		.isAlpha()
-		.withMessage(
-			'Receiver last name can only contain alphabet characters'
-		),
+		.withMessage('Receiver last name is required'),
 	body('receiverInfo.phoneNumber')
 		.if(body('receiverInfo').exists())
 		.trim()
@@ -176,32 +156,17 @@ const validateCreate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Delivery contact first name is required')
-		.bail()
-		.isAlpha()
-		.withMessage(
-			'Delivery contact first name can only contain alphabet characters'
-		),
+		.withMessage('Delivery contact first name is required'),
 	body('deliveryInfo.contactInfo.lastName')
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Delivery contact last name is required')
-		.bail()
-		.isAlpha()
-		.withMessage(
-			'Delivery contact last name can only contain alphabet characters'
-		),
+		.withMessage('Delivery contact last name is required'),
 	body('deliveryInfo.contactInfo.middleName')
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Delivery contact middle name is required')
-		.bail()
-		.isAlpha()
-		.withMessage(
-			'Delivery contact last name can only contain alphabet characters'
-		),
+		.withMessage('Delivery contact middle name is required'),
 
 	body('paymentType')
 		.trim()
@@ -212,10 +177,6 @@ const validateCreate = [
 		.trim()
 		.isLength({ max: 500 })
 		.withMessage('Comment length can be up to 500 characters'),
-	body('user')
-		.optional()
-		.isMongoId()
-		.withMessage('User id must be a valid mongo id'),
 	body('items')
 		.isArray({ min: 1 })
 		.withMessage('Order must have at least 1 item')
@@ -230,9 +191,8 @@ const validateId = [
 const validateUpdateStatus = [
 	...validateId,
 	body('status')
-		.trim()
-		.notEmpty()
-		.withMessage('Order status is required')
+		.isMongoId()
+		.withMessage('Order status must be a valid mongo id')
 ];
 
 export default {

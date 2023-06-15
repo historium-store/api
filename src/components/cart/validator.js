@@ -1,6 +1,7 @@
 import { body } from 'express-validator';
-import { isArrayOfMongoIds } from '../../utils.js';
 
-const validateMerge = [body('items').custom(isArrayOfMongoIds)];
+const validateMerge = [
+	body('items').isArray().withMessage('Cart items must be an array')
+];
 
 export default { validateMerge };

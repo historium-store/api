@@ -1,9 +1,5 @@
 import { Router } from 'express';
-import {
-	checkRole,
-	checkSameIdOrRole,
-	validateQueryParams
-} from '../../middleware.js';
+import { checkRole, validateQueryParams } from '../../middleware.js';
 import authController from '../auth/controller.js';
 import cartItemController from '../cart-item/controller.js';
 import cartItemValidator from '../cart-item/validator.js';
@@ -48,15 +44,7 @@ userRouter.use('/:id', authController.authenticate);
 userRouter
 	.route('/:id')
 	.get(checkRole(['admin']), validator.validateId, controller.getOne)
-	.patch(
-		checkSameIdOrRole(['admin']),
-		validator.validateUpdate,
-		controller.updateOne
-	)
-	.delete(
-		checkSameIdOrRole(['admin']),
-		validator.validateId,
-		controller.deleteOne
-	);
+	.patch(validator.validateUpdate, controller.updateOne)
+	.delete(validator.validateId, controller.deleteOne);
 
 export default userRouter;

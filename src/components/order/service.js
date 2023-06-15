@@ -265,12 +265,10 @@ const getAll = async queryParams => {
 
 const getStatuses = async () => {
 	try {
-		return (
-			await mongoose.connection
-				.collection('order_statuses')
-				.find()
-				.toArray()
-		).map(s => ({ key: s.key, name: s.name }));
+		return await mongoose.connection
+			.collection('order_statuses')
+			.find()
+			.toArray();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -295,18 +293,20 @@ const updateStatus = async (id, status) => {
 				.collection('order_statuses')
 				.find()
 				.toArray()
-		).find(s => s.key === status || s.name === status);
+		).find(s => s._id.toHexString() === status);
 
 		if (!foundStatus) {
 			throw {
-				status: 400,
-				message: `Invalid order status '${status}'`
+				status: 404,
+				message: `Status with id '${status}' not found`
 			};
 		}
 
+		delete foundStatus._id;
+
 		return await Order.findByIdAndUpdate(
 			id,
-			{ $set: { status: foundStatus.name } },
+			{ $set: { status: foundStatus } },
 			{ new: true }
 		).populate([
 			{

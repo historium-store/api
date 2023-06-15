@@ -4,6 +4,16 @@ import service from './service.js';
 
 const getOne = async (req, res, next) => {
 	try {
+		const isAdmin = req.user.role === 'admin';
+		const isSameUser = req.user.id === req.params.id;
+
+		if (!isAdmin && !isSameUser) {
+			throw {
+				status: 403,
+				message: 'Forbidden'
+			};
+		}
+
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
@@ -53,6 +63,16 @@ const updateOne = async (req, res, next) => {
 
 const deleteOne = async (req, res, next) => {
 	try {
+		const isAdmin = req.user.role === 'admin';
+		const isSameUser = req.user.id === req.params.id;
+
+		if (!isAdmin && !isSameUser) {
+			throw {
+				status: 403,
+				message: 'Forbidden'
+			};
+		}
+
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
