@@ -15,7 +15,7 @@ const importData = async () => {
 		if (collections.length != 0) {
 			return;
 		} else {
-			console.log('База не обнаружена. Происходит инициализация.');
+			console.log('Base not found. Initialization in progress.');
 
 			const backupDir = process.env.BACKUP_DIR_PATH;
 			const files = await fs.readdir(backupDir);
@@ -43,11 +43,11 @@ const importData = async () => {
 
 					if (documents.length !== 0) {
 						console.log(
-							`Происходит инициализация коллекции ${collectionName}`
+							`The \'${collectionName}\' collection is being initialized`
 						);
 						await colection.insertMany(documents).then(() => {
 							console.log(
-								`Инициализация коллекции ${collectionName} завершена`
+								`\'${collectionName}\' collection initialization complete`
 							);
 						});
 					}
@@ -55,7 +55,7 @@ const importData = async () => {
 			}
 		}
 	} catch (error) {
-		console.log('Ошибка при работе с бд:', error);
+		console.log('Database error:', error);
 	} finally {
 		client.close();
 	}
