@@ -6,6 +6,7 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUI from 'swagger-ui-express';
 import { errorHandler } from './middleware.js';
 
+import addressInfoRouter from './components/address-info/router.js';
 import authRouter from './components/auth/router.js';
 import authorRouter from './components/author/router.js';
 import bookSeriesRouter from './components/book-series/router.js';
@@ -49,6 +50,7 @@ app.use('/book-series', bookSeriesRouter);
 app.use('/search', searchRouter);
 app.use('/file', fileRouter);
 app.use('/country', countryRouter);
+app.use('/address-info', addressInfoRouter);
 app.use('/delivery-type', deliveryTypeRouter);
 app.use('/order', orderRouter);
 

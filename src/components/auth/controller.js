@@ -38,7 +38,7 @@ const login = async (req, res, next) => {
 	}
 };
 
-const authenticate = async (req, res, next) => {
+export const authenticate = async (req, res, next) => {
 	try {
 		req.user = await service.authenticate(req.get('Authorization'));
 
