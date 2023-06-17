@@ -5,7 +5,7 @@
 		"build": "npm install",
 		"start": "node -r dotenv/config server.js",
 		"dev": "nodemon -r dotenv/config",
-		"test": "mocha -r dotenv/config"
+		"test": "mocha -r dotenv/config test/product-type-test.js"
 	},
 	"dependencies": {
 		"@vonage/server-sdk": "^3.5.1",
@@ -28,6 +28,7 @@
 	},
 	"devDependencies": {
 		"chai": "^4.3.7",
+		"faker": "^6.6.6",
 		"mocha": "^10.2.0",
 		"mongodb-memory-server": "^8.13.0",
 		"supertest": "^6.3.3"

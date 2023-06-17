@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import mongoose, { mongo } from 'mongoose';
+import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
-describe(' publisher system ', () => {
+describe(' illustrator system ', () => {
 	let userToken = 'Bearer ';
-	let publisherId;
+	let illustratorId;
 
 	before(async () => {
 		await mongoose
@@ -16,7 +16,7 @@ describe(' publisher system ', () => {
 	});
 
 	after(async () => {
-		await mongoose.connection.collection('publishers').deleteMany();
+		await mongoose.connection.collection('illustrators').deleteMany();
 		await mongoose.connection.close();
 	});
 
@@ -34,32 +34,27 @@ describe(' publisher system ', () => {
 		userToken = 'Bearer ';
 	});
 
-	describe(' "/publisher/" post request ', () => {
-		it(' the publisher data is correct; the new publisher object is returned ', async () => {
-			const newPublisher = {
-				name: 'OpenAI',
-				books: [],
-				bookSeries: [],
-				description: 'Publishing company specializing in AI research',
-				logo: 'https://example.com/logo.png'
+	describe(' "/illustrator/" post request ', () => {
+		it(' the illustrator data is correct; the new illustrator object is returned ', async () => {
+			const newIllustrator = {
+				fullName: 'Anna Petrova',
+				books: []
 			};
 
 			const expectedFields = [
-				'name',
+				'fullName',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.post('/publisher/')
+				.post('/illustrator/')
 				.set('Authorization', userToken)
-				.send(newPublisher)
+				.send(newIllustrator)
 				.then(response => {
-					publisherId = response.body._id;
+					illustratorId = response.body._id;
 
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
@@ -70,10 +65,10 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/" get request ', () => {
-		it(' should return an array of users ', async () => {
+	describe(' "/illustrator/" get request ', () => {
+		it(' should return an array of illustrator ', async () => {
 			await request(app)
-				.get('/publisher/')
+				.get('/illustrator/')
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -85,20 +80,18 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" get request ', () => {
-		it(' should return user object ', async () => {
+	describe(' "/illustrator/:id" get request ', () => {
+		it(' should return illustrator object ', async () => {
 			const expectedFields = [
-				'name',
+				'fullName',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.get(`/publisher/${publisherId}`)
+				.get(`/illustrator/${illustratorId}`)
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -110,28 +103,23 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" patch request ', () => {
-		it(' correct values are sent; the changed publisher object is returned ', async () => {
-			const updatedPublisherData = {
-				name: 'Updated Publisher',
-				description:
-					'This is an updated description with more than 40 characters.',
-				logo: 'https://example.com/updated-logo.png'
+	describe(' "/illustrator/:id" patch request ', () => {
+		it(' correct values are sent; the changed illustrator object is returned ', async () => {
+			const updatedIllustratorData = {
+				fullName: 'Updated illustrator name'
 			};
 			const expectedFields = [
-				'name',
+				'fullName',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.patch(`/publisher/${publisherId}`)
+				.patch(`/illustrator/${illustratorId}`)
 				.set('Authorization', userToken)
-				.send(updatedPublisherData)
+				.send(updatedIllustratorData)
 				.then(response => {
 					expect(response.status).to.equal(200);
 					expect(response.header['content-type']).to.include(
