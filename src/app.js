@@ -11,6 +11,7 @@ import authRouter from './components/auth/router.js';
 import authorRouter from './components/author/router.js';
 import bookSeriesRouter from './components/book-series/router.js';
 import bookRouter from './components/book/router.js';
+import companyInfoRouter from './components/company-info/router.js';
 import compilerRouter from './components/compiler/router.js';
 import contactInfoRouter from './components/contact-info/router.js';
 import countryRouter from './components/country/router.js';
@@ -53,6 +54,7 @@ app.use('/file', fileRouter);
 app.use('/contact-info', contactInfoRouter);
 app.use('/country', countryRouter);
 app.use('/address-info', addressInfoRouter);
+app.use('/company-info', companyInfoRouter);
 app.use('/delivery-type', deliveryTypeRouter);
 app.use('/order', orderRouter);
 

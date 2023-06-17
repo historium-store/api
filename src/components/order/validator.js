@@ -72,7 +72,9 @@ const validateCreate = [
 		.withMessage('Company identification number is required')
 		.bail()
 		.isNumeric({ no_symbols: true })
-		.withMessage('Company identification number must be a number')
+		.withMessage(
+			'Company identification number can only contain digits'
+		)
 		.bail()
 		.isLength({ min: 8, max: 12 })
 		.withMessage(
