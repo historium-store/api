@@ -15,6 +15,7 @@ import companyInfoRouter from './components/company-info/router.js';
 import compilerRouter from './components/compiler/router.js';
 import contactInfoRouter from './components/contact-info/router.js';
 import countryRouter from './components/country/router.js';
+import deliveryInfoRouter from './components/delivery-info/router.js';
 import deliveryTypeRouter from './components/delivery-type/router.js';
 import editorRouter from './components/editor/router.js';
 import fileRouter from './components/file/router.js';
@@ -56,6 +57,7 @@ app.use('/country', countryRouter);
 app.use('/address-info', addressInfoRouter);
 app.use('/company-info', companyInfoRouter);
 app.use('/delivery-type', deliveryTypeRouter);
+app.use('/delivery-info', deliveryInfoRouter);
 app.use('/order', orderRouter);
 
 app.use(
