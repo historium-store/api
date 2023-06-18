@@ -180,8 +180,13 @@ const validateCreate = [
 		.isLength({ max: 500 })
 		.withMessage('Comment length can be up to 500 characters'),
 	body('items')
+		.if(body('cart').not().exists())
 		.isArray({ min: 1 })
-		.withMessage('Order must have at least 1 item')
+		.withMessage('Order must have at least 1 item'),
+	body('cart')
+		.optional()
+		.isMongoId()
+		.withMessage('Order cart must be a valid mongo id')
 ];
 
 const validateId = [
@@ -197,8 +202,41 @@ const validateUpdateStatus = [
 		.withMessage('Order status must be a valid mongo id')
 ];
 
+const validateUpdate = [
+	...validateId,
+	body('receiverInfo')
+		.optional()
+		.isMongoId()
+		.withMessage('Order receiver info must be a valid mongo id'),
+	body('gift')
+		.optional()
+		.customSanitizer(value => Boolean(value)),
+	body('companyInfo')
+		.optional()
+		.isMongoId()
+		.withMessage('Order company info must be a valid mongo id'),
+	body('callback')
+		.optional()
+		.customSanitizer(value => Boolean(value)),
+	body('paymentType')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage('Order payment type is required'),
+	body('comment')
+		.optional()
+		.trim()
+		.isLength({ max: 500 })
+		.withMessage('Comment length can be up to 500 characters'),
+	body('status')
+		.optional()
+		.isMongoId()
+		.withMessage('Order status must be a valid mongo id')
+];
+
 export default {
 	validateCreate,
 	validateId,
-	validateUpdateStatus
+	validateUpdateStatus,
+	validateUpdate
 };

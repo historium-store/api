@@ -2,6 +2,8 @@ import { randomBytes } from 'crypto';
 import mongoose from 'mongoose';
 import { isEmptyObject, transporter } from '../../utils.js';
 import AddressInfo from '../address-info/model.js';
+import Cart from '../cart/model.js';
+import cartService from '../cart/service.js';
 import CompanyInfo from '../company-info/model.js';
 import ContactInfo from '../contact-info/model.js';
 import Country from '../country/model.js';
@@ -107,6 +109,18 @@ const createOne = async orderData => {
 			});
 
 			orderData.user = newUser._id;
+
+			const { items } = orderData;
+			delete orderData.items;
+			await cartService.merge(items, newUser.cart);
+			orderData.cart = newUser.cart;
+			await Cart.updateOne(
+				{ _id: newUser.cart },
+				{ $unset: { user: true } }
+			);
+
+			const newCart = await Cart.create({ user: newUser });
+			await newUser.updateOne({ $set: { cart: newCart } });
 		}
 
 		orderData.contactInfo = await ContactInfo.create(contactInfo);
@@ -138,6 +152,11 @@ const createOne = async orderData => {
 		}
 
 		orderData.deliveryInfo = await DeliveryInfo.create(deliveryInfo);
+
+		orderData.status = {
+			name: 'Поточний',
+			key: 'active'
+		};
 
 		return await Order.create(orderData);
 	} catch (err) {
