@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { checkRole, validateQueryParams } from '../../middleware.js';
-import authController from '../auth/controller.js';
+import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -212,7 +212,7 @@ const orderRouter = Router();
 orderRouter
 	.route('/')
 	.get(
-		authController.authenticate,
+		authenticate,
 		checkRole(['admin']),
 		validateQueryParams,
 		controller.getAll
@@ -223,7 +223,7 @@ orderRouter.get('/statuses', controller.getStatuses);
 
 orderRouter.patch(
 	'/status/:id',
-	authController.authenticate,
+	authenticate,
 	checkRole(['admin', 'seller']),
 	validator.validateUpdateStatus,
 	controller.updateStatus
@@ -231,10 +231,12 @@ orderRouter.patch(
 
 orderRouter
 	.route('/:id')
-	.get(
-		authController.authenticate,
-		validator.validateId,
-		controller.getOne
+	.get(authenticate, validator.validateId, controller.getOne)
+	.patch(
+		authenticate,
+		checkRole(['admin', 'seller']),
+		validator.validateUpdate,
+		controller.updateOne
 	);
 
 export default orderRouter;

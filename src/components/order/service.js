@@ -370,10 +370,109 @@ const updateStatus = async (id, status) => {
 	}
 };
 
+const updateOne = async (id, changes) => {
+	const { receiverInfo, companyInfo } = changes;
+
+	try {
+		const orderToUpdate = await Order.findOne({ _id: id });
+
+		if (!orderToUpdate) {
+			throw {
+				status: 404,
+				message: `Order with id '${id}' not found`
+			};
+		}
+
+		if (receiverInfo) {
+			const specified = orderToUpdate.receiverInfo;
+
+			if (specified) {
+				throw {
+					status: 409,
+					message: 'Order already has receiver info specified'
+				};
+			}
+
+			const exists = await ContactInfo.exists({ _id: receiverInfo });
+
+			if (!exists) {
+				throw {
+					status: 404,
+					message: `Contact info with id '${receiverInfo}' not found`
+				};
+			}
+		}
+
+		if (companyInfo) {
+			const specified = orderToUpdate.companyInfo;
+
+			if (specified) {
+				throw {
+					status: 409,
+					message: 'Order already has company info specified'
+				};
+			}
+
+			const exists = await CompanyInfo.exists({ _id: companyInfo });
+
+			if (!exists) {
+				throw {
+					status: 404,
+					message: `Company info with id '${companyInfo}' not found`
+				};
+			}
+		}
+
+		return await Order.findByIdAndUpdate(id, changes, {
+			new: true
+		}).populate([
+			{
+				path: 'contactInfo',
+				select: '-_id firstName lastName phoneNumber email'
+			},
+			{
+				path: 'receiverInfo',
+				select: '-_id firstName lastName phoneNumber'
+			},
+			{
+				path: 'companyInfo',
+				populate: { path: 'addressInfo', select: '-_id address' },
+				select: '-_id name identificationNumber'
+			},
+			{
+				path: 'deliveryInfo',
+				populate: [
+					{ path: 'country', select: '-_id name' },
+					{ path: 'type', select: '-_id name price' },
+					{
+						path: 'addressInfo',
+						select: '-_id -createdAt -updatedAt'
+					},
+					{
+						path: 'contactInfo',
+						select: '-_id firstName lastName middleName'
+					}
+				],
+				select: '-_id city'
+			},
+			{
+				path: 'user',
+				select: 'firstName lastName phoneNumber email'
+			}
+		]);
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	getStatuses,
-	updateStatus
+	updateStatus,
+	updateOne
 };
