@@ -76,7 +76,11 @@ app.use(
 				servers: [
 					{ url: `http://localhost:${process.env.PORT ?? 3000}` }
 				],
-				tags: [{ name: 'user' }, { name: 'order' }]
+				tags: [
+					{ name: 'user' },
+					{ name: 'order' },
+					{ name: 'banner' }
+				]
 			},
 			apis: ['./src/components/*/router.js']
 		})
