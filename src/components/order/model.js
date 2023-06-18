@@ -51,12 +51,14 @@ const orderSchema = new Schema(
 		status: {
 			name: {
 				type: String,
-				required: true
+				required: true,
+				default: 'Поточний'
 			},
 
 			key: {
 				type: String,
-				required: true
+				required: true,
+				default: 'active'
 			}
 		},
 
@@ -66,61 +68,10 @@ const orderSchema = new Schema(
 			required: false
 		},
 
-		items: [
-			{
-				product: {
-					_id: {
-						type: ObjectId,
-						required: true
-					},
-
-					name: {
-						type: String,
-						required: true
-					},
-
-					type: {
-						name: {
-							type: String,
-							required: true
-						},
-
-						key: {
-							type: String,
-							required: true
-						}
-					},
-
-					code: {
-						type: String,
-						required: false,
-						unique: true
-					},
-
-					key: {
-						type: String,
-						required: true,
-						unique: true
-					},
-
-					price: {
-						type: Number,
-						required: true,
-						min: 0
-					},
-
-					image: {
-						type: String,
-						required: true
-					}
-				},
-
-				quantity: {
-					type: Number,
-					required: true
-				}
-			}
-		],
+		cart: {
+			type: ObjectId,
+			require: false
+		},
 
 		createdAt: {
 			type: Number
