@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { updateOrderNumber } from '../../triggers/order-number';
 
 const { ObjectId } = Schema.Types;
 
@@ -73,6 +74,11 @@ const orderSchema = new Schema(
 			require: false
 		},
 
+		number: {
+			type: String,
+			required: false
+		},
+
 		createdAt: {
 			type: Number
 		},
@@ -87,6 +93,11 @@ const orderSchema = new Schema(
 		strict: false
 	}
 );
+
+orderSchema.pre('save', async function (next) {
+	await updateOrderNumber(this);
+	next();
+});
 
 const Order = model('Order', orderSchema);
 
