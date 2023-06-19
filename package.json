@@ -5,7 +5,7 @@
 		"build": "npm install",
 		"start": "node -r dotenv/config server.js",
 		"dev": "nodemon -r dotenv/config",
-		"test": "mocha -r dotenv/config test/product-type-test.js"
+		"test": "mocha -r dotenv/config test/section-test.js"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.347.0",
