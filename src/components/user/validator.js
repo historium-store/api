@@ -1,9 +1,16 @@
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
 const validateId = [
 	param('id')
 		.isMongoId()
 		.withMessage('User id must be a valid mongo id')
+];
+
+const validateGetOne = [
+	...validateId,
+	query('withDeleted')
+		.optional()
+		.customSanitizer(() => true)
 ];
 
 const validateUpdate = [
@@ -58,7 +65,15 @@ const validateUpdate = [
 	body('role')
 		.optional()
 		.isIn(['user', 'seller', 'admin'])
-		.withMessage('Invalid user role')
+		.withMessage('Invalid user role'),
+	body('birthDate')
+		.optional()
+		.isInt()
+		.withMessage('User birth date must be an integer')
 ];
 
-export default { validateId, validateUpdate };
+export default {
+	validateId,
+	validateGetOne,
+	validateUpdate
+};

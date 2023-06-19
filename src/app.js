@@ -6,12 +6,16 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUI from 'swagger-ui-express';
 import { errorHandler } from './middleware.js';
 
+import addressInfoRouter from './components/address-info/router.js';
 import authRouter from './components/auth/router.js';
 import authorRouter from './components/author/router.js';
 import bookSeriesRouter from './components/book-series/router.js';
 import bookRouter from './components/book/router.js';
+import companyInfoRouter from './components/company-info/router.js';
 import compilerRouter from './components/compiler/router.js';
+import contactInfoRouter from './components/contact-info/router.js';
 import countryRouter from './components/country/router.js';
+import deliveryInfoRouter from './components/delivery-info/router.js';
 import deliveryTypeRouter from './components/delivery-type/router.js';
 import editorRouter from './components/editor/router.js';
 import fileRouter from './components/file/router.js';
@@ -48,8 +52,12 @@ app.use('/editor', editorRouter);
 app.use('/book-series', bookSeriesRouter);
 app.use('/search', searchRouter);
 app.use('/file', fileRouter);
+app.use('/contact-info', contactInfoRouter);
 app.use('/country', countryRouter);
+app.use('/address-info', addressInfoRouter);
+app.use('/company-info', companyInfoRouter);
 app.use('/delivery-type', deliveryTypeRouter);
+app.use('/delivery-info', deliveryInfoRouter);
 app.use('/order', orderRouter);
 
 app.use(
@@ -68,7 +76,11 @@ app.use(
 				servers: [
 					{ url: `http://localhost:${process.env.PORT ?? 3000}` }
 				],
-				tags: [{ name: 'user' }, { name: 'order' }]
+				tags: [
+					{ name: 'user' },
+					{ name: 'order' },
+					{ name: 'banner' }
+				]
 			},
 			apis: ['./src/components/*/router.js']
 		})

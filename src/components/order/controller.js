@@ -26,6 +26,8 @@ const createOne = async (req, res, next) => {
 };
 
 const getOne = async (req, res, next) => {
+	const { id: user } = req.user;
+
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
@@ -33,7 +35,21 @@ const getOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json(await service.getOne(id));
+		const order = await service.getOne(id);
+
+		const isPrivilegedUser = ['admin', 'seller'].includes(
+			req.user.role
+		);
+		const isSameUser = order.user._id === user;
+
+		if (!isPrivilegedUser || isSameUser) {
+			throw {
+				status: 403,
+				message: 'Forbidden'
+			};
+		}
+
+		res.json({ ...order });
 	} catch (err) {
 		next(createError(err));
 	}
@@ -75,10 +91,25 @@ const updateStatus = async (req, res, next) => {
 	}
 };
 
+const updateOne = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { id, ...changes } = matchedData(req);
+
+		res.json(await service.updateStatus(id, changes));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	getStatuses,
-	updateStatus
+	updateStatus,
+	updateOne
 };

@@ -1,5 +1,5 @@
+import { S3Client } from '@aws-sdk/client-s3';
 import { Vonage } from '@vonage/server-sdk';
-import AWS from 'aws-sdk';
 import { pbkdf2, randomUUID } from 'crypto';
 import createHttpError from 'http-errors';
 import jwt from 'jsonwebtoken';
@@ -11,13 +11,13 @@ import { transliterate } from 'transliteration';
 import { promisify } from 'util';
 import validator from 'validator';
 
-AWS.config.update({
-	accessKeyId: process.env.S3_ACCESS_KEY,
-	secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-	region: process.env.S3_BUCKET_REGION
+const s3 = new S3Client({
+	region: process.env.S3_BUCKET_REGION,
+	credentials: {
+		accessKeyId: process.env.S3_ACCESS_KEY,
+		secretAccessKey: process.env.S3_SECRET_ACCESS_KEY
+	}
 });
-
-const s3 = new AWS.S3();
 
 export const upload = multer({
 	storage: multerS3({

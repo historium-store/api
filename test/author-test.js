@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import mongoose, { mongo } from 'mongoose';
+import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
-describe(' publisher system ', () => {
+describe(' author system ', () => {
 	let userToken = 'Bearer ';
-	let publisherId;
+	let authorId;
 
 	before(async () => {
 		await mongoose
@@ -16,7 +16,7 @@ describe(' publisher system ', () => {
 	});
 
 	after(async () => {
-		await mongoose.connection.collection('publishers').deleteMany();
+		await mongoose.connection.collection('authors').deleteMany();
 		await mongoose.connection.close();
 	});
 
@@ -34,33 +34,33 @@ describe(' publisher system ', () => {
 		userToken = 'Bearer ';
 	});
 
-	describe(' "/publisher/" post request ', () => {
-		it(' the publisher data is correct; the new publisher object is returned ', async () => {
-			const newPublisher = {
-				name: 'OpenAI',
+	describe(' "/author/" POST request ', () => {
+		it(' the author data is correct; the new author object is returned ', async () => {
+			const newAuthor = {
+				fullName: 'John Smith',
+				biography:
+					'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
 				books: [],
-				bookSeries: [],
-				description: 'Publishing company specializing in AI research',
-				logo: 'https://example.com/logo.png'
+				pictures: ['picture1.jpg', 'picture2.jpg']
 			};
 
 			const expectedFields = [
-				'name',
+				'fullName',
+				'biography',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
+				'pictures',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.post('/publisher/')
+				.post('/author/')
 				.set('Authorization', userToken)
-				.send(newPublisher)
+				.send(newAuthor)
 				.then(response => {
-					publisherId = response.body._id;
-
+					authorId = response.body._id;
+					console.log(response.body.message);
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
 						'application/json'
@@ -70,10 +70,10 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/" get request ', () => {
-		it(' should return an array of users ', async () => {
+	describe(' "/author/" GET request ', () => {
+		it(' should return an array of authors ', async () => {
 			await request(app)
-				.get('/publisher/')
+				.get('/author/')
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -85,20 +85,20 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" get request ', () => {
-		it(' should return user object ', async () => {
+	describe(' "/author/:id" GET request ', () => {
+		it(' should return author object', async () => {
 			const expectedFields = [
-				'name',
+				'fullName',
+				'biography',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
+				'pictures',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.get(`/publisher/${publisherId}`)
+				.get(`/author/${authorId}`)
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -110,34 +110,24 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" patch request ', () => {
-		it(' correct values are sent; the changed publisher object is returned ', async () => {
-			const updatedPublisherData = {
-				name: 'Updated Publisher',
-				description:
-					'This is an updated description with more than 40 characters.',
-				logo: 'https://example.com/updated-logo.png'
+	describe(' "/author/:id" PATCH request ', () => {
+		it(' correct values are sent; the changed author object is returned ', async () => {
+			const updatedAuthorData = {
+				fullName: 'Updated author name'
 			};
-			const expectedFields = [
-				'name',
-				'books',
-				'bookSeries',
-				'description',
-				'_id',
-				'createdAt',
-				'updatedAt'
-			];
 
 			await request(app)
-				.patch(`/publisher/${publisherId}`)
+				.patch(`/author/${authorId}`)
 				.set('Authorization', userToken)
-				.send(updatedPublisherData)
+				.send(updatedAuthorData)
 				.then(response => {
 					expect(response.status).to.equal(200);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
-					expect(response.body).to.include.keys(...expectedFields);
+					expect(response.body.fullName).to.equal(
+						'Updated author name'
+					);
 				});
 		});
 	});

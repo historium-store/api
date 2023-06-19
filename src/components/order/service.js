@@ -2,6 +2,8 @@ import { randomBytes } from 'crypto';
 import mongoose from 'mongoose';
 import { isEmptyObject, transporter } from '../../utils.js';
 import AddressInfo from '../address-info/model.js';
+import Cart from '../cart/model.js';
+import cartService from '../cart/service.js';
 import CompanyInfo from '../company-info/model.js';
 import ContactInfo from '../contact-info/model.js';
 import Country from '../country/model.js';
@@ -107,6 +109,18 @@ const createOne = async orderData => {
 			});
 
 			orderData.user = newUser._id;
+
+			const { items } = orderData;
+			delete orderData.items;
+			await cartService.merge(items, newUser.cart);
+			orderData.cart = newUser.cart;
+			await Cart.updateOne(
+				{ _id: newUser.cart },
+				{ $unset: { user: true } }
+			);
+
+			const newCart = await Cart.create({ user: newUser });
+			await newUser.updateOne({ $set: { cart: newCart } });
 		}
 
 		orderData.contactInfo = await ContactInfo.create(contactInfo);
@@ -138,6 +152,11 @@ const createOne = async orderData => {
 		}
 
 		orderData.deliveryInfo = await DeliveryInfo.create(deliveryInfo);
+
+		orderData.status = {
+			name: 'Поточний',
+			key: 'active'
+		};
 
 		return await Order.create(orderData);
 	} catch (err) {
@@ -265,12 +284,10 @@ const getAll = async queryParams => {
 
 const getStatuses = async () => {
 	try {
-		return (
-			await mongoose.connection
-				.collection('order_statuses')
-				.find()
-				.toArray()
-		).map(s => ({ key: s.key, name: s.name }));
+		return await mongoose.connection
+			.collection('order_statuses')
+			.find()
+			.toArray();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -295,20 +312,120 @@ const updateStatus = async (id, status) => {
 				.collection('order_statuses')
 				.find()
 				.toArray()
-		).find(s => s.key === status || s.name === status);
+		).find(s => s._id.toHexString() === status);
 
 		if (!foundStatus) {
 			throw {
-				status: 400,
-				message: `Invalid order status '${status}'`
+				status: 404,
+				message: `Status with id '${status}' not found`
 			};
 		}
 
+		delete foundStatus._id;
+
 		return await Order.findByIdAndUpdate(
 			id,
-			{ $set: { status: foundStatus.name } },
+			{ $set: { status: foundStatus } },
 			{ new: true }
 		).populate([
+			{
+				path: 'contactInfo',
+				select: '-_id firstName lastName phoneNumber email'
+			},
+			{
+				path: 'receiverInfo',
+				select: '-_id firstName lastName phoneNumber'
+			},
+			{
+				path: 'companyInfo',
+				populate: { path: 'addressInfo', select: '-_id address' },
+				select: '-_id name identificationNumber'
+			},
+			{
+				path: 'deliveryInfo',
+				populate: [
+					{ path: 'country', select: '-_id name' },
+					{ path: 'type', select: '-_id name price' },
+					{
+						path: 'addressInfo',
+						select: '-_id -createdAt -updatedAt'
+					},
+					{
+						path: 'contactInfo',
+						select: '-_id firstName lastName middleName'
+					}
+				],
+				select: '-_id city'
+			},
+			{
+				path: 'user',
+				select: 'firstName lastName phoneNumber email'
+			}
+		]);
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+const updateOne = async (id, changes) => {
+	const { receiverInfo, companyInfo } = changes;
+
+	try {
+		const orderToUpdate = await Order.findOne({ _id: id });
+
+		if (!orderToUpdate) {
+			throw {
+				status: 404,
+				message: `Order with id '${id}' not found`
+			};
+		}
+
+		if (receiverInfo) {
+			const specified = orderToUpdate.receiverInfo;
+
+			if (specified) {
+				throw {
+					status: 409,
+					message: 'Order already has receiver info specified'
+				};
+			}
+
+			const exists = await ContactInfo.exists({ _id: receiverInfo });
+
+			if (!exists) {
+				throw {
+					status: 404,
+					message: `Contact info with id '${receiverInfo}' not found`
+				};
+			}
+		}
+
+		if (companyInfo) {
+			const specified = orderToUpdate.companyInfo;
+
+			if (specified) {
+				throw {
+					status: 409,
+					message: 'Order already has company info specified'
+				};
+			}
+
+			const exists = await CompanyInfo.exists({ _id: companyInfo });
+
+			if (!exists) {
+				throw {
+					status: 404,
+					message: `Company info with id '${companyInfo}' not found`
+				};
+			}
+		}
+
+		return await Order.findByIdAndUpdate(id, changes, {
+			new: true
+		}).populate([
 			{
 				path: 'contactInfo',
 				select: '-_id firstName lastName phoneNumber email'
@@ -356,5 +473,6 @@ export default {
 	getOne,
 	getAll,
 	getStatuses,
-	updateStatus
+	updateStatus,
+	updateOne
 };

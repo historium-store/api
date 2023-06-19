@@ -1,11 +1,11 @@
-import { expect } from 'chai';
-import mongoose, { mongo } from 'mongoose';
+import { expect, use } from 'chai';
+import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
-describe(' publisher system ', () => {
+describe(' product-type system ', () => {
 	let userToken = 'Bearer ';
-	let publisherId;
+	let productTypeId;
 
 	before(async () => {
 		await mongoose
@@ -16,7 +16,7 @@ describe(' publisher system ', () => {
 	});
 
 	after(async () => {
-		await mongoose.connection.collection('publishers').deleteMany();
+		await mongoose.connection.collection('producttypes').deleteMany();
 		await mongoose.connection.close();
 	});
 
@@ -34,32 +34,26 @@ describe(' publisher system ', () => {
 		userToken = 'Bearer ';
 	});
 
-	describe(' "/publisher/" post request ', () => {
-		it(' the publisher data is correct; the new publisher object is returned ', async () => {
-			const newPublisher = {
-				name: 'OpenAI',
-				books: [],
-				bookSeries: [],
-				description: 'Publishing company specializing in AI research',
-				logo: 'https://example.com/logo.png'
+	describe(' "/product-type/" POST request ', () => {
+		it(' the product-type data is correct; the new product type object is returnd ', async () => {
+			const newProductType = {
+				name: 'Book',
+				key: 'book'
 			};
 
 			const expectedFields = [
 				'name',
-				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.post('/publisher/')
+				.post('/product-type/')
 				.set('Authorization', userToken)
-				.send(newPublisher)
+				.send(newProductType)
 				.then(response => {
-					publisherId = response.body._id;
+					productTypeId = response.body._id;
 
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
@@ -70,10 +64,10 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/" get request ', () => {
-		it(' should return an array of users ', async () => {
+	describe(' "/product-type/" GET request ', () => {
+		it(' should return an array of prdocut types ', async () => {
 			await request(app)
-				.get('/publisher/')
+				.get('/product-type/')
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -85,20 +79,17 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" get request ', () => {
-		it(' should return user object ', async () => {
+	describe(' "/product-type/:id" GET request ', () => {
+		it(' should return product type object ', async () => {
 			const expectedFields = [
 				'name',
-				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.get(`/publisher/${publisherId}`)
+				.get(`/product-type/${productTypeId}`)
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -110,28 +101,24 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" patch request ', () => {
-		it(' correct values are sent; the changed publisher object is returned ', async () => {
-			const updatedPublisherData = {
-				name: 'Updated Publisher',
-				description:
-					'This is an updated description with more than 40 characters.',
-				logo: 'https://example.com/updated-logo.png'
+	describe(' "/product-type/:id" PATCH request ', () => {
+		it(' correct values are sent; updated product type object is returned ', async () => {
+			const updatedProductTypeData = {
+				name: 'E-Book',
+				key: 'e-book'
 			};
+
 			const expectedFields = [
 				'name',
-				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.patch(`/publisher/${publisherId}`)
+				.patch(`/product-type/${productTypeId}`)
 				.set('Authorization', userToken)
-				.send(updatedPublisherData)
+				.send(updatedProductTypeData)
 				.then(response => {
 					expect(response.status).to.equal(200);
 					expect(response.header['content-type']).to.include(

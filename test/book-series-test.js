@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import mongoose, { mongo } from 'mongoose';
+import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
-describe(' publisher system ', () => {
+describe(' author system ', () => {
 	let userToken = 'Bearer ';
-	let publisherId;
+	let bookSeriesId;
 
 	before(async () => {
 		await mongoose
@@ -16,6 +16,7 @@ describe(' publisher system ', () => {
 	});
 
 	after(async () => {
+		await mongoose.connection.collection('bookseries').deleteMany();
 		await mongoose.connection.collection('publishers').deleteMany();
 		await mongoose.connection.close();
 	});
@@ -34,32 +35,45 @@ describe(' publisher system ', () => {
 		userToken = 'Bearer ';
 	});
 
-	describe(' "/publisher/" post request ', () => {
-		it(' the publisher data is correct; the new publisher object is returned ', async () => {
-			const newPublisher = {
-				name: 'OpenAI',
+	describe(' "/book-series/" POST request ', () => {
+		it(' the book series data is correct; the new book series object is returned ', async () => {
+			const Publisher = {
+				name: 'Новий Вік',
 				books: [],
 				bookSeries: [],
-				description: 'Publishing company specializing in AI research',
+				description:
+					'Видавництво, спеціалізуючеся на публікації літератури різних жанрів',
 				logo: 'https://example.com/logo.png'
+			};
+
+			const publisherId = (
+				await request(app)
+					.post('/publisher/')
+					.set('Authorization', userToken)
+					.send(Publisher)
+			).body._id;
+
+			const newBookSeries = {
+				name: 'Українська класика',
+				publisher: publisherId,
+				books: []
 			};
 
 			const expectedFields = [
 				'name',
+				'publisher',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.post('/publisher/')
+				.post('/book-series/')
 				.set('Authorization', userToken)
-				.send(newPublisher)
+				.send(newBookSeries)
 				.then(response => {
-					publisherId = response.body._id;
+					bookSeriesId = response.body._id;
 
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
@@ -70,10 +84,10 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/" get request ', () => {
-		it(' should return an array of users ', async () => {
+	describe(' "/book-series/" GET request ', () => {
+		it(' should retrun an array of book series ', async () => {
 			await request(app)
-				.get('/publisher/')
+				.get('/book-series/')
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -85,20 +99,19 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" get request ', () => {
-		it(' should return user object ', async () => {
+	describe(' "/book-series/:id" GET request ', async () => {
+		it(' should retrun book series object ', async () => {
 			const expectedFields = [
 				'name',
+				'publisher',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.get(`/publisher/${publisherId}`)
+				.get(`/book-series/${bookSeriesId}`)
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -110,34 +123,24 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" patch request ', () => {
-		it(' correct values are sent; the changed publisher object is returned ', async () => {
-			const updatedPublisherData = {
-				name: 'Updated Publisher',
-				description:
-					'This is an updated description with more than 40 characters.',
-				logo: 'https://example.com/updated-logo.png'
+	describe(' "/book-series/:id" PATCH request ', () => {
+		it(' correct values are sent; updated book series object is retruned ', async () => {
+			const updatedBookSeries = {
+				name: 'Українська класика *updated'
 			};
-			const expectedFields = [
-				'name',
-				'books',
-				'bookSeries',
-				'description',
-				'_id',
-				'createdAt',
-				'updatedAt'
-			];
 
 			await request(app)
-				.patch(`/publisher/${publisherId}`)
+				.patch(`/book-series/${bookSeriesId}`)
 				.set('Authorization', userToken)
-				.send(updatedPublisherData)
+				.send(updatedBookSeries)
 				.then(response => {
 					expect(response.status).to.equal(200);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
-					expect(response.body).to.include.keys(...expectedFields);
+					expect(response.body.name).to.equal(
+						'Українська класика *updated'
+					);
 				});
 		});
 	});

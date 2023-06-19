@@ -1,25 +1,24 @@
 import { randomBytes } from 'crypto';
 import { hashPassword } from '../../utils.js';
 import Cart from '../cart/model.js';
+import cartService from '../cart/service.js';
 import User from './model.js';
 
 const createOne = async userData => {
 	const { phoneNumber, email } = userData;
 
 	try {
-		const foundUser = await User.findOne({
-			$or: [
-				{ phoneNumber, deletedAt: { $exists: false } },
-				{ email, deletedAt: { $exists: false } }
-			]
-		});
+		const existingUser = await User.where('deletedAt')
+			.exists(false)
+			.or([{ phoneNumber }, { email }])
+			.findOne();
 
-		if (foundUser) {
+		if (existingUser) {
 			throw {
 				status: 409,
 				message:
 					'User with ' +
-					(foundUser.phoneNumber === phoneNumber
+					(existingUser.phoneNumber === phoneNumber
 						? `phone number '${phoneNumber}'`
 						: `email '${email}'`) +
 					' already exists'
@@ -38,12 +37,11 @@ const createOne = async userData => {
 		userData.salt = salt.toString('hex');
 
 		const newUser = await User.create(userData);
+		const newCart = await Cart.create({ user: newUser });
+		newUser.cart = newCart.id;
+		await newUser.save();
 
-		const newCart = await Cart.create({ user: newUser.id });
-
-		await newUser.updateOne({ cart: newCart.id });
-
-		return await User.findById(newUser.id);
+		return newUser;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -52,12 +50,15 @@ const createOne = async userData => {
 	}
 };
 
-const getOne = async id => {
+const getOne = async (id, withDeleted) => {
 	try {
-		const foundUser = await User.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		const query = User.where('_id').equals(id);
+
+		if (!withDeleted) {
+			query.where('deletedAt').exists(false);
+		}
+
+		const foundUser = await query.findOne();
 
 		if (!foundUser) {
 			throw {
@@ -76,17 +77,29 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip, orderBy, order } = queryParams;
-
-	const filter = {
-		deletedAt: { $exists: false }
-	};
+	const {
+		limit,
+		offset: skip,
+		orderBy,
+		order,
+		withDeleted
+	} = queryParams;
 
 	try {
-		return await User.find(filter)
+		const query = User.find();
+
+		if (!withDeleted) {
+			query.where('deletedAt').exists(false);
+		}
+
+		query
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order });
+
+		const foundUsers = await query.exec();
+
+		return foundUsers;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -99,10 +112,11 @@ const updateOne = async (id, changes) => {
 	const { phoneNumber, email } = changes;
 
 	try {
-		const userToUpdate = await User.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		let userToUpdate = await User.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!userToUpdate) {
 			throw {
@@ -111,19 +125,17 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		const foundUser = await User.findOne({
-			$or: [
-				{ phoneNumber, deletedAt: { $exists: false } },
-				{ email, deletedAt: { $exists: false } }
-			]
-		});
+		const existingUser = await User.where('deletedAt')
+			.exists(false)
+			.or([{ phoneNumber }, { email }])
+			.findOne();
 
-		if (foundUser) {
+		if (existingUser) {
 			throw {
 				status: 409,
 				message:
 					'User with ' +
-					(foundUser.phoneNumber === phoneNumber
+					(existingUser.phoneNumber === phoneNumber
 						? `phone number '${phoneNumber}'`
 						: `email '${email}'`) +
 					' already exists'
@@ -142,12 +154,18 @@ const updateOne = async (id, changes) => {
 			changes.password = hashedPassword.toString('hex');
 			changes.salt = salt.toString('hex');
 
-			await foundUser.updateOne({
+			await userToUpdate.updateOne({
 				$unset: { temporaryPassword: true }
 			});
 		}
 
-		return await User.findByIdAndUpdate(id, changes, { new: true });
+		Object.keys(changes).forEach(
+			key => (userToUpdate[key] = changes[key])
+		);
+
+		await userToUpdate.save();
+
+		return userToUpdate;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -158,10 +176,11 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const userToDelete = await User.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		const userToDelete = await User.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!userToDelete) {
 			throw {
@@ -170,11 +189,10 @@ const deleteOne = async id => {
 			};
 		}
 
+		await cartService.clearItems(userToDelete.cart);
 		await Cart.deleteOne({ user: id });
 
 		await userToDelete.deleteOne();
-
-		return userToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

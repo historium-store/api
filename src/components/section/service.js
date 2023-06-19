@@ -1,5 +1,4 @@
 import validator from 'validator';
-
 import Product from '../product/model.js';
 import Section from './model.js';
 
@@ -35,7 +34,7 @@ const createOne = async sectionData => {
 
 		await Product.updateMany(
 			{ _id: products },
-			{ $push: { sections: newSection.id } }
+			{ $push: { sections: newSection } }
 		);
 
 		return newSection;
@@ -73,7 +72,7 @@ const populateRecursively = async (id, withProducts) => {
 		);
 
 		const productPreviews = foundProducts.map(p => ({
-			id: p.id,
+			_id: p.id,
 			name: p.name,
 			key: p.key,
 			price: p.price,
@@ -163,13 +162,9 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { name, products } = changes;
 
 	try {
-		// проверка существования раздела
-		// с входным id
 		const sectionToUpdate = await Section.findOne({
 			_id: id,
 			deletedAt: { $exists: false }
@@ -182,24 +177,20 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		// проверка существования раздела
-		// с входным названием
-		const sectionExists = await Section.exists({
-			name,
-			deletedAt: { $exists: false }
-		});
+		if (name) {
+			const sectionExists = await Section.exists({
+				name,
+				deletedAt: { $exists: false }
+			});
 
-		if (sectionExists) {
-			throw {
-				status: 409,
-				message: `Section with name '${name}' already exists`
-			};
+			if (sectionExists) {
+				throw {
+					status: 409,
+					message: `Section with name '${name}' already exists`
+				};
+			}
 		}
 
-		// проверка существования
-		// входных продуктов
-		// если они есть в изменениях
-		// обновление соответствующих продуктов
 		if (products) {
 			const notFoundIndex = (
 				await Product.find({ _id: products })
@@ -212,7 +203,7 @@ const updateOne = async (id, changes) => {
 			}
 
 			const oldProductIds = sectionToUpdate.products.map(p =>
-				p.id.toString('hex')
+				p.toHexString()
 			);
 
 			const addedProductIds = products.filter(
@@ -220,7 +211,7 @@ const updateOne = async (id, changes) => {
 			);
 			await Product.updateMany(
 				{ _id: addedProductIds },
-				{ $push: { sections: sectionToUpdate.id } }
+				{ $push: { sections: sectionToUpdate } }
 			);
 
 			const removedProductIds = oldProductIds.filter(
@@ -228,13 +219,13 @@ const updateOne = async (id, changes) => {
 			);
 			await Product.updateMany(
 				{ _id: removedProductIds },
-				{ $pull: { sections: sectionToUpdate.id } }
+				{ $pull: { sections: sectionToUpdate } }
 			);
 		}
 
-		await sectionToUpdate.updateOne(changes);
-
-		return await Section.findById(id);
+		return await Section.findByIdAndUpdate(id, changes, {
+			new: true
+		});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -245,8 +236,6 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		// проверка существования раздела
-		// с входным id
 		const sectionToDelete = await Section.findOne({
 			_id: id,
 			deletedAt: { $exists: false }
@@ -259,8 +248,6 @@ const deleteOne = async id => {
 			};
 		}
 
-		// прерывание операции удаления
-		// при наличии продуктов у раздела
 		if (sectionToDelete.products.length) {
 			throw {
 				status: 400,
@@ -281,6 +268,7 @@ const populateNestedSections = async sections => {
 	await Promise.all(
 		sections.map(async s => {
 			await s.populate('sections', 'sections');
+
 			if (s.sections.length) {
 				await populateNestedSections(s.sections);
 			}

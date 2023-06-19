@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { updateOrderNumber } from '../../triggers/order-number.js';
 
 const { ObjectId } = Schema.Types;
 
@@ -51,12 +52,14 @@ const orderSchema = new Schema(
 		status: {
 			name: {
 				type: String,
-				required: true
+				required: true,
+				default: 'Поточний'
 			},
 
 			key: {
 				type: String,
-				required: true
+				required: true,
+				default: 'active'
 			}
 		},
 
@@ -66,61 +69,15 @@ const orderSchema = new Schema(
 			required: false
 		},
 
-		items: [
-			{
-				product: {
-					_id: {
-						type: ObjectId,
-						required: true
-					},
+		cart: {
+			type: ObjectId,
+			require: false
+		},
 
-					name: {
-						type: String,
-						required: true
-					},
-
-					type: {
-						name: {
-							type: String,
-							required: true
-						},
-
-						key: {
-							type: String,
-							required: true
-						}
-					},
-
-					code: {
-						type: String,
-						required: false,
-						unique: true
-					},
-
-					key: {
-						type: String,
-						required: true,
-						unique: true
-					},
-
-					price: {
-						type: Number,
-						required: true,
-						min: 0
-					},
-
-					image: {
-						type: String,
-						required: true
-					}
-				},
-
-				quantity: {
-					type: Number,
-					required: true
-				}
-			}
-		],
+		number: {
+			type: String,
+			required: false
+		},
 
 		createdAt: {
 			type: Number
@@ -136,6 +93,11 @@ const orderSchema = new Schema(
 		strict: false
 	}
 );
+
+orderSchema.pre('save', async function (next) {
+	await updateOrderNumber(this);
+	next();
+});
 
 const Order = model('Order', orderSchema);
 

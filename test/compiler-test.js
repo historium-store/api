@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import mongoose, { mongo } from 'mongoose';
+import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
-describe(' publisher system ', () => {
+describe(' compiler system ', () => {
 	let userToken = 'Bearer ';
-	let publisherId;
+	let compilerId;
 
 	before(async () => {
 		await mongoose
@@ -16,7 +16,7 @@ describe(' publisher system ', () => {
 	});
 
 	after(async () => {
-		await mongoose.connection.collection('publishers').deleteMany();
+		await mongoose.connection.collection('compilers').deleteMany();
 		await mongoose.connection.close();
 	});
 
@@ -34,32 +34,27 @@ describe(' publisher system ', () => {
 		userToken = 'Bearer ';
 	});
 
-	describe(' "/publisher/" post request ', () => {
-		it(' the publisher data is correct; the new publisher object is returned ', async () => {
-			const newPublisher = {
-				name: 'OpenAI',
-				books: [],
-				bookSeries: [],
-				description: 'Publishing company specializing in AI research',
-				logo: 'https://example.com/logo.png'
+	describe(' "/compiler/" POST request ', () => {
+		it(' the compiler data is correct; the new compiler object is returned ', async () => {
+			const newCompiler = {
+				fullName: 'John Smith',
+				books: []
 			};
 
 			const expectedFields = [
-				'name',
+				'fullName',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.post('/publisher/')
+				.post('/compiler/')
 				.set('Authorization', userToken)
-				.send(newPublisher)
+				.send(newCompiler)
 				.then(response => {
-					publisherId = response.body._id;
+					compilerId = response.body._id;
 
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
@@ -70,10 +65,10 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/" get request ', () => {
-		it(' should return an array of users ', async () => {
+	describe(' "/compiler/" GET request ', () => {
+		it(' should return an array of compilers ', async () => {
 			await request(app)
-				.get('/publisher/')
+				.get('/compiler/')
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -85,20 +80,18 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" get request ', () => {
-		it(' should return user object ', async () => {
+	describe(' "/compiler/:id" GET request ', () => {
+		it(' should return compiler object ', async () => {
 			const expectedFields = [
-				'name',
+				'fullName',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.get(`/publisher/${publisherId}`)
+				.get(`/compiler/${compilerId}`)
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -110,28 +103,23 @@ describe(' publisher system ', () => {
 		});
 	});
 
-	describe(' "/publisher/:id" patch request ', () => {
-		it(' correct values are sent; the changed publisher object is returned ', async () => {
-			const updatedPublisherData = {
-				name: 'Updated Publisher',
-				description:
-					'This is an updated description with more than 40 characters.',
-				logo: 'https://example.com/updated-logo.png'
+	describe(' "/compiler/:id" PATCH request ', () => {
+		it(' correct values are sent; the changed compiler object is returned ', async () => {
+			const updatedCompilerData = {
+				fullName: 'Updated compiler name'
 			};
 			const expectedFields = [
-				'name',
+				'fullName',
 				'books',
-				'bookSeries',
-				'description',
 				'_id',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.patch(`/publisher/${publisherId}`)
+				.patch(`/compiler/${compilerId}`)
 				.set('Authorization', userToken)
-				.send(updatedPublisherData)
+				.send(updatedCompilerData)
 				.then(response => {
 					expect(response.status).to.equal(200);
 					expect(response.header['content-type']).to.include(
