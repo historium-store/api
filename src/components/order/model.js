@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { updateOrderNumber } from '../../triggers/order-number';
+import { updateOrderNumber } from '../../triggers/order-number.js';
 
 const { ObjectId } = Schema.Types;
 
