@@ -76,5 +76,8 @@ export const validateQueryParams = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Query parameter 'country' must have a value")
+		.withMessage("Query parameter 'country' must have a value"),
+	query('withDeleted')
+		.optional()
+		.customSanitizer(() => true)
 ];

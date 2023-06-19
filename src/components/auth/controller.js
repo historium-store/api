@@ -48,14 +48,6 @@ export const authenticate = async (req, res, next) => {
 	}
 };
 
-const authenticateAndReturn = async (req, res, next) => {
-	try {
-		res.json(await service.authenticate(req.get('Authorization')));
-	} catch (err) {
-		next(createError(err));
-	}
-};
-
 const restorePassword = async (req, res, next) => {
 	try {
 		validationResult(req)
@@ -103,7 +95,6 @@ export default {
 	signup,
 	login,
 	authenticate,
-	authenticateAndReturn,
 	restorePassword,
 	verifyRestore
 };

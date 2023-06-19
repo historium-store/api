@@ -18,9 +18,9 @@ const getOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { id } = matchedData(req);
+		const { id, withDeleted } = matchedData(req);
 
-		res.json(await service.getOne(id));
+		res.json(await service.getOne(id, withDeleted));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -51,7 +51,7 @@ const updateOne = async (req, res, next) => {
 		if (changes.role && req.user.role !== 'admin') {
 			throw {
 				status: 403,
-				message: 'No permission to update role'
+				message: 'Forbidden'
 			};
 		}
 
@@ -79,7 +79,9 @@ const deleteOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json(await service.deleteOne(id));
+		await service.deleteOne(id);
+
+		res.sendStatus(204);
 	} catch (err) {
 		next(createError(err));
 	}
