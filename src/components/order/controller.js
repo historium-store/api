@@ -91,10 +91,25 @@ const updateStatus = async (req, res, next) => {
 	}
 };
 
+const updateOne = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { id, ...changes } = matchedData(req);
+
+		res.json(await service.updateStatus(id, changes));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	getStatuses,
-	updateStatus
+	updateStatus,
+	updateOne
 };
