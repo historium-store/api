@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
-describe(' author system ', () => {
+describe(' section system', () => {
 	let userToken = 'Bearer ';
-	let authorId;
+	let sectionId;
 
 	before(async () => {
 		await mongoose
@@ -16,7 +16,7 @@ describe(' author system ', () => {
 	});
 
 	after(async () => {
-		await mongoose.connection.collection('authors').deleteMany();
+		await mongoose.connection.collection('sections').deleteMany();
 		await mongoose.connection.close();
 	});
 
@@ -34,33 +34,32 @@ describe(' author system ', () => {
 		userToken = 'Bearer ';
 	});
 
-	describe(' "/author/" POST request ', () => {
-		it(' the author data is correct; the new author object is returned ', async () => {
-			const newAuthor = {
-				fullName: 'John Smith',
-				biography:
-					'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-				books: [],
-				pictures: ['picture1.jpg', 'picture2.jpg']
+	describe(' "/section/" POST request ', () => {
+		it(' the section data is correct; the new section object is returned ', async () => {
+			const newSection = {
+				name: 'Fantastic',
+				key: 'fantastic',
+				products: [],
+				sections: []
 			};
 
 			const expectedFields = [
-				'fullName',
-				'biography',
-				'books',
+				'name',
+				'key',
+				'products',
 				'_id',
-				'pictures',
+				'sections',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.post('/author/')
+				.post('/section/')
 				.set('Authorization', userToken)
-				.send(newAuthor)
+				.send(newSection)
 				.then(response => {
-					authorId = response.body._id;
-					console.log(response.body.message);
+					sectionId = response.body._id;
+
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
 						'application/json'
@@ -70,10 +69,10 @@ describe(' author system ', () => {
 		});
 	});
 
-	describe(' "/author/" GET request ', () => {
-		it(' should return an array of authors ', async () => {
+	describe(' "/section/" GET request ', () => {
+		it(' should return an array of sections ', async () => {
 			await request(app)
-				.get('/author/')
+				.get('/section/')
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -85,20 +84,18 @@ describe(' author system ', () => {
 		});
 	});
 
-	describe(' "/author/:id" GET request ', () => {
-		it(' should return author object', async () => {
+	describe(' "/section/:id" GET request ', () => {
+		it(' should return section object', async () => {
 			const expectedFields = [
-				'fullName',
-				'biography',
-				'books',
+				'name',
+				'key',
+				'products',
 				'_id',
-				'pictures',
-				'createdAt',
-				'updatedAt'
+				'sections'
 			];
 
 			await request(app)
-				.get(`/author/${authorId}`)
+				.get(`/section/${sectionId}`)
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -110,28 +107,28 @@ describe(' author system ', () => {
 		});
 	});
 
-	describe(' "/author/:id" PATCH request ', () => {
-		it(' correct values are sent; the changed author object is returned ', async () => {
-			const updatedAuthorData = {
-				fullName: 'Updated author name',
-				biography:
-					'Updated author biography, which contain 40 symbols.'
+	describe(' "/section/:id" PATCH request ', () => {
+		it(' correct values are sent; the changed section object is returned ', async () => {
+			const updatedSectionData = {
+				key: 'fc'
 			};
 			const expectedFields = [
-				'fullName',
-				'biography',
-				'books',
+				'name',
+				'key',
+				'products',
 				'_id',
-				'pictures',
+				'sections',
 				'createdAt',
 				'updatedAt'
 			];
 
 			await request(app)
-				.patch(`/author/${authorId}`)
+				.patch(`/section/${sectionId}`)
 				.set('Authorization', userToken)
-				.send(updatedAuthorData)
+				.send(updatedSectionData)
 				.then(response => {
+					console.log(response.body.message);
+
 					expect(response.status).to.equal(200);
 					expect(response.header['content-type']).to.include(
 						'application/json'
