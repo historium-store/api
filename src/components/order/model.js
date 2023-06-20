@@ -36,7 +36,7 @@ const orderSchema = new Schema(
 		deliveryInfo: {
 			type: ObjectId,
 			ref: 'DeliveryInfo',
-			required: true
+			required: false
 		},
 
 		paymentType: {

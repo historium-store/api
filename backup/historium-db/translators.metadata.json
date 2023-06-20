@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"4ff226ebe03d4a60ae68a8762ce45600","collectionName":"translators","type":"collection"}

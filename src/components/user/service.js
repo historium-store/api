@@ -1,13 +1,15 @@
 import { randomBytes } from 'crypto';
-import { hashPassword } from '../../utils.js';
+import { hashPassword, normalizePhoneNumber } from '../../utils.js';
 import Cart from '../cart/model.js';
 import cartService from '../cart/service.js';
 import User from './model.js';
 
 const createOne = async userData => {
-	const { phoneNumber, email } = userData;
+	let { phoneNumber, email } = userData;
 
 	try {
+		phoneNumber = normalizePhoneNumber(phoneNumber);
+
 		const existingUser = await User.where('deletedAt')
 			.exists(false)
 			.or([{ phoneNumber }, { email }])
@@ -109,9 +111,14 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	const { phoneNumber, email } = changes;
+	let { phoneNumber, email } = changes;
 
 	try {
+		if (phoneNumber) {
+			phoneNumber = normalizePhoneNumber(phoneNumber);
+			changes.phoneNumber = phoneNumber;
+		}
+
 		let userToUpdate = await User.where('_id')
 			.equals(id)
 			.where('deletedAt')

@@ -113,3 +113,11 @@ export const isEmptyObject = obj => {
 
 	return true;
 };
+
+export const normalizePhoneNumber = phoneNumber => {
+	return phoneNumber.startsWith('380')
+		? `+${phoneNumber}`
+		: phoneNumber.startsWith('0')
+		? `+38${phoneNumber}`
+		: phoneNumber;
+};
