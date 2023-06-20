@@ -46,7 +46,7 @@ const updateOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const id = req.params;
+		const { id } = req.params;
 
 		const { ...changes } = matchedData(req);
 
