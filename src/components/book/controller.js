@@ -46,7 +46,9 @@ const updateOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { id, ...changes } = matchedData(req);
+		const id = req.params;
+
+		const { ...changes } = matchedData(req);
 
 		res.json(await service.updateOne(id, changes));
 	} catch (err) {
