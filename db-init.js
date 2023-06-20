@@ -12,45 +12,51 @@ const importData = async () => {
 		const db = client.db('historium-db');
 		const collections = await db.listCollections().toArray();
 
-		if (collections.length != 0) {
-			return;
-		} else {
-			console.log('Base not found. Initialization in progress.');
+		for (let { name } of collections) {
+			const documentCount = await db
+				.collection(name)
+				.countDocuments();
 
-			const backupDir = process.env.BACKUP_DIR_PATH;
-			const files = await fs.readdir(backupDir);
+			if (documentCount > 0) {
+				return;
+			}
+		}
 
-			for (const file of files) {
-				if (file.endsWith('.bson')) {
-					const collectionName = path.basename(file, '.bson');
-					const colection = db.collection(collectionName);
+		console.log('Base not found. Initialization in progress.');
 
-					const filePath = path.join(backupDir, file);
+		const backupDir = process.env.BACKUP_DIR_PATH;
+		const files = await fs.readdir(backupDir);
 
-					const fileData = await fs.readFile(filePath);
+		for (const file of files) {
+			if (file.endsWith('.bson')) {
+				const collectionName = path.basename(file, '.bson');
+				const colection = db.collection(collectionName);
 
-					let index = 0;
-					const documents = [];
-					while (fileData.length > index) {
-						index = BSON.deserializeStream(
-							fileData,
-							index,
-							1,
-							documents,
-							documents.length
-						);
-					}
+				const filePath = path.join(backupDir, file);
 
-					if (documents.length !== 0) {
+				const fileData = await fs.readFile(filePath);
+
+				let index = 0;
+				const documents = [];
+				while (fileData.length > index) {
+					index = BSON.deserializeStream(
+						fileData,
+						index,
+						1,
+						documents,
+						documents.length
+					);
+				}
+
+				if (documents.length !== 0) {
+					console.log(
+						`The \'${collectionName}\' collection is being initialized`
+					);
+					await colection.insertMany(documents).then(() => {
 						console.log(
-							`The \'${collectionName}\' collection is being initialized`
+							`\'${collectionName}\' collection initialization complete`
 						);
-						await colection.insertMany(documents).then(() => {
-							console.log(
-								`\'${collectionName}\' collection initialization complete`
-							);
-						});
-					}
+					});
 				}
 			}
 		}
