@@ -2,6 +2,7 @@ import { randomBytes, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import {
 	hashPassword,
+	normalizePhoneNumber,
 	transporter,
 	verifyJWT,
 	vonage
@@ -21,15 +22,15 @@ const signup = async userData => {
 };
 
 const login = async loginData => {
-	const { phoneNumber, email, password } = loginData;
+	let { phoneNumber, email, password } = loginData;
 
 	try {
-		const foundUser = await User.findOne({
-			$or: [
-				{ phoneNumber, deletedAt: { $exists: false } },
-				{ email, deletedAt: { $exists: false } }
-			]
-		});
+		phoneNumber = normalizePhoneNumber(phoneNumber);
+
+		const foundUser = await User.where('deletedAt')
+			.exists(false)
+			.or([{ phoneNumber }, { email }])
+			.findOne();
 
 		if (!foundUser) {
 			throw {
@@ -105,10 +106,11 @@ const authenticate = async authHeader => {
 	try {
 		const { sub: id } = await verifyJWT(token, process.env.SECRET);
 
-		const foundUser = await User.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		const foundUser = await User.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!foundUser) {
 			throw {
@@ -141,15 +143,17 @@ const authenticate = async authHeader => {
 };
 
 const restorePassword = async loginData => {
-	const { phoneNumber, email } = loginData;
+	let { phoneNumber, email } = loginData;
 
 	try {
-		const foundUser = await User.findOne({
-			$or: [
-				{ phoneNumber, deletedAt: { $exists: false } },
-				{ email, deletedAt: { $exists: false } }
-			]
-		});
+		if (phoneNumber) {
+			phoneNumber = normalizePhoneNumber(phoneNumber);
+		}
+
+		const foundUser = await User.where('deletedAt')
+			.exists(false)
+			.or([{ phoneNumber }, { email }])
+			.findOne();
 
 		if (!foundUser) {
 			throw {
@@ -191,69 +195,69 @@ const restorePassword = async loginData => {
 	}
 };
 
-const verifyRestore = async restoreData => {
-	const { phoneNumber, email, restorationToken } = restoreData;
+// const verifyRestore = async restoreData => {
+// 	let { phoneNumber, email, restorationToken } = restoreData;
 
-	try {
-		const foundUser = await User.findOne({
-			$or: [
-				{ phoneNumber, deletedAt: { $exists: false } },
-				{ email, deletedAt: { $exists: false } }
-			]
-		});
+// 	try {
+// 		phoneNumber = normalizePhoneNumber(phoneNumber);
 
-		if (!foundUser) {
-			throw {
-				status: 404,
-				message:
-					'User with ' +
-					(phoneNumber
-						? `phone number '${phoneNumber}'`
-						: `email '${email}'`) +
-					' not found'
-			};
-		}
+// 		const foundUser = await User.where('deletedAt')
+// 			.exists(false)
+// 			.or([{ phoneNumber }, { email }])
+// 			.findOne();
 
-		if (!foundUser.restorationToken) {
-			throw {
-				status: 400,
-				message: "User doesn't need restoration"
-			};
-		}
+// 		if (!foundUser) {
+// 			throw {
+// 				status: 404,
+// 				message:
+// 					'User with ' +
+// 					(phoneNumber
+// 						? `phone number '${phoneNumber}'`
+// 						: `email '${email}'`) +
+// 					' not found'
+// 			};
+// 		}
 
-		if (restorationToken !== foundUser.restorationToken) {
-			throw {
-				status: 400,
-				message: 'Incorrect restoration token'
-			};
-		}
+// 		if (!foundUser.restorationToken) {
+// 			throw {
+// 				status: 400,
+// 				message: "User doesn't need restoration"
+// 			};
+// 		}
 
-		await foundUser.updateOne({
-			$unset: { restorationToken: true }
-		});
+// 		if (restorationToken !== foundUser.restorationToken) {
+// 			throw {
+// 				status: 400,
+// 				message: 'Incorrect restoration token'
+// 			};
+// 		}
 
-		const payload = {
-			sub: foundUser.id
-		};
-		const options = {
-			expiresIn: process.env.JWT_EXPIRATION,
-			noTimestamp: true
-		};
-		const token = jwt.sign(payload, process.env.SECRET, options);
+// 		await foundUser.updateOne({
+// 			$unset: { restorationToken: true }
+// 		});
 
-		return { id: foundUser.id, token };
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
-	}
-};
+// 		const payload = {
+// 			sub: foundUser.id
+// 		};
+// 		const options = {
+// 			expiresIn: process.env.JWT_EXPIRATION,
+// 			noTimestamp: true
+// 		};
+// 		const token = jwt.sign(payload, process.env.SECRET, options);
+
+// 		return { id: foundUser.id, token };
+// 	} catch (err) {
+// 		throw {
+// 			status: err.status ?? 500,
+// 			message: err.message ?? err
+// 		};
+// 	}
+// };
 
 export default {
 	signup,
 	login,
 	authenticate,
-	restorePassword,
-	verifyRestore
+	restorePassword
+	// verifyRestore
 };
