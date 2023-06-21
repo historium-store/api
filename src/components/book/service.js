@@ -562,7 +562,7 @@ const updateOne = async (id, changes) => {
 
 		// обновление соответствуюших издателей
 		// при их наличии в изменениях и различии
-		const samePublisher = newPublisher.id === oldPublisher.id;
+		const samePublisher = newPublisher?.id === oldPublisher?.id;
 		if (publisher && !samePublisher) {
 			await newPublisher.updateOne({
 				$addToSet: { books: bookToUpdate.id }
@@ -574,7 +574,7 @@ const updateOne = async (id, changes) => {
 
 		// обновление соответствуюших серий книг
 		// при их наличии в изменениях и различии
-		const sameBookSeries = newBookSeries.id !== oldBookSeries.id;
+		const sameBookSeries = newBookSeries?.id !== oldBookSeries?.id;
 		if (series && !sameBookSeries) {
 			await newBookSeries.updateOne({
 				$addToSet: { books: bookToUpdate.id }
