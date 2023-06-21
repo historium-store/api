@@ -165,8 +165,10 @@ const updateOne = async (id, changes) => {
 	const { name, products } = changes;
 
 	try {
-		const sectionToUpdate = await Section.findOne({
-			_id: id,
+		const isMongoId = validator.isMongoId(id);
+
+		const section = await Section.findOne({
+			...(isMongoId ? { _id: id } : { key: id }),
 			deletedAt: { $exists: false }
 		});
 
