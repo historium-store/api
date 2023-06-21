@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { checkRole, validateQueryParams } from '../../middleware.js';
-import { authenticate } from '../auth/controller.js';
+import { authenticate as authentication } from '../auth/controller.js';
 import cartItemController from '../cart-item/controller.js';
 import cartItemValidator from '../cart-item/validator.js';
 import cartController from '../cart/controller.js';
@@ -10,7 +10,7 @@ import validator from './validator.js';
 
 const userRouter = Router();
 
-userRouter.use(authenticate);
+userRouter.use(authentication);
 
 userRouter.get(
 	'/',
@@ -19,7 +19,7 @@ userRouter.get(
 	controller.getAll
 );
 
-userRouter.get('/account', (req, res) => res.json(req.user));
+userRouter.get('/account', controller.getAccount);
 
 userRouter
 	.route('/cart')
