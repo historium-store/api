@@ -43,12 +43,14 @@ const getAll = async (req, res, next) => {
 };
 
 const updateOne = async (req, res, next) => {
+	const { id } = req.params;
+
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { id, ...changes } = matchedData(req);
+		const { ...changes } = matchedData(req);
 
 		res.json(await service.updateOne(id, changes));
 	} catch (err) {

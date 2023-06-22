@@ -25,7 +25,9 @@ const login = async loginData => {
 	let { phoneNumber, email, password } = loginData;
 
 	try {
-		phoneNumber = normalizePhoneNumber(phoneNumber);
+		if (phoneNumber) {
+			phoneNumber = normalizePhoneNumber(phoneNumber);
+		}
 
 		const foundUser = await User.where('deletedAt')
 			.exists(false)

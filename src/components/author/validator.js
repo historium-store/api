@@ -1,12 +1,6 @@
 import { body, param } from 'express-validator';
 import { isArrayOfMongoIds } from '../../utils.js';
 
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Author id must be a valid mongo id')
-];
-
 const validateCreate = [
 	body('fullName')
 		.trim()
@@ -29,6 +23,12 @@ const validateCreate = [
 		.optional()
 		.isArray({ min: 1, max: 3 })
 		.withMessage('Author can have between 1 and 3 pictures')
+];
+
+const validateId = [
+	param('id')
+		.isMongoId()
+		.withMessage('Author id must be a valid mongo id')
 ];
 
 const validateUpdate = [
@@ -57,10 +57,8 @@ const validateUpdate = [
 		.withMessage('Author can have between 1 and 3 pictures')
 ];
 
-const validator = {
+export default {
 	validateId,
 	validateCreate,
 	validateUpdate
 };
-
-export default validator;

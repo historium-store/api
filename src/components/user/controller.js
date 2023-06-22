@@ -87,9 +87,14 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
+const getAccount = async (req, res) => {
+	res.json(req.user);
+};
+
 export default {
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne
+	deleteOne,
+	getAccount
 };

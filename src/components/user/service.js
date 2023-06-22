@@ -170,9 +170,7 @@ const updateOne = async (id, changes) => {
 			key => (userToUpdate[key] = changes[key])
 		);
 
-		await userToUpdate.save();
-
-		return userToUpdate;
+		return await userToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

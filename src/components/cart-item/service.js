@@ -6,10 +6,11 @@ const addItem = async (cart, itemData) => {
 	const { product, quantity } = itemData;
 
 	try {
-		const productExists = await Product.exists({
-			_id: product,
-			deletedAt: { $exists: false }
-		});
+		const productExists = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!productExists) {
 			throw {
@@ -30,9 +31,9 @@ const addItem = async (cart, itemData) => {
 		const existingItem = await CartItem.findOne({ cart, product });
 
 		if (existingItem) {
-			await existingItem.updateOne(
-				quantity ? { $set: { quantity } } : { $inc: { quantity: 1 } }
-			);
+			existingItem.quantity = quantity ?? existingItem.quantity + 1;
+
+			await existingItem.save();
 
 			return;
 		}

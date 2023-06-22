@@ -437,7 +437,7 @@ const updateOne = async (id, changes) => {
 			}
 
 			const oldAuthorIds = bookToUpdate.authors.map(a =>
-				a.id.toString('hex')
+				a.toHexString()
 			);
 
 			addedAuthorIds.push(
@@ -465,7 +465,7 @@ const updateOne = async (id, changes) => {
 			}
 
 			const oldCompilerIds = bookToUpdate.compilers.map(c =>
-				c.id.toString('hex')
+				c.toHexString()
 			);
 
 			addedCompilerIds.push(
@@ -493,7 +493,7 @@ const updateOne = async (id, changes) => {
 			}
 
 			const oldTranslatorIds = bookToUpdate.translators.map(t =>
-				t.id.toString('hex')
+				t.toHexString()
 			);
 
 			addedTranslatorIds.push(
@@ -520,8 +520,8 @@ const updateOne = async (id, changes) => {
 				};
 			}
 
-			const oldIllustratorIds = bookToUpdate.illustrators.map(t =>
-				t.id.toString('hex')
+			const oldIllustratorIds = bookToUpdate.illustrators.map(i =>
+				i.toHexString()
 			);
 
 			addedIllustratorIds.push(
@@ -548,8 +548,8 @@ const updateOne = async (id, changes) => {
 				};
 			}
 
-			const oldEditorIds = bookToUpdate.editors.map(t =>
-				t.id.toString('hex')
+			const oldEditorIds = bookToUpdate.editors.map(e =>
+				e.toHexString()
 			);
 
 			addedEditorIds.push(
@@ -562,7 +562,7 @@ const updateOne = async (id, changes) => {
 
 		// обновление соответствуюших издателей
 		// при их наличии в изменениях и различии
-		const samePublisher = newPublisher.id === oldPublisher.id;
+		const samePublisher = newPublisher?.id === oldPublisher?.id;
 		if (publisher && !samePublisher) {
 			await newPublisher.updateOne({
 				$addToSet: { books: bookToUpdate.id }
@@ -574,7 +574,7 @@ const updateOne = async (id, changes) => {
 
 		// обновление соответствуюших серий книг
 		// при их наличии в изменениях и различии
-		const sameBookSeries = newBookSeries.id !== oldBookSeries.id;
+		const sameBookSeries = newBookSeries?.id !== oldBookSeries?.id;
 		if (series && !sameBookSeries) {
 			await newBookSeries.updateOne({
 				$addToSet: { books: bookToUpdate.id }
