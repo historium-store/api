@@ -15,6 +15,11 @@ const countrySchema = new Schema(
 			}
 		],
 
+		key: {
+			type: String,
+			required: true
+		},
+
 		createdAt: {
 			type: Number
 		},
