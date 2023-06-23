@@ -1,6 +1,10 @@
 import { Router } from 'express';
-import { checkRole, validateQueryParams } from '../../middleware.js';
-import authController from '../auth/controller.js';
+import {
+	checkRole,
+	validateId,
+	validateQueryParams
+} from '../../middleware.js';
+import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -10,7 +14,7 @@ productTypeRouter
 	.route('/')
 	.get(validateQueryParams, controller.getAll)
 	.post(
-		authController.authenticate,
+		authenticate,
 		checkRole(['admin']),
 		validator.validateCreate,
 		controller.createOne
@@ -18,17 +22,17 @@ productTypeRouter
 
 productTypeRouter
 	.route('/:id')
-	.get(validator.validateId, controller.getOne)
+	.get(validateId, controller.getOne)
 	.patch(
-		authController.authenticate,
+		authenticate,
 		checkRole(['admin']),
 		validator.validateUpdate,
 		controller.updateOne
 	)
 	.delete(
-		authController.authenticate,
+		authenticate,
 		checkRole(['admin']),
-		validator.validateId,
+		validateId,
 		controller.deleteOne
 	);
 

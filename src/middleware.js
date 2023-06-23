@@ -1,4 +1,4 @@
-import { query } from 'express-validator';
+import { param, query } from 'express-validator';
 import createHttpError from 'http-errors';
 
 export const errorHandler = (err, req, res, next) => {
@@ -8,7 +8,7 @@ export const errorHandler = (err, req, res, next) => {
 		message = JSON.parse(err.message);
 	} catch {
 		if (!err.status || err.status == 500) {
-			console.log(err);
+			console.log(err.message ?? err);
 			message = 'Internal server error';
 		} else {
 			message = err.message ?? err;
@@ -27,6 +27,12 @@ export const checkRole = roles => (req, res, next) => {
 
 	next(createHttpError(403, 'No permission to use this endpoint'));
 };
+
+export const validateId = [
+	param('id')
+		.isMongoId()
+		.withMessage("Parameter 'id' must be a valid mongo id")
+];
 
 export const validateQueryParams = [
 	query('limit')

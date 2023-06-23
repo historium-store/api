@@ -1,20 +1,23 @@
 import ProductType from './model.js';
 
+const checkExistenceByName = async name => {
+	const existsingProductType = await ProductType.where('name')
+		.equals(name)
+		.findOne();
+
+	if (existsingProductType) {
+		throw {
+			status: 409,
+			message: `Product type with name '${name}' already exists`
+		};
+	}
+};
+
 const createOne = async productTypeData => {
 	const { name } = productTypeData;
 
 	try {
-		const existsingProductType = await ProductType.exists({
-			name,
-			deletedAt: { $exists: false }
-		});
-
-		if (existsingProductType) {
-			throw {
-				status: 409,
-				message: `Product type with name '${name}' already exists`
-			};
-		}
+		checkExistenceByName(name);
 
 		return await ProductType.create(productTypeData);
 	} catch (err) {
@@ -27,7 +30,7 @@ const createOne = async productTypeData => {
 
 const getOne = async id => {
 	try {
-		const foundProductType = await ProductType.findById(id);
+		const foundProductType = await ProductType.findById();
 
 		if (!foundProductType) {
 			throw {
@@ -49,9 +52,7 @@ const getAll = async queryParams => {
 	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
-		return await ProductType.find({
-			deletedAt: { $exists: false }
-		})
+		return await ProductType.find()
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order });
@@ -69,27 +70,20 @@ const updateOne = async (id, changes) => {
 	try {
 		const productTypeToUpdate = await ProductType.findById(id);
 
-		if (!productTypeToUpdate || productTypeToUpdate.deletedAt) {
+		if (!productTypeToUpdate) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
 			};
 		}
 
-		const existsingProductType = await ProductType.exists({
-			name,
-			deletedAt: { $exists: false }
-		});
-		if (existsingProductType) {
-			throw {
-				status: 409,
-				message: `Product type with name '${name}' already exists`
-			};
-		}
+		checkExistenceByName(name);
 
-		await productTypeToUpdate.updateOne(changes);
+		Object.keys(changes).forEach(
+			key => (productTypeToUpdate[key] = changes[key])
+		);
 
-		return await ProductType.findById(id);
+		return await productTypeToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -102,7 +96,7 @@ const deleteOne = async id => {
 	try {
 		const productTypeToDelete = await ProductType.findById(id);
 
-		if (!productTypeToDelete || productTypeToDelete.deletedAt) {
+		if (!productTypeToDelete) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
@@ -110,8 +104,6 @@ const deleteOne = async id => {
 		}
 
 		productTypeToDelete.deleteOne();
-
-		return productTypeToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
