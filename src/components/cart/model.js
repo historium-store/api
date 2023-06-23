@@ -34,10 +34,6 @@ const cartSchema = new Schema(
 	}
 );
 
-cartSchema.virtual('totalPrice').get(async function () {
-	return await getCartTotalPrice(this);
-});
-
 const Cart = model('Cart', cartSchema);
 
 export default Cart;
