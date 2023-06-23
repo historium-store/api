@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { checkRole, validateQueryParams } from '../../middleware.js';
+import {
+	checkRole,
+	validateId,
+	validateQueryParams
+} from '../../middleware.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -18,7 +22,7 @@ authorRouter
 
 authorRouter
 	.route('/:id')
-	.get(validator.validateId, controller.getOne)
+	.get(validateId, controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin', 'seller']),
@@ -28,7 +32,7 @@ authorRouter
 	.delete(
 		authenticate,
 		checkRole(['admin', 'seller']),
-		validator.validateId,
+		validateId,
 		controller.deleteOne
 	);
 
