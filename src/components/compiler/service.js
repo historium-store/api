@@ -114,26 +114,28 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		await checkCompilerExistense(fullName);
-
-		await Promise.all(
-			books.map(async id => {
-				const existingBook = await Book.where('_id')
-					.equals(id)
-					.where('deletedAt')
-					.exists(false)
-					.findOne();
-
-				if (!existingBook) {
-					throw {
-						status: 404,
-						message: `Book with id '${id}' not found`
-					};
-				}
-			})
-		);
+		if (fullName) {
+			await checkCompilerExistense(fullName);
+		}
 
 		if (books) {
+			await Promise.all(
+				books.map(async id => {
+					const existingBook = await Book.where('_id')
+						.equals(id)
+						.where('deletedAt')
+						.exists(false)
+						.findOne();
+
+					if (!existingBook) {
+						throw {
+							status: 404,
+							message: `Book with id '${id}' not found`
+						};
+					}
+				})
+			);
+
 			const oldBookIds = compilerToUpdate.books.map(b =>
 				b.toHexString()
 			);
@@ -144,12 +146,12 @@ const updateOne = async (id, changes) => {
 
 			await Book.updateMany(
 				{ _id: addedBookIds },
-				{ $push: { compilers: compilerToUpdate } }
+				{ $push: { compilers: compilerToUpdate.id } }
 			);
 
 			await Book.updateMany(
 				{ _id: removedBookIds },
-				{ $pull: { compilers: compilerToUpdate } }
+				{ $pull: { compilers: compilerToUpdate.id } }
 			);
 		}
 

@@ -143,24 +143,24 @@ const updateOne = async (id, changes) => {
 			);
 		}
 
-		await Promise.all(
-			books.map(async id => {
-				const existingBook = await Book.where('_id')
-					.equals(id)
-					.where('deletedAt')
-					.exists(false)
-					.findOne();
-
-				if (!existingBook) {
-					throw {
-						status: 404,
-						message: `Book with id '${id}' not found`
-					};
-				}
-			})
-		);
-
 		if (books) {
+			await Promise.all(
+				books.map(async id => {
+					const existingBook = await Book.where('_id')
+						.equals(id)
+						.where('deletedAt')
+						.exists(false)
+						.findOne();
+
+					if (!existingBook) {
+						throw {
+							status: 404,
+							message: `Book with id '${id}' not found`
+						};
+					}
+				})
+			);
+
 			const oldBookIds = bookSeriesToUpdate.books.map(b =>
 				b.toHexString()
 			);
@@ -171,7 +171,7 @@ const updateOne = async (id, changes) => {
 
 			await Book.updateMany(
 				{ _id: addedBookIds },
-				{ $set: { series: bookSeriesToUpdate } }
+				{ $set: { series: bookSeriesToUpdate.id } }
 			);
 			await Book.updateMany(
 				{ _id: removedBookIds },
@@ -209,7 +209,7 @@ const deleteOne = async id => {
 
 		await Publisher.updateOne(
 			{ _id: bookSeriesToDelete.publisher },
-			{ $pull: { bookSeries: bookSeriesToDelete } }
+			{ $pull: { bookSeries: bookSeriesToDelete.id } }
 		);
 
 		await Book.updateMany(

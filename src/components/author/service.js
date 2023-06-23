@@ -114,26 +114,28 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		await checkAuthorExistense(fullName);
-
-		await Promise.all(
-			books.map(async id => {
-				const existingBook = await Book.where('_id')
-					.equals(id)
-					.where('deletedAt')
-					.exists(false)
-					.findOne();
-
-				if (!existingBook) {
-					throw {
-						status: 404,
-						message: `Book with id '${id}' not found`
-					};
-				}
-			})
-		);
+		if (fullName) {
+			await checkAuthorExistense(fullName);
+		}
 
 		if (books) {
+			await Promise.all(
+				books.map(async id => {
+					const existingBook = await Book.where('_id')
+						.equals(id)
+						.where('deletedAt')
+						.exists(false)
+						.findOne();
+
+					if (!existingBook) {
+						throw {
+							status: 404,
+							message: `Book with id '${id}' not found`
+						};
+					}
+				})
+			);
+
 			const oldBookIds = authorToUpdate.books.map(b =>
 				b.toHexString()
 			);
@@ -182,7 +184,7 @@ const deleteOne = async id => {
 
 		await Book.updateMany(
 			{ _id: authorToDelete.books },
-			{ $pull: { authors: authorToDelete } }
+			{ $pull: { authors: authorToDelete.id } }
 		);
 
 		await authorToDelete.deleteOne();

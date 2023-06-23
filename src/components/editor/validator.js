@@ -1,11 +1,5 @@
-import { body, param } from 'express-validator';
+import { body } from 'express-validator';
 import { isArrayOfMongoIds } from '../../utils.js';
-
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Editor id must be a valid mongo id')
-];
 
 const validateCreate = [
 	body('fullName')
@@ -18,7 +12,6 @@ const validateCreate = [
 ];
 
 const validateUpdate = [
-	...validateId,
 	body('fullName')
 		.optional()
 		.trim()
@@ -29,6 +22,7 @@ const validateUpdate = [
 		.custom(isArrayOfMongoIds('Editor', 'books'))
 ];
 
-const validator = { validateId, validateCreate, validateUpdate };
-
-export default validator;
+export default {
+	validateCreate,
+	validateUpdate
+};

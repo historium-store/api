@@ -8,9 +8,9 @@ const createOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const data = matchedData(req);
+		const editorData = matchedData(req);
 
-		res.status(201).json(await service.createOne(data));
+		res.status(201).json(await service.createOne(editorData));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -72,4 +72,10 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne
+};
