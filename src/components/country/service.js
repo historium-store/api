@@ -2,7 +2,9 @@ import Country from './model.js';
 
 const getAll = async () => {
 	try {
-		return (await Country.find()).map(c => c.name);
+		return await Country.find()
+			.lean()
+			.map(c => c.name);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -11,4 +13,6 @@ const getAll = async () => {
 	}
 };
 
-export default { getAll };
+export default {
+	getAll
+};
