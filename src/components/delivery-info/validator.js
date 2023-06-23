@@ -1,9 +1,6 @@
-import { body, param } from 'express-validator';
+import { body } from 'express-validator';
 
 const validateUpdate = [
-	param('id')
-		.isMongoId()
-		.withMessage('Delivery info id must be a valid mongo id'),
 	body('country')
 		.optional()
 		.isMongoId()
