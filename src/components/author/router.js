@@ -26,6 +26,7 @@ authorRouter
 	.patch(
 		authenticate,
 		checkRole(['admin', 'seller']),
+		validateId,
 		validator.validateUpdate,
 		controller.updateOne
 	)

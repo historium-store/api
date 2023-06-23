@@ -72,4 +72,10 @@ const deleteOne = async (req, res, next) => {
 	}
 };
 
-export default { createOne, getOne, getAll, updateOne, deleteOne };
+export default {
+	createOne,
+	getOne,
+	getAll,
+	updateOne,
+	deleteOne
+};

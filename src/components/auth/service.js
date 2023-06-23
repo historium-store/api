@@ -1,5 +1,4 @@
 import { randomBytes, timingSafeEqual } from 'crypto';
-import jwt from 'jsonwebtoken';
 import {
 	JWT_OPTIONS,
 	hashPassword,

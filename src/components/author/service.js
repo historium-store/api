@@ -1,7 +1,7 @@
 import Book from '../book/model.js';
 import Author from './model.js';
 
-const checkExistenseByFullName = async fullName => {
+const checkAuthorExistense = async fullName => {
 	const existingAuthor = await Author.where('fullName')
 		.equals(fullName)
 		.where('deletedAt')
@@ -21,7 +21,7 @@ const createOne = async authorData => {
 	books = books ?? [];
 
 	try {
-		checkExistenseByFullName(fullName);
+		await checkAuthorExistense(fullName);
 
 		await Promise.all(
 			books.map(async id => {
@@ -99,7 +99,6 @@ const getAll = async queryParams => {
 
 const updateOne = async (id, changes) => {
 	let { fullName, books } = changes;
-	books = books ?? [];
 
 	try {
 		const authorToUpdate = await Author.where('_id')
@@ -115,7 +114,7 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		checkExistenseByFullName(fullName);
+		await checkAuthorExistense(fullName);
 
 		await Promise.all(
 			books.map(async id => {
@@ -134,18 +133,24 @@ const updateOne = async (id, changes) => {
 			})
 		);
 
-		const oldBookIds = authorToUpdate.books.map(b => b.toHexString());
-		const addedBookIds = books.filter(b => !oldBookIds.includes(b));
-		const removedBookIds = oldBookIds.filter(b => !books.includes(b));
+		if (books) {
+			const oldBookIds = authorToUpdate.books.map(b =>
+				b.toHexString()
+			);
+			const addedBookIds = books.filter(b => !oldBookIds.includes(b));
+			const removedBookIds = oldBookIds.filter(
+				b => !books.includes(b)
+			);
 
-		await Book.updateMany(
-			{ _id: addedBookIds },
-			{ $push: { authors: authorToUpdate } }
-		);
-		await Book.updateMany(
-			{ _id: removedBookIds },
-			{ $pull: { authors: authorToUpdate } }
-		);
+			await Book.updateMany(
+				{ _id: addedBookIds },
+				{ $push: { authors: authorToUpdate.id } }
+			);
+			await Book.updateMany(
+				{ _id: removedBookIds },
+				{ $pull: { authors: authorToUpdate.id } }
+			);
+		}
 
 		Object.keys(changes).forEach(key => {
 			authorToUpdate[key] = changes[key];
@@ -175,14 +180,10 @@ const deleteOne = async id => {
 			};
 		}
 
-		const authorHasBooks = authorToDelete.books.length;
-
-		if (authorHasBooks) {
-			throw {
-				status: 400,
-				message: "Can't delete author that has published books"
-			};
-		}
+		await Book.updateMany(
+			{ _id: authorToDelete.books },
+			{ $pull: { authors: authorToDelete } }
+		);
 
 		await authorToDelete.deleteOne();
 	} catch (err) {

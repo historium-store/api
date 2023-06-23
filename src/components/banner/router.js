@@ -22,6 +22,7 @@ bannerRouter
 	.patch(
 		authenticate,
 		checkRole(['admin']),
+		validateId,
 		validator.validateUpdate,
 		controller.updateOne
 	)

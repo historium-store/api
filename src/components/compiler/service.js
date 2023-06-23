@@ -1,40 +1,50 @@
 import Book from '../book/model.js';
 import Compiler from './model.js';
 
+const checkCompilerExistense = async fullName => {
+	const existingCompiler = await Compiler.where('fullName')
+		.equals(fullName)
+		.where('deletedAt')
+		.exists(false)
+		.findOne();
+
+	if (existingCompiler) {
+		throw {
+			status: 409,
+			message: `Compiler with full name '${fullName}' already exists`
+		};
+	}
+};
+
 const createOne = async compilerData => {
 	let { fullName, books } = compilerData;
 	books = books ?? [];
 
 	try {
-		const existingCompiler = await Compiler.exists({
-			fullName,
-			deletedAt: { $exists: false }
-		});
+		await checkCompilerExistense(fullName);
 
-		if (existingCompiler) {
-			throw {
-				status: 409,
-				message: `Compiler with full name '${fullName}' already exists`
-			};
-		}
+		await Promise.all(
+			books.map(async id => {
+				const existingBook = await Book.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
 
-		const notFoundIndex = (
-			await Book.find({
-				_id: books
+				if (!existingBook) {
+					throw {
+						status: 404,
+						message: `Book with id '${id}' not found`
+					};
+				}
 			})
-		).findIndex(b => !b || b.deletedAt);
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Book with id '${books[notFoundIndex]}' not found`
-			};
-		}
+		);
 
 		const newCompiler = await Compiler.create(compilerData);
 
 		await Book.updateMany(
 			{ _id: books },
-			{ $push: { compilers: newCompiler.id } }
+			{ $push: { compilers: newCompiler } }
 		);
 
 		return newCompiler;
@@ -48,9 +58,13 @@ const createOne = async compilerData => {
 
 const getOne = async id => {
 	try {
-		const foundCompiler = await Compiler.findById(id);
+		const foundCompiler = await Compiler.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (!foundCompiler || foundCompiler.deletedAt) {
+		if (!foundCompiler) {
 			throw {
 				status: 404,
 				message: `Compiler with id '${id}' not found`
@@ -70,11 +84,8 @@ const getAll = async queryParams => {
 	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
-		const filter = {
-			deletedAt: { $exists: false }
-		};
-
-		return await Compiler.find(filter)
+		return await Compiler.where('deletedAt')
+			.exists(false)
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order });
@@ -87,66 +98,66 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	const { fullName, books } = changes;
+	let { fullName, books } = changes;
 
 	try {
-		const compilerToUpdate = await Compiler.findById(id);
+		const compilerToUpdate = await Compiler.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (!compilerToUpdate || compilerToUpdate.deletedAt) {
+		if (!compilerToUpdate) {
 			throw {
 				status: 404,
 				message: `Compiler with id '${id}' not found`
 			};
 		}
 
-		const existingCompiler = await Compiler.exists({
-			fullName,
-			deletedAt: { $exists: false }
-		});
+		await checkCompilerExistense(fullName);
 
-		if (
-			existingCompiler &&
-			existingCompiler._id.toHexString() !== id
-		) {
-			throw {
-				status: 409,
-				message: `Compiler with full name '${fullName}' already exists`
-			};
-		}
+		await Promise.all(
+			books.map(async id => {
+				const existingBook = await Book.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
+
+				if (!existingBook) {
+					throw {
+						status: 404,
+						message: `Book with id '${id}' not found`
+					};
+				}
+			})
+		);
 
 		if (books) {
-			const notFoundIndex = (
-				await Book.find({ _id: books })
-			).findIndex(b => !b || b.deletedAt);
-			if (notFoundIndex > -1) {
-				throw {
-					status: 404,
-					message: `Book with id '${books[notFoundIndex]}' not found`
-				};
-			}
-
 			const oldBookIds = compilerToUpdate.books.map(b =>
-				b.id.toString('hex')
+				b.toHexString()
 			);
-
 			const addedBookIds = books.filter(b => !oldBookIds.includes(b));
-			await Book.updateMany(
-				{ _id: addedBookIds },
-				{ $push: { compilers: compilerToUpdate.id } }
-			);
-
 			const removedBookIds = oldBookIds.filter(
 				b => !books.includes(b)
 			);
+
+			await Book.updateMany(
+				{ _id: addedBookIds },
+				{ $push: { compilers: compilerToUpdate } }
+			);
+
 			await Book.updateMany(
 				{ _id: removedBookIds },
-				{ $pull: { compilers: compilerToUpdate.id } }
+				{ $pull: { compilers: compilerToUpdate } }
 			);
 		}
 
-		await compilerToUpdate.updateOne(changes);
+		Object.keys(changes).forEach(
+			key => (compilerToUpdate[key] = changes[key])
+		);
 
-		return await Compiler.findById(id);
+		return await compilerToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -157,9 +168,13 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const compilerToDelete = await Compiler.findById(id);
+		const compilerToDelete = await Compiler.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (!compilerToDelete || compilerToDelete.deletedAt) {
+		if (!compilerToDelete) {
 			throw {
 				status: 404,
 				message: `Compiler with id '${id}' not found`
@@ -172,8 +187,6 @@ const deleteOne = async id => {
 		);
 
 		await compilerToDelete.deleteOne();
-
-		return compilerToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

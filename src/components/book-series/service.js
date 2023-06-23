@@ -36,7 +36,7 @@ const createOne = async bookSeriesData => {
 			};
 		}
 
-		checkBookSeriesExistense(foundPublisher, name);
+		await checkBookSeriesExistense(foundPublisher, name);
 
 		await Promise.all(
 			books.map(async id => {
@@ -119,7 +119,6 @@ const getAll = async queryParams => {
 
 const updateOne = async (id, changes) => {
 	let { name, books } = changes;
-	books = books ?? [];
 
 	try {
 		const bookSeriesToUpdate = await BookSeries.where('_id')
@@ -138,7 +137,10 @@ const updateOne = async (id, changes) => {
 		if (name) {
 			await bookSeriesToUpdate.populate('publisher');
 
-			checkBookSeriesExistense(bookSeriesToUpdate.publisher, name);
+			await checkBookSeriesExistense(
+				bookSeriesToUpdate.publisher,
+				name
+			);
 		}
 
 		await Promise.all(
@@ -158,20 +160,24 @@ const updateOne = async (id, changes) => {
 			})
 		);
 
-		const oldBookIds = bookSeriesToUpdate.books.map(b =>
-			b.toHexString()
-		);
-		const addedBookIds = books.filter(b => !oldBookIds.includes(b));
-		const removedBookIds = oldBookIds.filter(b => !books.includes(b));
+		if (books) {
+			const oldBookIds = bookSeriesToUpdate.books.map(b =>
+				b.toHexString()
+			);
+			const addedBookIds = books.filter(b => !oldBookIds.includes(b));
+			const removedBookIds = oldBookIds.filter(
+				b => !books.includes(b)
+			);
 
-		await Book.updateMany(
-			{ _id: addedBookIds },
-			{ $set: { series: bookSeriesToUpdate } }
-		);
-		await Book.updateMany(
-			{ _id: removedBookIds },
-			{ $unset: { series: true } }
-		);
+			await Book.updateMany(
+				{ _id: addedBookIds },
+				{ $set: { series: bookSeriesToUpdate } }
+			);
+			await Book.updateMany(
+				{ _id: removedBookIds },
+				{ $unset: { series: true } }
+			);
+		}
 
 		Object.keys(changes).forEach(
 			key => (bookSeriesToUpdate[key] = changes[key])

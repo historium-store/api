@@ -19,7 +19,6 @@ importData().then(() => {
 		});
 
 	process.on('unhandledRejection', event => {
-		console.log(event.promise);
-		console.log(event.reason);
+		console.log(event);
 	});
 });
