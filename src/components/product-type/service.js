@@ -17,7 +17,7 @@ const createOne = async productTypeData => {
 	const { name } = productTypeData;
 
 	try {
-		checkExistenceByName(name);
+		await checkExistenceByName(name);
 
 		return await ProductType.create(productTypeData);
 	} catch (err) {
@@ -30,7 +30,7 @@ const createOne = async productTypeData => {
 
 const getOne = async id => {
 	try {
-		const foundProductType = await ProductType.findById();
+		const foundProductType = await ProductType.findById(id);
 
 		if (!foundProductType) {
 			throw {
@@ -77,7 +77,7 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		checkExistenceByName(name);
+		await checkExistenceByName(name);
 
 		Object.keys(changes).forEach(
 			key => (productTypeToUpdate[key] = changes[key])
