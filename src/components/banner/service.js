@@ -13,7 +13,9 @@ const createOne = async bannerData => {
 
 const getOne = async id => {
 	try {
-		const foundBanner = await Banner.findOne({ _id: id });
+		const foundBanner = await Banner.where('_id')
+			.equals(id)
+			.findOne();
 
 		if (!foundBanner) {
 			throw {
@@ -44,16 +46,22 @@ const getAll = async () => {
 
 const updateOne = async (id, changes) => {
 	try {
-		const exists = await Banner.exists({ _id: id });
+		const bannerToUpdate = await Banner.where('id')
+			.equals(id)
+			.findOne();
 
-		if (!exists) {
+		if (!bannerToUpdate) {
 			throw {
 				status: 404,
 				message: `Banner with id '${id}' not found`
 			};
 		}
 
-		return await Banner.findByIdAndUpdate(id, changes, { new: true });
+		Object.keys(changes).forEach(
+			key => (bannerToUpdate[key] = changes[key])
+		);
+
+		return await bannerToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -64,7 +72,9 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const bannerToDelete = await Banner.findOne({ _id: id });
+		const bannerToDelete = await Banner.where('_id')
+			.equals(id)
+			.findOne();
 
 		if (!bannerToDelete) {
 			throw {

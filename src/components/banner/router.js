@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { checkRole } from '../../middleware.js';
+import { checkRole, validateId } from '../../middleware.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -18,7 +18,7 @@ bannerRouter
 
 bannerRouter
 	.route('/:id')
-	.get(validator.validateId, controller.getOne)
+	.get(validateId, controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin']),
@@ -28,7 +28,7 @@ bannerRouter
 	.delete(
 		authenticate,
 		checkRole(['admin']),
-		validator.validateId,
+		validateId,
 		controller.deleteOne
 	);
 
