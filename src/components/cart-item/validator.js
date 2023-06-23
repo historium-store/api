@@ -13,6 +13,6 @@ const validateItem = [
 		.withMessage('Product quantity must be an integer')
 ];
 
-const validator = { validateItem };
-
-export default validator;
+export default {
+	validateItem
+};

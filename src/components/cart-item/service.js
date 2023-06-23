@@ -59,10 +59,11 @@ const removeItem = async (cart, itemData) => {
 	const { product, quantity } = itemData;
 
 	try {
-		const productExists = await Product.exists({
-			_id: product,
-			deletedAt: { $exists: false }
-		});
+		const productExists = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!productExists) {
 			throw {
@@ -106,4 +107,7 @@ const removeItem = async (cart, itemData) => {
 	}
 };
 
-export default { addItem, removeItem };
+export default {
+	addItem,
+	removeItem
+};

@@ -1,8 +1,6 @@
 import { Router } from 'express';
 import { checkRole, validateQueryParams } from '../../middleware.js';
 import { authenticate as authentication } from '../auth/controller.js';
-import cartItemController from '../cart-item/controller.js';
-import cartItemValidator from '../cart-item/validator.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -18,12 +16,6 @@ userRouter.get(
 );
 
 userRouter.get('/account', controller.getAccount);
-
-userRouter
-	.route('/cart-item')
-	.all(cartItemValidator.validateItem)
-	.post(cartItemController.addItem)
-	.delete(cartItemController.removeItem);
 
 userRouter
 	.route('/:id')

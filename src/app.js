@@ -11,6 +11,8 @@ import authRouter from './components/auth/router.js';
 import authorRouter from './components/author/router.js';
 import bookSeriesRouter from './components/book-series/router.js';
 import bookRouter from './components/book/router.js';
+import cartItemRouter from './components/cart-item/router.js';
+import cartRouter from './components/cart/router.js';
 import companyInfoRouter from './components/company-info/router.js';
 import compilerRouter from './components/compiler/router.js';
 import contactInfoRouter from './components/contact-info/router.js';
@@ -38,6 +40,8 @@ app.use(express.json());
 
 app.use(authRouter);
 app.use('/user', userRouter);
+app.use('/cart', cartRouter);
+app.use('/cart-item', cartItemRouter);
 app.use('/section', sectionRouter);
 app.use('/product-type', productTypeRouter);
 app.use('/product', productRouter);
