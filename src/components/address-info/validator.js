@@ -1,9 +1,6 @@
-import { body, param } from 'express-validator';
+import { body } from 'express-validator';
 
 const validateUpdate = [
-	param('id')
-		.isMongoId()
-		.withMessage('Address id must be a valid mongo id'),
 	body('address')
 		.optional()
 		.trim()
@@ -35,4 +32,6 @@ const validateUpdate = [
 		.withMessage("Address postcode can't be empty")
 ];
 
-export default { validateUpdate };
+export default {
+	validateUpdate
+};

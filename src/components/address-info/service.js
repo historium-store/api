@@ -2,18 +2,20 @@ import AddressInfo from './model.js';
 
 const updateOne = async (id, changes) => {
 	try {
-		const exists = await AddressInfo.exists({ _id: id });
+		const addressInfoToUpdate = await AddressInfo.findById(id);
 
-		if (!exists) {
+		if (!addressInfoToUpdate) {
 			throw {
 				status: 404,
 				message: `Address info with id '${id}' not found`
 			};
 		}
 
-		return await AddressInfo.findByIdAndUpdate(id, changes, {
-			new: true
-		});
+		Object.keys(changes).forEach(
+			key => (addressInfoToUpdate[key] = changes[key])
+		);
+
+		return await addressInfoToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
