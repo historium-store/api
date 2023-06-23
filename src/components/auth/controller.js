@@ -70,31 +70,31 @@ const restorePassword = async (req, res, next) => {
 	}
 };
 
-const verifyRestore = async (req, res, next) => {
-	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
+// const verifyRestore = async (req, res, next) => {
+// 	try {
+// 		validationResult(req)
+// 			.formatWith(e => e.msg)
+// 			.throw();
 
-		const { login, restorationToken } = matchedData(req);
+// 		const { login, restorationToken } = matchedData(req);
 
-		const restoreData = {
-			...(validator.isEmail(login)
-				? { email: login }
-				: { phoneNumber: login }),
-			restorationToken
-		};
+// 		const restoreData = {
+// 			...(validator.isEmail(login)
+// 				? { email: login }
+// 				: { phoneNumber: login }),
+// 			restorationToken
+// 		};
 
-		res.json(await service.verifyRestore(restoreData));
-	} catch (err) {
-		next(createError(err));
-	}
-};
+// 		res.json(await service.verifyRestore(restoreData));
+// 	} catch (err) {
+// 		next(createError(err));
+// 	}
+// };
 
 export default {
 	signup,
 	login,
 	authenticate,
-	restorePassword,
-	verifyRestore
+	restorePassword
+	// verifyRestore
 };

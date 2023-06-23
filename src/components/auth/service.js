@@ -1,8 +1,10 @@
 import { randomBytes, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import {
+	JWT_OPTIONS,
 	hashPassword,
 	normalizePhoneNumber,
+	signJWT,
 	transporter,
 	verifyJWT,
 	vonage
@@ -65,14 +67,11 @@ const login = async loginData => {
 			}
 		}
 
-		const payload = {
-			sub: foundUser.id
-		};
-		const options = {
-			expiresIn: process.env.JWT_EXPIRATION,
-			noTimestamp: true
-		};
-		const token = jwt.sign(payload, process.env.SECRET, options);
+		const token = await signJWT(
+			{ sub: foundUser.id },
+			process.env.SECRET,
+			JWT_OPTIONS
+		);
 
 		return { token };
 	} catch (err) {

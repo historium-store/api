@@ -79,28 +79,26 @@ const validatePasswordRestore = [
 		})
 ];
 
-const validateVerifyRestore = [
-	body('login')
-		.trim()
-		.notEmpty()
-		.withMessage('User phone number or email is required')
-		.bail()
-		.custom(isEmailOrPhoneNumber)
-		.if(body('login').isEmail())
-		.normalizeEmail({
-			gmail_remove_dots: false
-		}),
-	body('restorationToken')
-		.trim()
-		.notEmpty()
-		.withMessage('Password restoration token is required')
-];
+// const validateVerifyRestore = [
+// 	body('login')
+// 		.trim()
+// 		.notEmpty()
+// 		.withMessage('User phone number or email is required')
+// 		.bail()
+// 		.custom(isEmailOrPhoneNumber)
+// 		.if(body('login').isEmail())
+// 		.normalizeEmail({
+// 			gmail_remove_dots: false
+// 		}),
+// 	body('restorationToken')
+// 		.trim()
+// 		.notEmpty()
+// 		.withMessage('Password restoration token is required')
+// ];
 
-const validator = {
+export default {
 	validateSignup,
 	validateLogin,
-	validatePasswordRestore,
-	validateVerifyRestore
+	validatePasswordRestore
+	// validateVerifyRestore
 };
-
-export default validator;

@@ -4,6 +4,28 @@ import validator from './validator.js';
 
 const authRouter = Router();
 
+authRouter.post(
+	'/signup',
+	validator.validateSignup,
+	controller.signup
+);
+
+authRouter.post('/login', validator.validateLogin, controller.login);
+
+authRouter.post(
+	'/password-restore',
+	validator.validatePasswordRestore,
+	controller.restorePassword
+);
+
+// authRouter.post(
+// 	'/verify-restore',
+// 	validator.validateVerifyRestore,
+// 	controller.verifyRestore
+// );
+
+export default authRouter;
+
 /**
  * @swagger
  * /signup:
@@ -110,15 +132,7 @@ const authRouter = Router();
  *                 summary: Email exists
  *                 value:
  *                   message: User with email 'john.williams@gmail.com' already exists
- */
-authRouter.post(
-	'/signup',
-	validator.validateSignup,
-	controller.signup
-);
-
-/**
- * @swagger
+ *
  * /login:
  *   post:
  *     tags:
@@ -159,25 +173,7 @@ authRouter.post(
  *                 token:
  *                   type: string
  *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.7-MkFgEErMq9z-Q2D8bECKtmJivPITuL_k3j3zr5P68
- */
-authRouter.post('/login', validator.validateLogin, controller.login);
-
-authRouter.post(
-	'/password-restore',
-	validator.validatePasswordRestore,
-	controller.restorePassword
-);
-
-authRouter.post(
-	'/verify-restore',
-	validator.validateVerifyRestore,
-	controller.verifyRestore
-);
-
-export default authRouter;
-
-/**
- * @swagger
+ *
  * components:
  *   schemas:
  *
