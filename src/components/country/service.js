@@ -25,6 +25,15 @@ const getOne = async id => {
 			.findOne()
 			.select('-_id name cities');
 
+		if (!foundCountry) {
+			throw {
+				status: 404,
+				message: `Country with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
+			};
+		}
+
 		return foundCountry;
 	} catch (err) {
 		throw {
