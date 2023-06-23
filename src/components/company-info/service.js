@@ -2,18 +2,20 @@ import CompanyInfo from './model.js';
 
 const updateOne = async (id, changes) => {
 	try {
-		const exists = await CompanyInfo.exists({ _id: id });
+		const companyInfoToUpdate = await CompanyInfo.findById(id);
 
-		if (!exists) {
+		if (!companyInfoToUpdate) {
 			throw {
 				status: 404,
 				message: `Company info with id '${id}' not found`
 			};
 		}
 
-		return await CompanyInfo.findByIdAndUpdate(id, changes, {
-			new: true
-		});
+		Object.keys(changes).forEach(
+			key => (companyInfoToUpdate[key] = changes[key])
+		);
+
+		return await companyInfoToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
