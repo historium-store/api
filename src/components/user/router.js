@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { checkRole, validateQueryParams } from '../../middleware.js';
+import {
+	checkRole,
+	validateId,
+	validateQueryParams
+} from '../../middleware.js';
 import { authenticate as authentication } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -21,10 +25,11 @@ userRouter
 	.route('/:id')
 	.get(
 		checkRole(['admin']),
+		validateId,
 		validator.validateGetOne,
 		controller.getOne
 	)
-	.patch(validator.validateUpdate, controller.updateOne)
-	.delete(validator.validateId, controller.deleteOne);
+	.patch(validateId, validator.validateUpdate, controller.updateOne)
+	.delete(validateId, controller.deleteOne);
 
 export default userRouter;

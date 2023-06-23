@@ -1,20 +1,12 @@
-import { body, param, query } from 'express-validator';
-
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('User id must be a valid mongo id')
-];
+import { body, query } from 'express-validator';
 
 const validateGetOne = [
-	...validateId,
 	query('withDeleted')
 		.optional()
 		.customSanitizer(() => true)
 ];
 
 const validateUpdate = [
-	...validateId,
 	body('firstName')
 		.optional()
 		.trim()
@@ -73,7 +65,6 @@ const validateUpdate = [
 ];
 
 export default {
-	validateId,
 	validateGetOne,
 	validateUpdate
 };

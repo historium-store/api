@@ -4,28 +4,32 @@ import Cart from '../cart/model.js';
 import cartService from '../cart/service.js';
 import User from './model.js';
 
+const checkUserExistense = async (phoneNumber, email) => {
+	const existingUser = await User.where('deletedAt')
+		.exists(false)
+		.or([{ phoneNumber }, { email }])
+		.findOne();
+
+	if (existingUser) {
+		throw {
+			status: 409,
+			message:
+				'User with ' +
+				(existingUser.phoneNumber === phoneNumber
+					? `phone number '${phoneNumber}'`
+					: `email '${email}'`) +
+				' already exists'
+		};
+	}
+};
+
 const createOne = async userData => {
 	let { phoneNumber, email } = userData;
 
 	try {
 		phoneNumber = normalizePhoneNumber(phoneNumber);
 
-		const existingUser = await User.where('deletedAt')
-			.exists(false)
-			.or([{ phoneNumber }, { email }])
-			.findOne();
-
-		if (existingUser) {
-			throw {
-				status: 409,
-				message:
-					'User with ' +
-					(existingUser.phoneNumber === phoneNumber
-						? `phone number '${phoneNumber}'`
-						: `email '${email}'`) +
-					' already exists'
-			};
-		}
+		await checkUserExistense(phoneNumber, email);
 
 		const salt = randomBytes(16);
 		const hashedPassword = await hashPassword(
@@ -39,11 +43,10 @@ const createOne = async userData => {
 		userData.salt = salt.toString('hex');
 
 		const newUser = await User.create(userData);
-		const newCart = await Cart.create({ user: newUser });
-		newUser.cart = newCart.id;
-		await newUser.save();
 
-		return newUser;
+		newUser.cart = await Cart.create({ user: newUser });
+
+		return await newUser.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -114,12 +117,7 @@ const updateOne = async (id, changes) => {
 	let { phoneNumber, email } = changes;
 
 	try {
-		if (phoneNumber) {
-			phoneNumber = normalizePhoneNumber(phoneNumber);
-			changes.phoneNumber = phoneNumber;
-		}
-
-		let userToUpdate = await User.where('_id')
+		const userToUpdate = await User.where('_id')
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
@@ -132,22 +130,12 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		const existingUser = await User.where('deletedAt')
-			.exists(false)
-			.or([{ phoneNumber }, { email }])
-			.findOne();
-
-		if (existingUser) {
-			throw {
-				status: 409,
-				message:
-					'User with ' +
-					(existingUser.phoneNumber === phoneNumber
-						? `phone number '${phoneNumber}'`
-						: `email '${email}'`) +
-					' already exists'
-			};
+		if (phoneNumber) {
+			phoneNumber = normalizePhoneNumber(phoneNumber);
+			changes.phoneNumber = phoneNumber;
 		}
+
+		await checkUserExistense(phoneNumber, email);
 
 		if (changes.password) {
 			const salt = randomBytes(16);
