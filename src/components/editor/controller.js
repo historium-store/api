@@ -66,7 +66,9 @@ const deleteOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json(await service.deleteOne(id));
+		await service.deleteOne(id);
+
+		res.sendStatus(204);
 	} catch (err) {
 		next(createError(err));
 	}

@@ -187,8 +187,6 @@ const deleteOne = async id => {
 		);
 
 		await editorToDelete.deleteOne();
-
-		return editorToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
