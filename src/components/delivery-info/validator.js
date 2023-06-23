@@ -1,10 +1,6 @@
 import { body } from 'express-validator';
 
 const validateUpdate = [
-	body('country')
-		.optional()
-		.isMongoId()
-		.withMessage('Delivery country must be a valid mongo id'),
 	body('city')
 		.optional()
 		.trim()

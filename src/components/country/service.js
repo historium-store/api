@@ -1,3 +1,4 @@
+import validator from 'validator';
 import Country from './model.js';
 
 const getAll = async () => {
@@ -13,6 +14,27 @@ const getAll = async () => {
 	}
 };
 
+const getOne = async id => {
+	try {
+		const isMongoId = validator.isMongoId(id);
+
+		const foundCountry = await Country.where(
+			isMongoId ? '_id' : 'key'
+		)
+			.equals(id)
+			.findOne()
+			.select('-_id name cities');
+
+		return foundCountry;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
-	getAll
+	getAll,
+	getOne
 };

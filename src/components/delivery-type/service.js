@@ -1,22 +1,9 @@
-import Country from '../country/model.js';
 import DeliveryType from './model.js';
 
-const getAll = async queryParams => {
-	const { country } = queryParams;
-
-	const filter = {
-		deletedAt: { $exists: false }
-	};
-
-	if (country) {
-		filter.countries = {
-			$in: await Country.findOne({ name: country })
-		};
-	}
-
+const getAll = async () => {
 	try {
-		return await DeliveryType.find(filter).select(
-			'-_id -countries -createdAt -updatedAt'
+		return await DeliveryType.find().select(
+			'-countries -createdAt -updatedAt -variablePrice'
 		);
 	} catch (err) {
 		throw {
@@ -26,4 +13,6 @@ const getAll = async queryParams => {
 	}
 };
 
-export default { getAll };
+export default {
+	getAll
+};
