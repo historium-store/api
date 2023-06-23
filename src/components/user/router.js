@@ -3,8 +3,6 @@ import { checkRole, validateQueryParams } from '../../middleware.js';
 import { authenticate as authentication } from '../auth/controller.js';
 import cartItemController from '../cart-item/controller.js';
 import cartItemValidator from '../cart-item/validator.js';
-import cartController from '../cart/controller.js';
-import cartValidator from '../cart/validator.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -20,12 +18,6 @@ userRouter.get(
 );
 
 userRouter.get('/account', controller.getAccount);
-
-userRouter
-	.route('/cart')
-	.get(cartController.getByIdFromToken)
-	.patch(cartValidator.validateMerge, cartController.merge)
-	.delete(cartController.clearItems);
 
 userRouter
 	.route('/cart-item')

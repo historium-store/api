@@ -85,7 +85,7 @@ const clearItems = async cart => {
 			};
 		}
 
-		await CartItem.deleteMany();
+		await CartItem.deleteMany({ cart });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -137,4 +137,8 @@ const merge = async (items, cart) => {
 	}
 };
 
-export default { getByIdFromToken, clearItems, merge };
+export default {
+	getByIdFromToken,
+	clearItems,
+	merge
+};
