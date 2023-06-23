@@ -712,11 +712,11 @@ const getFilters = async () => {
 		.lean();
 
 	const filters = {
-		trends: ['Новинки', 'Знижка'],
-		types: [...new Set(books.map(b => b.type))],
-		publishers: [...new Set(books.map(b => b.publisher.name))],
-		languages: [...new Set(books.map(b => b.languages).flat())],
-		authors: [
+		trend: ['Новинки', 'Знижка'],
+		type: [...new Set(books.map(b => b.type))],
+		publisher: [...new Set(books.map(b => b.publisher.name))],
+		language: [...new Set(books.map(b => b.languages).flat())],
+		author: [
 			...new Set(
 				books.map(b => b.authors.map(a => a.fullName)).flat()
 			)
