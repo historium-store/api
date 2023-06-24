@@ -2,33 +2,44 @@ import validator from 'validator';
 import Product from '../product/model.js';
 import Section from './model.js';
 
+const checkSectionExistense = async name => {
+	const sectionExists = await Section.where('name')
+		.equals(name)
+		.where('deletedAt')
+		.exists(false)
+		.findOne();
+
+	if (sectionExists) {
+		throw {
+			status: 409,
+			message: `Section with name '${name}' already exists`
+		};
+	}
+};
+
 const createOne = async sectionData => {
 	let { name, products } = sectionData;
 	products = products ?? [];
 
 	try {
-		const sectionExists = await Section.exists({
-			name,
-			deletedAt: { $exists: false }
-		});
+		await checkSectionExistense(name);
 
-		if (sectionExists) {
-			throw {
-				status: 409,
-				message: `Section with name '${name}' already exists`
-			};
-		}
+		await Promise.all(
+			books.map(async id => {
+				const existingBook = await Book.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
 
-		const notFoundIndex = (
-			await Product.find({ _id: products })
-		).findIndex(p => !p || p.deletedAt);
-
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Product with id '${products[notFoundIndex]}' not found`
-			};
-		}
+				if (!existingBook) {
+					throw {
+						status: 404,
+						message: `Book with id '${id}' not found`
+					};
+				}
+			})
+		);
 
 		const newSection = await Section.create(sectionData);
 
@@ -46,68 +57,79 @@ const createOne = async sectionData => {
 	}
 };
 
-const populateRecursively = async (id, withProducts) => {
-	const section = await Section.findById(id)
-		.select(`-createdAt -updatedAt`)
-		.lean();
-
-	if (withProducts) {
-		const foundProducts = await Product.find({
-			_id: section.products
-		}).populate([{ path: 'type', select: '-_id name key' }]);
-
-		await Promise.all(
-			foundProducts.map(
-				async p =>
-					await p.populate({
-						path: 'specificProduct',
-						model: p.model,
-						populate: {
-							path: 'authors',
-							select: 'fullName'
-						},
-						select: 'authors'
-					})
-			)
-		);
-
-		const productPreviews = foundProducts.map(p => ({
-			_id: p.id,
-			name: p.name,
-			key: p.key,
-			price: p.price,
-			quantity: p.quantity,
-			type: p.type,
-			createdAt: p.createdAt,
-			code: p.code,
-			image: p.images[0],
-			authors: p.specificProduct.authors?.map(a => a.fullName)
-		}));
-
-		section.products = productPreviews;
-	}
-
-	const sections = await Promise.all(
-		section.sections.map(async s => {
-			return await populateRecursively(s, withProducts);
-		})
+const populateNestedSections = async (section, withProducts) => {
+	await section.populate(
+		'sections',
+		`-createdAt -updatedAt ${withProducts ? '' : '-products'}`
 	);
 
-	section.sections = sections;
+	if (section.sections.length) {
+		await Promise.all(
+			section.sections.map(async s => {
+				await populateNestedSections(s, withProducts);
+			})
+		);
+	}
+};
 
-	return section;
+const populateNestedProducts = async section => {
+	await section.populate('products');
+
+	await Promise.all(
+		section.products.map(
+			async p =>
+				await p.populate({
+					path: 'specificProduct',
+					model: p.model,
+					populate: 'authors'
+				})
+		)
+	);
+
+	await section.populate({
+		path: 'products',
+		populate: { path: 'type', select: '-_id name key' },
+		transform: p => {
+			return {
+				_id: p.id,
+				name: p.name,
+				key: p.key,
+				price: p.price,
+				quantity: p.quantity,
+				type: p.type,
+				createdAt: p.createdAt,
+				code: p.code,
+				image: p.images[0],
+				authors: p.specificProduct.authors?.map(a => a.fullName)
+			};
+		}
+	});
+
+	if (section.sections.length) {
+		await Promise.all(
+			section.sections.map(async s => {
+				await populateNestedProducts(s);
+			})
+		);
+	}
 };
 
 const getOne = async (id, withProducts) => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
-		const section = await Section.exists({
-			...(isMongoId ? { _id: id } : { key: id }),
-			deletedAt: { $exists: false }
-		});
+		const foundSection = await Section.where(
+			isMongoId ? '_id' : 'key'
+		)
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne()
+			.select(
+				`-createdAt -updatedAt ${withProducts ? '' : '-products'}`
+			);
 
-		if (!section) {
+		if (!foundSection) {
 			throw {
 				status: 404,
 				message: `Section with ${
@@ -116,7 +138,13 @@ const getOne = async (id, withProducts) => {
 			};
 		}
 
-		return await populateRecursively(section, withProducts);
+		await populateNestedSections(foundSection, withProducts);
+
+		if (withProducts) {
+			await populateNestedProducts(foundSection);
+		}
+
+		return foundSection;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -134,25 +162,27 @@ const getAll = async queryParams => {
 		order
 	} = queryParams;
 
-	const filter = {
-		deletedAt: { $exists: false }
-	};
-
 	try {
-		const foundSections = await Section.find(filter)
+		const foundSections = await Section.where('deletedAt')
+			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order });
-
-		const sectionsToReturn = [];
-
-		for (let section of foundSections) {
-			sectionsToReturn.push(
-				await populateRecursively(section, withProducts)
+			.sort({ [orderBy]: order })
+			.select(
+				`-createdAt -updatedAt ${withProducts ? '' : '-products'}`
 			);
-		}
 
-		return sectionsToReturn;
+		await Promise.all(
+			foundSections.map(async s => {
+				await populateNestedSections(s, withProducts);
+
+				if (withProducts) {
+					await populateNestedProducts(s);
+				}
+			})
+		);
+
+		return foundSections;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -167,67 +197,71 @@ const updateOne = async (id, changes) => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
-		const sectionToUpdate = await Section.findOne({
-			...(isMongoId ? { _id: id } : { key: id }),
-			deletedAt: { $exists: false }
-		});
+		const sectionToUpdate = await Section.where(
+			isMongoId ? '_id' : 'key'
+		)
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!sectionToUpdate) {
 			throw {
 				status: 404,
-				message: `Section with id '${id}' not found`
+				message: `Section with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
 			};
 		}
 
 		if (name) {
-			const sectionExists = await Section.exists({
-				name,
-				deletedAt: { $exists: false }
-			});
-
-			if (sectionExists) {
-				throw {
-					status: 409,
-					message: `Section with name '${name}' already exists`
-				};
-			}
+			await checkSectionExistense(name);
 		}
 
 		if (products) {
-			const notFoundIndex = (
-				await Product.find({ _id: products })
-			).findIndex(p => !p || p.deletedAt);
-			if (notFoundIndex > -1) {
-				throw {
-					status: 404,
-					message: `Product with id '${products[notFoundIndex]}' not found`
-				};
-			}
+			await Promise.all(
+				products.map(async id => {
+					const existingProduct = await Product.where('_id')
+						.equals(id)
+						.where('deletedAt')
+						.exists(false)
+						.findOne();
+
+					if (!existingProduct) {
+						throw {
+							status: 404,
+							message: `Product with id '${id}' not found`
+						};
+					}
+				})
+			);
 
 			const oldProductIds = sectionToUpdate.products.map(p =>
 				p.toHexString()
 			);
-
 			const addedProductIds = products.filter(
 				p => !oldProductIds.includes(p)
 			);
-			await Product.updateMany(
-				{ _id: addedProductIds },
-				{ $push: { sections: sectionToUpdate } }
-			);
-
 			const removedProductIds = oldProductIds.filter(
 				p => !products.includes(p)
 			);
+
+			await Product.updateMany(
+				{ _id: addedProductIds },
+				{ $push: { sections: sectionToUpdate.id } }
+			);
+
 			await Product.updateMany(
 				{ _id: removedProductIds },
-				{ $pull: { sections: sectionToUpdate } }
+				{ $pull: { sections: sectionToUpdate.id } }
 			);
 		}
 
-		return await Section.findByIdAndUpdate(id, changes, {
-			new: true
-		});
+		Object.keys(changes).forEach(
+			key => (sectionToUpdate[key] = changes[key])
+		);
+
+		return await sectionToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -238,15 +272,22 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const sectionToDelete = await Section.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		const isMongoId = validator.isMongoId(id);
+
+		const sectionToDelete = await Section.where(
+			isMongoId ? '_id' : 'key'
+		)
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!sectionToDelete) {
 			throw {
 				status: 404,
-				message: `Section with id '${id}' not found`
+				message: `Section with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
 			};
 		}
 
@@ -257,25 +298,13 @@ const deleteOne = async id => {
 			};
 		}
 
-		return sectionToDelete;
+		await sectionToDelete.deleteOne();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
 			message: err.message ?? err
 		};
 	}
-};
-
-const populateNestedSections = async sections => {
-	await Promise.all(
-		sections.map(async s => {
-			await s.populate('sections', 'sections');
-
-			if (s.sections.length) {
-				await populateNestedSections(s.sections);
-			}
-		})
-	);
 };
 
 const gatherSectionIds = sections => {
@@ -295,10 +324,13 @@ const getProducts = async (id, queryParams) => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
-		const foundSection = await Section.findOne({
-			...(isMongoId ? { _id: id } : { key: id }),
-			deletedAt: { $exists: false }
-		})
+		const foundSection = await Section.where(
+			isMongoId ? '_id' : 'key'
+		)
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne()
 			.populate('sections')
 			.select('sections');
 
@@ -311,7 +343,7 @@ const getProducts = async (id, queryParams) => {
 			};
 		}
 
-		await populateNestedSections(foundSection.sections);
+		await populateNestedSections(foundSection);
 
 		const sectionIds = [
 			foundSection.id.toString('hex'),

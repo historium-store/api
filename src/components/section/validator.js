@@ -37,6 +37,7 @@ const validateUpdate = [
 		.custom(isArrayOfMongoIds('Section', 'sections'))
 ];
 
-const validator = { validateCreate, validateUpdate };
-
-export default validator;
+export default {
+	validateCreate,
+	validateUpdate
+};
