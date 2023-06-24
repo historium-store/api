@@ -302,7 +302,7 @@ const getAll = async queryParams => {
 			deletedAt: { $exists: false }
 		});
 
-		filter.authors = foundAuthors.map(p => p.id);
+		filter.authors = { $in: foundAuthors.map(a => a.id) };
 	}
 
 	if (price) {
