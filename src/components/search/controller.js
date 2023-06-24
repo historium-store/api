@@ -13,4 +13,6 @@ const findProducts = async (req, res, next) => {
 	}
 };
 
-export default { findProducts };
+export default {
+	findProducts
+};
