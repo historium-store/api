@@ -8,7 +8,8 @@ const checkBookSeriesExistense = async (publisher, name) => {
 		.where('name')
 		.equals(name)
 		.where('deletedAt')
-		.exists(false);
+		.exists(false)
+		.findOne();
 
 	if (existingBookSeries) {
 		throw {

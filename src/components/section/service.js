@@ -25,17 +25,17 @@ const createOne = async sectionData => {
 		await checkSectionExistense(name);
 
 		await Promise.all(
-			books.map(async id => {
-				const existingBook = await Book.where('_id')
+			products.map(async id => {
+				const existingProduct = await Product.where('_id')
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
 					.findOne();
 
-				if (!existingBook) {
+				if (!existingProduct) {
 					throw {
 						status: 404,
-						message: `Book with id '${id}' not found`
+						message: `Product with id '${id}' not found`
 					};
 				}
 			})
