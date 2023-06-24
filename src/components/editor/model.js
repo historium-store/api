@@ -33,10 +33,6 @@ const editorSchema = new Schema(
 	}
 );
 
-editorSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const Editor = model('Editor', editorSchema);
 
 export default Editor;

@@ -33,10 +33,6 @@ const bannerSchema = new Schema(
 	}
 );
 
-bannerSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const Banner = model('Banner', bannerSchema);
 
 export default Banner;

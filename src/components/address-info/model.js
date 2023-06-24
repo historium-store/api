@@ -48,10 +48,6 @@ const addressInfoSchema = new Schema(
 	}
 );
 
-addressInfoSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const AddressInfo = model('AddressInfo', addressInfoSchema);
 
 export default AddressInfo;

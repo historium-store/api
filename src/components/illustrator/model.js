@@ -33,10 +33,6 @@ const illustratorSchema = new Schema(
 	}
 );
 
-illustratorSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const Illustrator = model('Illustrator', illustratorSchema);
 
 export default Illustrator;
