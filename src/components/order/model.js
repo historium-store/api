@@ -99,6 +99,10 @@ orderSchema.pre('save', async function (next) {
 	next();
 });
 
+orderSchema.methods.deleteOne = async function () {
+	await deleteDocument(this);
+};
+
 const Order = model('Order', orderSchema);
 
 export default Order;

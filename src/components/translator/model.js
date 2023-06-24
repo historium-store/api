@@ -33,6 +33,10 @@ const translatorSchema = new Schema(
 	}
 );
 
+translatorSchema.methods.deleteOne = async function () {
+	await deleteDocument(this);
+};
+
 const Translator = model('Translator', translatorSchema);
 
 export default Translator;
