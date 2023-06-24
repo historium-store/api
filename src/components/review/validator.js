@@ -1,11 +1,4 @@
-import { body, param } from 'express-validator';
-import { isArrayOfMongoIds } from '../../utils.js';
-
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Review id must be a valid mongo id')
-];
+import { body } from 'express-validator';
 
 const validateCreate = [
 	body('product')
@@ -40,23 +33,6 @@ const validateCreate = [
 ];
 
 const validateUpdate = [
-	...validateId,
-	body('product')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Review product id is required')
-		.bail()
-		.isMongoId()
-		.withMessage('Review product id must be a valid mongo id'),
-	body('user')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Review user id is required')
-		.bail()
-		.isMongoId()
-		.withMessage('Review user id must be a valid mongo id'),
 	body('title')
 		.optional()
 		.trim()
@@ -77,6 +53,7 @@ const validateUpdate = [
 		.withMessage('Review rating must be an integer between 0 and 5')
 ];
 
-const validator = { validateId, validateCreate, validateUpdate };
-
-export default validator;
+export default {
+	validateCreate,
+	validateUpdate
+};

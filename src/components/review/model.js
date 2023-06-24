@@ -29,12 +29,14 @@ const reviewSchema = new Schema(
 
 		likes: {
 			type: Number,
-			required: true
+			required: true,
+			default: 0
 		},
 
 		dislikes: {
 			type: Number,
-			required: true
+			required: true,
+			default: 0
 		},
 
 		rating: {

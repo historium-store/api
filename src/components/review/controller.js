@@ -8,9 +8,9 @@ const createOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const data = matchedData(req);
+		const reviewData = matchedData(req);
 
-		res.status(201).json(await service.createOne(data));
+		res.status(201).json(await service.createOne(reviewData));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -86,7 +86,9 @@ const deleteOne = async (req, res, next) => {
 
 		const { id } = matchedData(req);
 
-		res.json(await service.deleteOne(id));
+		await service.deleteOne(id);
+
+		res.sendStatus(204);
 	} catch (err) {
 		next(createError(err));
 	}
