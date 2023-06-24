@@ -43,10 +43,6 @@ const contactInfoSchema = new Schema(
 	}
 );
 
-contactInfoSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const ContactInfo = model('ContactInfo', contactInfoSchema);
 
 export default ContactInfo;

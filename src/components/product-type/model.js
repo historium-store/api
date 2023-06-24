@@ -29,10 +29,6 @@ const productTypeSchema = new Schema(
 	}
 );
 
-productTypeSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const ProductType = model('ProductType', productTypeSchema);
 
 export default ProductType;

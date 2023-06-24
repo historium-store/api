@@ -49,10 +49,6 @@ const deliveryInfoSchema = new Schema(
 	}
 );
 
-deliveryInfoSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const DeliveryInfo = model('DeliveryInfo', deliveryInfoSchema);
 
 export default DeliveryInfo;

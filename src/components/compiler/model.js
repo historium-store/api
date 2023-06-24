@@ -33,10 +33,6 @@ const compilerSchema = new Schema(
 	}
 );
 
-compilerSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const Compiler = model('Compiler', compilerSchema);
 
 export default Compiler;

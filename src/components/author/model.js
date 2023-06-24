@@ -45,10 +45,6 @@ const authorSchema = new Schema(
 	}
 );
 
-authorSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const Author = model('Author', authorSchema);
 
 export default Author;

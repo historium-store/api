@@ -39,10 +39,6 @@ const bookSeriesSchema = new Schema(
 	}
 );
 
-bookSeriesSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const BookSeries = model('BookSeries', bookSeriesSchema);
 
 export default BookSeries;

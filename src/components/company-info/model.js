@@ -36,10 +36,6 @@ const companyInfoSchema = new Schema(
 	}
 );
 
-companyInfoSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const CompanyInfo = model('CompanyInfo', companyInfoSchema);
 
 export default CompanyInfo;

@@ -51,10 +51,6 @@ const publisherSchema = new Schema(
 	}
 );
 
-publisherSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const Publisher = model('Publisher', publisherSchema);
 
 export default Publisher;

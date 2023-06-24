@@ -35,10 +35,6 @@ const countrySchema = new Schema(
 	}
 );
 
-countrySchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
-
 const Country = model('Country', countrySchema);
 
 export default Country;
