@@ -118,7 +118,7 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	let { name, books } = changes;
+	const { name, books } = changes;
 
 	try {
 		const bookSeriesToUpdate = await BookSeries.where('_id')

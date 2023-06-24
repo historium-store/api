@@ -98,7 +98,7 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	let { fullName, books } = changes;
+	const { fullName, books } = changes;
 
 	try {
 		const compilerToUpdate = await Compiler.where('_id')

@@ -1,48 +1,50 @@
 import Book from '../book/model.js';
 import Translator from './model.js';
 
+const checkTranslatorExistense = async fullName => {
+	const translatorExists = await Translator.where('fullName')
+		.equals(fullName)
+		.where('deletedAt')
+		.exists(false)
+		.findOne();
+
+	if (translatorExists) {
+		throw {
+			status: 409,
+			message: `Translator with full name '${fullName}' already exists`
+		};
+	}
+};
+
 const createOne = async translatorData => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	let { fullName, books } = translatorData;
 	books = books ?? [];
 
 	try {
-		// проверка существования переводчика
-		// с входным полным именем
-		const translatorExists = await Translator.exists({
-			fullName,
-			deletedAt: { $exists: false }
-		});
+		await checkTranslatorExistense(fullName);
 
-		if (translatorExists) {
-			throw {
-				status: 409,
-				message: `Translator with full name '${fullName}' already exists`
-			};
-		}
+		await Promise.all(
+			books.map(async id => {
+				const existingBook = await Book.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
 
-		// проверка существования
-		// входных книг переводчика
-		const notFoundIndex = (
-			await Book.find({
-				_id: books
+				if (!existingBook) {
+					throw {
+						status: 404,
+						message: `Book with id '${id}' not found`
+					};
+				}
 			})
-		).findIndex(b => !b || b.deletedAt);
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Book with id '${books[notFoundIndex]}' not found`
-			};
-		}
+		);
 
 		const newTranslator = await Translator.create(translatorData);
 
-		// добавление ссылки на нового переводчика
-		// соответствующим книгам
 		await Book.updateMany(
 			{ _id: books },
-			{ $push: { translators: newTranslator.id } }
+			{ $push: { translators: newTranslator } }
 		);
 
 		return newTranslator;
@@ -56,12 +58,11 @@ const createOne = async translatorData => {
 
 const getOne = async id => {
 	try {
-		// проверка существования переводчика
-		// с входным id
-		const foundTranslator = await Translator.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		const foundTranslator = await Translator.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!foundTranslator) {
 			throw {
@@ -80,16 +81,11 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { limit, offset: skip, orderBy, order } = queryParams;
 
-	const filter = {
-		deletedAt: { $exists: false }
-	};
-
 	try {
-		return await Translator.find(filter)
+		return await Translator.where('deletedAt')
+			.exists(false)
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order });
@@ -102,17 +98,14 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	const { fullName, books } = changes;
 
 	try {
-		// проверка существования переводчика
-		// с входным id
-		const translatorToUpdate = await Translator.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		const translatorToUpdate = await Translator.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!translatorToUpdate) {
 			throw {
@@ -121,57 +114,52 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		// проверка существования переводчика
-		// с входным полным именем
-		const translatorExists = await Translator.exists({
-			fullName,
-			deletedAt: { $exists: false }
-		});
-
-		if (translatorExists) {
-			throw {
-				status: 409,
-				message: `Translator with full name '${fullName}' already exists`
-			};
+		if (fullName) {
+			await checkTranslatorExistense(fullName);
 		}
 
-		// проверка существования
-		// входных книг
-		// если они есть в изменениях
-		// обновление соответствующих книг
 		if (books) {
-			const notFoundIndex = (
-				await Book.find({ _id: books })
-			).findIndex(b => !b || b.deletedAt);
-			if (notFoundIndex > -1) {
-				throw {
-					status: 404,
-					message: `Book with id '${books[notFoundIndex]}' not found`
-				};
-			}
+			await Promise.all(
+				books.map(async id => {
+					const existingBook = await Book.where('_id')
+						.equals(id)
+						.where('deletedAt')
+						.exists(false)
+						.findOne();
 
-			const oldBookIds = translatorToUpdate.books.map(b =>
-				b.id.toString('hex')
+					if (!existingBook) {
+						throw {
+							status: 404,
+							message: `Book with id '${id}' not found`
+						};
+					}
+				})
 			);
 
+			const oldBookIds = translatorToUpdate.books.map(b =>
+				b.toHexString()
+			);
 			const addedBookIds = books.filter(b => !oldBookIds.includes(b));
+			const removedBookIds = oldBookIds.filter(
+				b => !books.includes(b)
+			);
+
 			await Book.updateMany(
 				{ _id: addedBookIds },
 				{ $push: { translators: translatorToUpdate.id } }
 			);
 
-			const removedBookIds = oldBookIds.filter(
-				b => !books.includes(b)
-			);
 			await Book.updateMany(
 				{ _id: removedBookIds },
 				{ $pull: { translators: translatorToUpdate.id } }
 			);
 		}
 
-		await translatorToUpdate.updateOne(changes);
+		Object.keys(changes).forEach(key => {
+			translatorToUpdate[key] = changes[key];
+		});
 
-		return await Translator.findById(id);
+		return await translatorToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -182,12 +170,11 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		// проверка существования переводчика
-		// с входным id
-		const translatorToDelete = await Translator.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		const translatorToDelete = await Translator.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!translatorToDelete) {
 			throw {
@@ -196,16 +183,12 @@ const deleteOne = async id => {
 			};
 		}
 
-		// удаление ссылки на переводчика
-		// в соответствующих книгах
 		await Book.updateMany(
 			{ _id: translatorToDelete.books },
 			{ $pull: { translators: translatorToDelete.id } }
 		);
 
 		await translatorToDelete.deleteOne();
-
-		return translatorToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
