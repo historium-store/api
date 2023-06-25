@@ -1,23 +1,20 @@
+import Product from '../product/model.js';
 import ProductType from './model.js';
-
-const checkExistenceByName = async name => {
-	const existsingProductType = await ProductType.where('name')
-		.equals(name)
-		.findOne();
-
-	if (existsingProductType) {
-		throw {
-			status: 409,
-			message: `Product type with name '${name}' already exists`
-		};
-	}
-};
 
 const createOne = async productTypeData => {
 	const { name } = productTypeData;
 
 	try {
-		await checkExistenceByName(name);
+		const existsingProductType = await ProductType.where('name')
+			.equals(name)
+			.findOne();
+
+		if (existsingProductType) {
+			throw {
+				status: 409,
+				message: `Product type with name '${name}' already exists`
+			};
+		}
 
 		return await ProductType.create(productTypeData);
 	} catch (err) {
@@ -77,7 +74,18 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		await checkExistenceByName(name);
+		if (name) {
+			const existsingProductType = await ProductType.where('name')
+				.equals(name)
+				.findOne();
+
+			if (existsingProductType) {
+				throw {
+					status: 409,
+					message: `Product type with name '${name}' already exists`
+				};
+			}
+		}
 
 		Object.keys(changes).forEach(
 			key => (productTypeToUpdate[key] = changes[key])
@@ -103,7 +111,21 @@ const deleteOne = async id => {
 			};
 		}
 
-		productTypeToDelete.deleteOne();
+		const productExists = await Product.where('type')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (productExists) {
+			throw {
+				status: 400,
+				message:
+					"Can't delete product type while some products are using it"
+			};
+		}
+
+		await productTypeToDelete.deleteOne();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

@@ -4,32 +4,28 @@ import Cart from '../cart/model.js';
 import cartService from '../cart/service.js';
 import User from './model.js';
 
-const checkUserExistense = async (phoneNumber, email) => {
-	const existingUser = await User.where('deletedAt')
-		.exists(false)
-		.or([{ phoneNumber }, { email }])
-		.findOne();
-
-	if (existingUser) {
-		throw {
-			status: 409,
-			message:
-				'User with ' +
-				(existingUser.phoneNumber === phoneNumber
-					? `phone number '${phoneNumber}'`
-					: `email '${email}'`) +
-				' already exists'
-		};
-	}
-};
-
 const createOne = async userData => {
 	let { phoneNumber, email } = userData;
 
 	try {
 		phoneNumber = normalizePhoneNumber(phoneNumber);
 
-		await checkUserExistense(phoneNumber, email);
+		const existingUser = await User.where('deletedAt')
+			.exists(false)
+			.or([{ phoneNumber }, { email }])
+			.findOne();
+
+		if (existingUser) {
+			throw {
+				status: 409,
+				message:
+					'User with ' +
+					(existingUser.phoneNumber === phoneNumber
+						? `phone number '${phoneNumber}'`
+						: `email '${email}'`) +
+					' already exists'
+			};
+		}
 
 		const salt = randomBytes(16);
 		const hashedPassword = await hashPassword(
@@ -55,15 +51,13 @@ const createOne = async userData => {
 	}
 };
 
-const getOne = async (id, withDeleted) => {
+const getOne = async id => {
 	try {
-		const query = User.where('_id').equals(id);
-
-		if (!withDeleted) {
-			query.where('deletedAt').exists(false);
-		}
-
-		const foundUser = await query.findOne();
+		const foundUser = await User.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!foundUser) {
 			throw {
@@ -82,29 +76,14 @@ const getOne = async (id, withDeleted) => {
 };
 
 const getAll = async queryParams => {
-	const {
-		limit,
-		offset: skip,
-		orderBy,
-		order,
-		withDeleted
-	} = queryParams;
+	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
-		const query = User.find();
-
-		if (!withDeleted) {
-			query.where('deletedAt').exists(false);
-		}
-
-		query
+		return await User.where('deletedAt')
+			.exists(false)
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order });
-
-		const foundUsers = await query.exec();
-
-		return foundUsers;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -114,7 +93,7 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	let { phoneNumber, email } = changes;
+	let { phoneNumber, email, password } = changes;
 
 	try {
 		const userToUpdate = await User.where('_id')
@@ -135,9 +114,26 @@ const updateOne = async (id, changes) => {
 			changes.phoneNumber = phoneNumber;
 		}
 
-		await checkUserExistense(phoneNumber, email);
+		if (phoneNumber || email) {
+			const existingUser = await User.where('deletedAt')
+				.exists(false)
+				.or([{ phoneNumber }, { email }])
+				.findOne();
 
-		if (changes.password) {
+			if (existingUser) {
+				throw {
+					status: 409,
+					message:
+						'User with ' +
+						(existingUser.phoneNumber === phoneNumber
+							? `phone number '${phoneNumber}'`
+							: `email '${email}'`) +
+						' already exists'
+				};
+			}
+		}
+
+		if (password) {
 			const salt = randomBytes(16);
 			const hashedPassword = await hashPassword(
 				changes.password,

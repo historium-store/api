@@ -18,9 +18,9 @@ const getOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { id, withDeleted } = matchedData(req);
+		const { id } = matchedData(req);
 
-		res.json(await service.getOne(id, withDeleted));
+		res.json(await service.getOne(id));
 	} catch (err) {
 		next(createError(err));
 	}

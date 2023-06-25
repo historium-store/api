@@ -10,9 +10,6 @@ const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Section key is required'),
-	body('products')
-		.optional()
-		.custom(isArrayOfMongoIds('Section', 'products')),
 	body('sections')
 		.optional()
 		.custom(isArrayOfMongoIds('Section', 'sections'))
@@ -29,9 +26,6 @@ const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Section key can't be empty"),
-	body('products')
-		.optional()
-		.custom(isArrayOfMongoIds('Section', 'products')),
 	body('sections')
 		.optional()
 		.custom(isArrayOfMongoIds('Section', 'sections'))

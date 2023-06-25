@@ -1,14 +1,10 @@
 import { body } from 'express-validator';
-import { isArrayOfMongoIds } from '../../utils.js';
 
 const validateCreate = [
 	body('fullName')
 		.trim()
 		.notEmpty()
-		.withMessage('Illustrator full name is required'),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Illustrator', 'books'))
+		.withMessage('Illustrator full name is required')
 ];
 
 const validateUpdate = [
@@ -16,10 +12,7 @@ const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Illustrator full name can't be empty"),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Illustrator', 'books'))
+		.withMessage("Illustrator full name can't be empty")
 ];
 
 export default {

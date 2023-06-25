@@ -1,53 +1,24 @@
 import Book from '../book/model.js';
 import Editor from './model.js';
 
-const checkEditorExistense = async fullName => {
-	const existingEditor = await Editor.where('fullName')
-		.equals(fullName)
-		.where('deletedAt')
-		.exists(false)
-		.findOne();
-
-	if (existingEditor) {
-		throw {
-			status: 409,
-			message: `Editor with full name '${fullName}' already exists`
-		};
-	}
-};
-
 const createOne = async editorData => {
-	let { fullName, books } = editorData;
-	books = books ?? [];
+	let { fullName } = editorData;
 
 	try {
-		await checkEditorExistense(fullName);
+		const existingEditor = await Editor.where('fullName')
+			.equals(fullName)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		await Promise.all(
-			books.map(async id => {
-				const existingBook = await Book.where('_id')
-					.equals(id)
-					.where('deletedAt')
-					.exists(false)
-					.findOne();
+		if (existingEditor) {
+			throw {
+				status: 409,
+				message: `Editor with full name '${fullName}' already exists`
+			};
+		}
 
-				if (!existingBook) {
-					throw {
-						status: 404,
-						message: `Book with id '${id}' not found`
-					};
-				}
-			})
-		);
-
-		const newEditor = await Editor.create(editorData);
-
-		await Book.updateMany(
-			{ _id: books },
-			{ $push: { editors: newEditor } }
-		);
-
-		return newEditor;
+		return await Editor.create(editorData);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -98,7 +69,7 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	const { fullName, books } = changes;
+	const { fullName } = changes;
 
 	try {
 		const editorToUpdate = await Editor.where('_id')
@@ -114,43 +85,17 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		await checkEditorExistense(fullName);
+		const existingEditor = await Editor.where('fullName')
+			.equals(fullName)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (books) {
-			await Promise.all(
-				books.map(async id => {
-					const existingBook = await Book.where('_id')
-						.equals(id)
-						.where('deletedAt')
-						.exists(false)
-						.findOne();
-
-					if (!existingBook) {
-						throw {
-							status: 404,
-							message: `Book with id '${id}' not found`
-						};
-					}
-				})
-			);
-
-			const oldBookIds = editorToUpdate.books.map(b =>
-				b.toHexString()
-			);
-			const addedBookIds = books.filter(b => !oldBookIds.includes(b));
-			const removedBookIds = oldBookIds.filter(
-				b => !books.includes(b)
-			);
-
-			await Book.updateMany(
-				{ _id: addedBookIds },
-				{ $push: { editors: editorToUpdate.id } }
-			);
-
-			await Book.updateMany(
-				{ _id: removedBookIds },
-				{ $pull: { editors: editorToUpdate.id } }
-			);
+		if (existingEditor) {
+			throw {
+				status: 409,
+				message: `Editor with full name '${fullName}' already exists`
+			};
 		}
 
 		Object.keys(changes).forEach(

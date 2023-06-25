@@ -1,53 +1,24 @@
 import Book from '../book/model.js';
 import Translator from './model.js';
 
-const checkTranslatorExistense = async fullName => {
-	const translatorExists = await Translator.where('fullName')
-		.equals(fullName)
-		.where('deletedAt')
-		.exists(false)
-		.findOne();
-
-	if (translatorExists) {
-		throw {
-			status: 409,
-			message: `Translator with full name '${fullName}' already exists`
-		};
-	}
-};
-
 const createOne = async translatorData => {
-	let { fullName, books } = translatorData;
-	books = books ?? [];
+	let { fullName } = translatorData;
 
 	try {
-		await checkTranslatorExistense(fullName);
+		const translatorExists = await Translator.where('fullName')
+			.equals(fullName)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		await Promise.all(
-			books.map(async id => {
-				const existingBook = await Book.where('_id')
-					.equals(id)
-					.where('deletedAt')
-					.exists(false)
-					.findOne();
+		if (translatorExists) {
+			throw {
+				status: 409,
+				message: `Translator with full name '${fullName}' already exists`
+			};
+		}
 
-				if (!existingBook) {
-					throw {
-						status: 404,
-						message: `Book with id '${id}' not found`
-					};
-				}
-			})
-		);
-
-		const newTranslator = await Translator.create(translatorData);
-
-		await Book.updateMany(
-			{ _id: books },
-			{ $push: { translators: newTranslator } }
-		);
-
-		return newTranslator;
+		return await Translator.create(translatorData);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -98,7 +69,7 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	const { fullName, books } = changes;
+	const { fullName } = changes;
 
 	try {
 		const translatorToUpdate = await Translator.where('_id')
@@ -115,44 +86,18 @@ const updateOne = async (id, changes) => {
 		}
 
 		if (fullName) {
-			await checkTranslatorExistense(fullName);
-		}
+			const translatorExists = await Translator.where('fullName')
+				.equals(fullName)
+				.where('deletedAt')
+				.exists(false)
+				.findOne();
 
-		if (books) {
-			await Promise.all(
-				books.map(async id => {
-					const existingBook = await Book.where('_id')
-						.equals(id)
-						.where('deletedAt')
-						.exists(false)
-						.findOne();
-
-					if (!existingBook) {
-						throw {
-							status: 404,
-							message: `Book with id '${id}' not found`
-						};
-					}
-				})
-			);
-
-			const oldBookIds = translatorToUpdate.books.map(b =>
-				b.toHexString()
-			);
-			const addedBookIds = books.filter(b => !oldBookIds.includes(b));
-			const removedBookIds = oldBookIds.filter(
-				b => !books.includes(b)
-			);
-
-			await Book.updateMany(
-				{ _id: addedBookIds },
-				{ $push: { translators: translatorToUpdate.id } }
-			);
-
-			await Book.updateMany(
-				{ _id: removedBookIds },
-				{ $pull: { translators: translatorToUpdate.id } }
-			);
+			if (translatorExists) {
+				throw {
+					status: 409,
+					message: `Translator with full name '${fullName}' already exists`
+				};
+			}
 		}
 
 		Object.keys(changes).forEach(key => {

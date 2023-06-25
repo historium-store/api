@@ -1,10 +1,4 @@
-import { body, query } from 'express-validator';
-
-const validateGetOne = [
-	query('withDeleted')
-		.optional()
-		.customSanitizer(() => true)
-];
+import { body } from 'express-validator';
 
 const validateUpdate = [
 	body('firstName')
@@ -65,6 +59,5 @@ const validateUpdate = [
 ];
 
 export default {
-	validateGetOne,
 	validateUpdate
 };

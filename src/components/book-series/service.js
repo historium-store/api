@@ -2,23 +2,6 @@ import Book from '../book/model.js';
 import Publisher from '../publisher/model.js';
 import BookSeries from './model.js';
 
-const checkBookSeriesExistense = async (publisher, name) => {
-	const existingBookSeries = await BookSeries.where('publisher')
-		.equals(publisher)
-		.where('name')
-		.equals(name)
-		.where('deletedAt')
-		.exists(false)
-		.findOne();
-
-	if (existingBookSeries) {
-		throw {
-			status: 409,
-			message: `Publisher '${publisher.name}' already has book series named '${name}'`
-		};
-	}
-};
-
 const createOne = async bookSeriesData => {
 	let { name, publisher, books } = bookSeriesData;
 	books = books ?? [];
@@ -37,7 +20,20 @@ const createOne = async bookSeriesData => {
 			};
 		}
 
-		await checkBookSeriesExistense(foundPublisher, name);
+		const existingBookSeries = await BookSeries.where('publisher')
+			.equals(publisher)
+			.where('name')
+			.equals(name)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (existingBookSeries) {
+			throw {
+				status: 409,
+				message: `Publisher '${publisher.name}' already has book series named '${name}'`
+			};
+		}
 
 		await Promise.all(
 			books.map(async id => {
@@ -138,10 +134,20 @@ const updateOne = async (id, changes) => {
 		if (name) {
 			await bookSeriesToUpdate.populate('publisher');
 
-			await checkBookSeriesExistense(
-				bookSeriesToUpdate.publisher,
-				name
-			);
+			const existingBookSeries = await BookSeries.where('publisher')
+				.equals(bookSeriesToUpdate.publisher.id)
+				.where('name')
+				.equals(name)
+				.where('deletedAt')
+				.exists(false)
+				.findOne();
+
+			if (existingBookSeries) {
+				throw {
+					status: 409,
+					message: `Publisher '${bookSeriesToUpdate.publisher.name}' already has book series named '${name}'`
+				};
+			}
 		}
 
 		if (books) {

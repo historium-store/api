@@ -1,14 +1,10 @@
 import { body } from 'express-validator';
-import { isArrayOfMongoIds } from '../../utils.js';
 
 const validateCreate = [
 	body('fullName')
 		.trim()
 		.notEmpty()
 		.withMessage('Author full name is required'),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Author', 'books')),
 	body('biography')
 		.optional()
 		.trim()
@@ -31,9 +27,6 @@ const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Author full name can't be empty"),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Author', 'books')),
 	body('biography')
 		.optional()
 		.trim()

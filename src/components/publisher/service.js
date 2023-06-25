@@ -1,31 +1,23 @@
-import BookSeries from '../book-series/model.js';
-import Book from '../book/model.js';
 import Publisher from './model.js';
-
-const checkPublisherExistense = async name => {
-	const existingPublisher = await Publisher.where('name')
-		.equals(name)
-		.where('deletedAt')
-		.exists(false)
-		.findOne();
-
-	if (existingPublisher) {
-		throw {
-			status: 409,
-			message: `Publisher with name '${name}' already exists`
-		};
-	}
-};
 
 const createOne = async publisherData => {
 	let { name } = publisherData;
 
 	try {
-		await checkPublisherExistense(name);
+		const existingPublisher = await Publisher.where('name')
+			.equals(name)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		const newPublisher = await Publisher.create(publisherData);
+		if (existingPublisher) {
+			throw {
+				status: 409,
+				message: `Publisher with name '${name}' already exists`
+			};
+		}
 
-		return newPublisher;
+		return await Publisher.create(publisherData);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -93,7 +85,18 @@ const updateOne = async (id, changes) => {
 		}
 
 		if (name) {
-			await checkPublisherExistense(name);
+			const existingPublisher = await Publisher.where('name')
+				.equals(name)
+				.where('deletedAt')
+				.exists(false)
+				.findOne();
+
+			if (existingPublisher) {
+				throw {
+					status: 409,
+					message: `Publisher with name '${name}' already exists`
+				};
+			}
 		}
 
 		Object.keys(changes).forEach(

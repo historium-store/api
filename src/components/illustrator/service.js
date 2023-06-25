@@ -17,37 +17,23 @@ const checkIllustratorExistence = async fullName => {
 };
 
 const createOne = async illustratorData => {
-	let { fullName, books } = illustratorData;
-	books = books ?? [];
+	let { fullName } = illustratorData;
 
 	try {
-		await checkIllustratorExistence(fullName);
+		const existingIllustrator = await Illustrator.where('fullName')
+			.equals(fullName)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		await Promise.all(
-			books.map(async id => {
-				const existingBook = await Book.where('_id')
-					.equals(id)
-					.where('deletedAt')
-					.exists(false)
-					.findOne();
+		if (existingIllustrator) {
+			throw {
+				status: 409,
+				message: `Illustrator with full name '${fullName}' already exists`
+			};
+		}
 
-				if (!existingBook) {
-					throw {
-						status: 404,
-						message: `Book with id '${id}' not found`
-					};
-				}
-			})
-		);
-
-		const newIllustrator = await Illustrator.create(illustratorData);
-
-		await Book.updateMany(
-			{ _id: books },
-			{ $push: { illustrators: newIllustrator } }
-		);
-
-		return newIllustrator;
+		return await Illustrator.create(illustratorData);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -98,7 +84,7 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	const { fullName, books } = changes;
+	const { fullName } = changes;
 
 	try {
 		const illustratorToUpdate = await Illustrator.where('_id')
@@ -115,44 +101,18 @@ const updateOne = async (id, changes) => {
 		}
 
 		if (fullName) {
-			await checkIllustratorExistence(fullName);
-		}
+			const existingIllustrator = await Illustrator.where('fullName')
+				.equals(fullName)
+				.where('deletedAt')
+				.exists(false)
+				.findOne();
 
-		if (books) {
-			await Promise.all(
-				books.map(async id => {
-					const existingBook = await Book.where('_id')
-						.equals(id)
-						.where('deletedAt')
-						.exists(false)
-						.findOne();
-
-					if (!existingBook) {
-						throw {
-							status: 404,
-							message: `Book with id '${id}' not found`
-						};
-					}
-				})
-			);
-
-			const oldBookIds = illustratorToUpdate.books.map(b =>
-				b.toHexString()
-			);
-			const addedBookIds = books.filter(b => !oldBookIds.includes(b));
-			const removedBookIds = oldBookIds.filter(
-				b => !books.includes(b)
-			);
-
-			await Book.updateMany(
-				{ _id: addedBookIds },
-				{ $push: { illustrators: illustratorToUpdate.id } }
-			);
-
-			await Book.updateMany(
-				{ _id: removedBookIds },
-				{ $pull: { illustrators: illustratorToUpdate.id } }
-			);
+			if (existingIllustrator) {
+				throw {
+					status: 409,
+					message: `Illustrator with full name '${fullName}' already exists`
+				};
+			}
 		}
 
 		Object.keys(changes).forEach(key => {
