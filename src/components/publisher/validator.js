@@ -1,11 +1,4 @@
-import { body, param } from 'express-validator';
-import { isArrayOfMongoIds } from '../../utils.js';
-
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Publisher id must be a valid mongo id')
-];
+import { body } from 'express-validator';
 
 const validateCreate = [
 	body('name')
@@ -17,12 +10,6 @@ const validateCreate = [
 		.withMessage(
 			'Publisher name must be between 1 and 100 characters'
 		),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Publisher', 'books')),
-	body('bookSeries')
-		.optional()
-		.custom(isArrayOfMongoIds('Publisher', 'book series')),
 	body('description')
 		.optional()
 		.trim()
@@ -41,7 +28,6 @@ const validateCreate = [
 ];
 
 const validateUpdate = [
-	...validateId,
 	body('name')
 		.optional()
 		.trim()
@@ -52,12 +38,6 @@ const validateUpdate = [
 		.withMessage(
 			'Publisher name must be between 1 and 100 characters'
 		),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Publisher', 'books')),
-	body('bookSeries')
-		.optional()
-		.custom(isArrayOfMongoIds('Publisher', 'book series')),
 	body('description')
 		.optional()
 		.trim()
@@ -75,10 +55,7 @@ const validateUpdate = [
 		.withMessage('Publisher logo must be a valid url')
 ];
 
-const validator = {
-	validateId,
+export default {
 	validateCreate,
 	validateUpdate
 };
-
-export default validator;
