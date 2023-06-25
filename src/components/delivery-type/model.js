@@ -70,6 +70,10 @@ const deliveryTypeSchema = new Schema(
 	}
 );
 
+deliveryTypeSchema.methods.deleteOne = async function () {
+	await deleteDocument(this);
+};
+
 const DeliveryType = model('DeliveryType', deliveryTypeSchema);
 
 export default DeliveryType;

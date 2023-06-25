@@ -47,6 +47,10 @@ const sectionSchema = new Schema(
 	}
 );
 
+sectionSchema.methods.deleteOne = async function () {
+	await deleteDocument(this);
+};
+
 const Section = model('Section', sectionSchema);
 
 export default Section;
