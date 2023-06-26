@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body } from 'express-validator';
 
 const validateCreate = [
 	body('contactInfo')
@@ -189,21 +189,13 @@ const validateCreate = [
 		.withMessage('Order cart must be a valid mongo id')
 ];
 
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Order id must be a valid mongo id')
-];
-
 const validateUpdateStatus = [
-	...validateId,
 	body('status')
 		.isMongoId()
 		.withMessage('Order status must be a valid mongo id')
 ];
 
 const validateUpdate = [
-	...validateId,
 	body('receiverInfo')
 		.optional()
 		.isMongoId()
@@ -236,7 +228,6 @@ const validateUpdate = [
 
 export default {
 	validateCreate,
-	validateId,
 	validateUpdateStatus,
 	validateUpdate
 };

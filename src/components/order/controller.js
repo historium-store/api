@@ -49,7 +49,7 @@ const getOne = async (req, res, next) => {
 			};
 		}
 
-		res.json({ ...order });
+		res.json(order);
 	} catch (err) {
 		next(createError(err));
 	}
