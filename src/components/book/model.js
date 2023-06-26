@@ -196,6 +196,13 @@ const bookSchema = new Schema(
 			}
 		],
 
+		excerpts: [
+			{
+				type: String,
+				required: true
+			}
+		],
+
 		suitableFor: [
 			{
 				type: String,
