@@ -4,7 +4,7 @@ import createHttpError from 'http-errors';
 import logger from 'morgan';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUI from 'swagger-ui-express';
-import { errorHandler } from './middleware.js';
+import { errorHandler, verifyApiKey } from './middleware.js';
 
 import addressInfoRouter from './components/address-info/router.js';
 import authRouter from './components/auth/router.js';
@@ -34,6 +34,7 @@ import userRouter from './components/user/router.js';
 
 const app = express();
 
+app.use(verifyApiKey);
 app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());

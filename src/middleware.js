@@ -1,6 +1,18 @@
 import { param, query } from 'express-validator';
 import createHttpError from 'http-errors';
 
+export const verifyApiKey = (req, res, next) => {
+	const apiKey = req.get('API-Key');
+
+	if (!apiKey) {
+		next(createHttpError(403, 'API key not provided'));
+	} else if (!(apiKey === process.env.API_KEY)) {
+		next(createHttpError(403, 'Invalid API key'));
+	} else {
+		next();
+	}
+};
+
 export const errorHandler = (err, req, res, next) => {
 	let message;
 
