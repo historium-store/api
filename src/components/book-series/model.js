@@ -16,13 +16,16 @@ const bookSeriesSchema = new Schema(
 			required: true
 		},
 
-		books: [
-			{
-				type: ObjectId,
-				ref: 'Book',
-				required: false
-			}
-		],
+		books: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Book',
+					required: false
+				}
+			],
+			default: []
+		},
 
 		createdAt: {
 			type: Number
