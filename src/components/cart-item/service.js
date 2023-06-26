@@ -38,14 +38,14 @@ const addItem = async (cart, itemData) => {
 			return;
 		}
 
-		const newCartItem = await CartItem.create({
-			cart,
-			product,
-			quantity: quantity ?? 1
-		});
-
 		await foundCart.updateOne({
-			$push: { items: newCartItem }
+			$push: {
+				items: await CartItem.create({
+					cart,
+					product,
+					quantity: quantity ?? 1
+				})
+			}
 		});
 	} catch (err) {
 		throw {
@@ -99,6 +99,8 @@ const removeItem = async (cart, itemData) => {
 		}
 
 		await existingItem.deleteOne();
+
+		await foundCart.updateOne({ $pull: { items: existingItem } });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
