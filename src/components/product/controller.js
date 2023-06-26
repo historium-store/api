@@ -3,12 +3,16 @@ import { createError } from '../../utils.js';
 import service from './service.js';
 
 const createOne = async (req, res, next) => {
+	const { id: seller } = req.user;
+
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
 		const productData = matchedData(req);
+
+		productData.seller = seller;
 
 		res.status(201).json(await service.createOne(productData));
 	} catch (err) {
@@ -47,6 +51,8 @@ const getAll = async (req, res, next) => {
 };
 
 const updateOne = async (req, res, next) => {
+	const { id: seller } = req.user;
+
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
@@ -54,7 +60,7 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
-		res.json(await service.updateOne(id, changes));
+		res.json(await service.updateOne(id, changes, seller));
 	} catch (err) {
 		next(createError(err));
 	}

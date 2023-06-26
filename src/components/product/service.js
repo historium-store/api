@@ -3,10 +3,11 @@ import { transliterateToKey } from '../../utils.js';
 import Book from '../book/model.js';
 import ProductType from '../product-type/model.js';
 import Section from '../section/model.js';
+import User from '../user/model.js';
 import Product from './model.js';
 
 const createOne = async productData => {
-	let { name, key, type, sections } = productData;
+	let { name, key, type, sections, seller } = productData;
 
 	try {
 		const productTypeExists = await ProductType.where('_id')
@@ -57,6 +58,11 @@ const createOne = async productData => {
 
 		await Section.updateMany(
 			{ _id: sections },
+			{ $push: { products: newProduct } }
+		);
+
+		await User.updateOne(
+			{ _id: seller },
 			{ $push: { products: newProduct } }
 		);
 
@@ -194,7 +200,7 @@ const getAll = async queryParams => {
 	}
 };
 
-const updateOne = async (id, changes) => {
+const updateOne = async (id, changes, seller) => {
 	const { key, type, sections } = changes;
 
 	try {
@@ -215,6 +221,21 @@ const updateOne = async (id, changes) => {
 				message: `Product with ${
 					isMongoId ? 'id' : 'key'
 				} '${id}' not found`
+			};
+		}
+
+		const foundSeller = await User.where('_id')
+			.equals(seller)
+			.findOne();
+		const isAdmin = foundSeller.role === 'admin';
+		const productOwner = foundSeller.products.includes(
+			productToUpdate.id
+		);
+
+		if (!isAdmin && !productOwner) {
+			throw {
+				status: 403,
+				message: "Can't update product from other seller"
 			};
 		}
 

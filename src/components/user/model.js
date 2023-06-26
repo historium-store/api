@@ -72,7 +72,8 @@ const userSchema = new Schema(
 					required: false
 				}
 			],
-			required: false
+			required: false,
+			default: []
 		},
 
 		cart: {
