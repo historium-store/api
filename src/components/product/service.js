@@ -1,5 +1,4 @@
 import validator from 'validator';
-import { getProductCode } from '../../triggers/product-code.js';
 import { transliterateToKey } from '../../utils.js';
 import Book from '../book/model.js';
 import ProductType from '../product-type/model.js';
@@ -47,7 +46,11 @@ const createOne = async productData => {
 		const productExists = await Product.exists({ key });
 
 		if (productExists) {
-			productData.key += `-${await getProductCode()}`;
+			const { currentCode } = await mongoose.connection
+				.collection('productCodeCounter')
+				.findOne();
+
+			productData.key += `-${currentCode}`;
 		}
 
 		const newProduct = await Product.create(productData);
@@ -219,7 +222,11 @@ const updateOne = async (id, changes) => {
 			const productExists = await Product.exists({ key });
 
 			if (productExists) {
-				changes.key = `${key}-${productToUpdate.code}`;
+				const { currentCode } = await mongoose.connection
+					.collection('productCodeCounter')
+					.findOne();
+
+				productData.key += `-${currentCode}`;
 			}
 		}
 

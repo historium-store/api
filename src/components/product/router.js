@@ -11,7 +11,7 @@ productRouter
 	.get(validateQueryParams, controller.getAll)
 	.post(
 		authenticate,
-		checkRole(['admin']),
+		checkRole(['admin', 'seller']),
 		validator.validateCreate,
 		controller.createOne
 	);
@@ -21,10 +21,14 @@ productRouter
 	.get(validateQueryParams, controller.getOne)
 	.patch(
 		authenticate,
-		checkRole(['admin']),
+		checkRole(['admin', 'seller']),
 		validator.validateUpdate,
 		controller.updateOne
 	)
-	.delete(authenticate, checkRole(['admin']), controller.deleteOne);
+	.delete(
+		authenticate,
+		checkRole(['admin', 'seller']),
+		controller.deleteOne
+	);
 
 export default productRouter;

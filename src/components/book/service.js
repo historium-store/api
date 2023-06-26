@@ -1,21 +1,18 @@
 import validator from 'validator';
-
-import productService from '../product/service.js';
-
 import Author from '../author/model.js';
 import BookSeries from '../book-series/model.js';
 import Compiler from '../compiler/model.js';
 import Editor from '../editor/model.js';
 import Illustrator from '../illustrator/model.js';
 import Product from '../product/model.js';
+import productService from '../product/service.js';
 import Publisher from '../publisher/model.js';
 import Translator from '../translator/model.js';
 import Book from './model.js';
 
 const createOne = async bookData => {
-	// деструктуризация входных данных
-	// для более удобного использования
 	let {
+		product,
 		publisher,
 		authors,
 		compilers,
@@ -31,99 +28,124 @@ const createOne = async bookData => {
 	editors = editors ?? [];
 
 	try {
-		// проверка существования
-		// входного издателя книги
-		const publisherExists = await Publisher.exists({
-			_id: publisher,
-			deletedAt: { $exists: false }
-		});
+		const existingProduct = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (!publisherExists) {
+		if (!existingProduct) {
+			throw {
+				status: 404,
+				message: `Product with id '${product}' not found`
+			};
+		}
+
+		const existingPublisher = await Publisher.where('_id')
+			.equals(publisher)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!existingPublisher) {
 			throw {
 				status: 404,
 				message: `Publisher with id '${publisher}' not found`
 			};
 		}
 
-		// проверка существования
-		// входных авторов книги
-		let notFoundIndex = (
-			await Author.find({
-				_id: authors
-			})
-		).findIndex(a => !a || a.deletedAt);
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Author with id '${authors[notFoundIndex]}' not found`
-			};
-		}
+		await Promise.all(
+			authors.map(async id => {
+				const existingAuthor = await Author.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
 
-		// проверка существования
-		// входных составителей книги
-		notFoundIndex = (
-			await Compiler.find({
-				_id: compilers
+				if (!existingAuthor) {
+					throw {
+						status: 404,
+						message: `Author with id '${id}' not found`
+					};
+				}
 			})
-		).findIndex(c => !c || c.deletedAt);
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Compiler with id '${compilers[notFoundIndex]}' not found`
-			};
-		}
+		);
 
-		// проверка существования
-		// входных переводчиков книги
-		notFoundIndex = (
-			await Translator.find({
-				_id: translators
+		await Promise.all(
+			compilers.map(async id => {
+				const existingCompiler = await Compiler.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
+
+				if (!existingCompiler) {
+					throw {
+						status: 404,
+						message: `Compiler with id '${id}' not found`
+					};
+				}
 			})
-		).findIndex(t => !t || t.deletedAt);
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Translator with id '${translators[notFoundIndex]}' not found`
-			};
-		}
+		);
 
-		// проверка существования
-		// входных иллюстраторов книги
-		notFoundIndex = (
-			await Illustrator.find({
-				_id: illustrators
+		await Promise.all(
+			translators.map(async id => {
+				const existingTranslator = await Translator.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
+
+				if (!existingTranslator) {
+					throw {
+						status: 404,
+						message: `Translator with id '${id}' not found`
+					};
+				}
 			})
-		).findIndex(i => !i || i.deletedAt);
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Illustrator with id '${illustrators[notFoundIndex]}' not found`
-			};
-		}
+		);
 
-		// проверка существования
-		// входных редакторов книги
-		notFoundIndex = (
-			await Editor.find({
-				_id: editors
+		await Promise.all(
+			illustrators.map(async id => {
+				const existingIllustrator = await Illustrator.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
+
+				if (!existingIllustrator) {
+					throw {
+						status: 404,
+						message: `Illustrator with id '${id}' not found`
+					};
+				}
 			})
-		).findIndex(e => !e || e.deletedAt);
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Editor with id '${editors[notFoundIndex]}' not found`
-			};
-		}
+		);
 
-		// проверка существования
-		// входной серии книг
+		await Promise.all(
+			editors.map(async id => {
+				const existingEditor = await Editor.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
+
+				if (!existingEditor) {
+					throw {
+						status: 404,
+						message: `Editor with id '${id}' not found`
+					};
+				}
+			})
+		);
+
 		if (series) {
-			const bookSeriesExists = await BookSeries.exists({
-				_id: series,
-				deletedAt: { $exists: false }
-			});
+			const existingBookSeries = await BookSeries.where('_id')
+				.equals(series)
+				.where('deletedAt')
+				.exists(false);
 
-			if (!bookSeriesExists) {
+			if (!existingBookSeries) {
 				throw {
 					status: 404,
 					message: `Book series with id '${series}' not found`
@@ -131,70 +153,46 @@ const createOne = async bookData => {
 			}
 		}
 
-		// создание продукта
-		// и привязка его id
-		// к входным данным книги
-		const newProduct = await productService.createOne({
-			...bookData.product,
-			model: 'Book'
-		});
-		bookData.product = newProduct.id;
-
-		// создание книги
-		// и привязка её id
-		// к созданному продукту
 		const newBook = await Book.create(bookData);
-		await newProduct.updateOne({
-			specificProduct: newBook.id
-		});
 
-		// добавление ссылки на новую книгу
-		// соответствующему издателю
+		await Product.updateOne(
+			{ _id: product },
+			{ $set: { specificProduct: newBook } }
+		);
+
 		await Publisher.updateOne(
 			{ _id: publisher },
-			{ $addToSet: { books: newBook.id } }
+			{ $push: { books: newBook } }
 		);
 
-		// добавление ссылки на новую книгу
-		// соответствующим авторам
 		await Author.updateMany(
 			{ _id: authors },
-			{ $addToSet: { books: newBook.id } }
+			{ $push: { books: newBook } }
 		);
 
-		// добавление ссылки на новую книгу
-		// соответствующим составителям
 		await Compiler.updateMany(
 			{ _id: compilers },
-			{ $addToSet: { books: newBook.id } }
+			{ $push: { books: newBook } }
 		);
 
-		// добавление ссылки на новую книгу
-		// соответствующим переводчикам
 		await Translator.updateMany(
 			{ _id: translators },
-			{ $addToSet: { books: newBook.id } }
+			{ $push: { books: newBook } }
 		);
 
-		// добавление ссылки на новую книгу
-		// соответствующим иллюстраторам
 		await Illustrator.updateMany(
 			{ _id: illustrators },
-			{ $addToSet: { books: newBook.id } }
+			{ $push: { books: newBook } }
 		);
 
-		// добавление ссылки на новую книгу
-		// соответствующим редакторам
 		await Editor.updateMany(
 			{ _id: editors },
-			{ $addToSet: { books: newBook.id } }
+			{ $push: { books: newBook } }
 		);
 
-		// добавление ссылки на новую книгу
-		// соответствующей серии книг
 		await BookSeries.updateOne(
 			{ _id: series },
-			{ $addToSet: { books: newBook.id } }
+			{ $push: { books: newBook } }
 		);
 
 		return newBook;
@@ -208,41 +206,44 @@ const createOne = async bookData => {
 
 const getOne = async id => {
 	try {
+		const query = Book.where('deletedAt').exists(false);
+
 		const isMongoId = validator.isMongoId(id);
 
-		let filter = { deletedAt: { $exists: false } };
-
 		if (isMongoId) {
-			filter._id = id;
+			query.where('_id').equals(id);
 		} else {
-			const foundProduct = await Product.exists({ key: id });
+			const product = await Product.where('key')
+				.equals(id)
+				.where('deletedAt')
+				.exists(false)
+				.findOne();
 
-			filter.product = foundProduct._id;
+			query.where('product').equals(product?.id);
 		}
 
-		// проверка существования книги
-		// с входным id,
-		// заполнение необходимых полей
-		const foundBook = await Book.findOne(filter).populate([
-			{
-				path: 'product',
-				populate: [
-					{ path: 'type', select: 'name key' },
-					{ path: 'sections', select: 'name key' }
-				],
-				select: '-specificProduct'
-			},
-			{ path: 'publisher', select: 'name' },
-			{
-				path: 'authors',
-				select: 'fullName pictures biography'
-			},
-			{ path: 'compilers', select: 'fullName' },
-			{ path: 'translators', select: 'fullName' },
-			{ path: 'illustrators', select: 'fullName' },
-			{ path: 'editors', select: 'fullName' },
-			{ path: 'series', select: 'name' }
-		]);
+		const foundBook = await query
+			.populate([
+				{
+					path: 'product',
+					populate: [
+						{ path: 'type', select: 'name key' },
+						{ path: 'sections', select: 'name key' }
+					],
+					select: '-specificProduct'
+				},
+				{ path: 'publisher', select: 'name' },
+				{
+					path: 'authors',
+					select: 'fullName pictures biography'
+				},
+				{ path: 'compilers', select: 'fullName' },
+				{ path: 'translators', select: 'fullName' },
+				{ path: 'illustrators', select: 'fullName' },
+				{ path: 'editors', select: 'fullName' },
+				{ path: 'series', select: 'name' }
+			])
+			.findOne();
 
 		if (!foundBook) {
 			throw {
@@ -652,12 +653,11 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		// проверка существования
-		// книги с входным id
-		const bookToDelete = await Book.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		const bookToDelete = await Book.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!bookToDelete) {
 			throw {
@@ -666,34 +666,44 @@ const deleteOne = async id => {
 			};
 		}
 
-		// удаление ссылки на книгу
-		// у соответствующего издателя
+		await productService.deleteOne(bookToDelete.product);
+
 		await Publisher.updateOne(
 			{ _id: bookToDelete.publisher },
 			{ $pull: { books: bookToDelete.id } }
 		);
 
-		// удаления связанного
-		// с книгой продукта
-		await productService.deleteOne(bookToDelete.product);
-
-		// удаление ссылки на книгу
-		// у соответствующей серии книг
-		await BookSeries.updateOne(
-			{ _id: bookToDelete.series },
-			{ $pull: { books: bookToDelete.id } }
-		);
-
-		// удаление ссылки на книгу
-		// у соответствующих авторов
 		await Author.updateMany(
 			{ _id: bookToDelete.authors },
-			{ $pull: { books: bookToDelete.id } }
+			{ $pull: { books: id } }
+		);
+
+		await Compiler.updateMany(
+			{ _id: bookToDelete.compilers },
+			{ $pull: { books: id } }
+		);
+
+		await Translator.updateMany(
+			{ _id: bookToDelete.translators },
+			{ $pull: { books: id } }
+		);
+
+		await Illustrator.updateMany(
+			{ _id: bookToDelete.illustrators },
+			{ $pull: { books: id } }
+		);
+
+		await Editor.updateMany(
+			{ _id: bookToDelete.editors },
+			{ $pull: { books: id } }
+		);
+
+		await BookSeries.updateOne(
+			{ _id: bookToDelete.series },
+			{ $pull: { books: id } }
 		);
 
 		await bookToDelete.deleteOne();
-
-		return bookToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
