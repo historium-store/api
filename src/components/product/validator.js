@@ -41,6 +41,9 @@ const validateCreate = [
 		.withMessage('Product must have between 1 and 8 images'),
 	body('sections')
 		.exists()
+		.withMessage('Product sections is required')
+		.bail()
+		.isArray({ min: 1 })
 		.withMessage('Product must be in at least 1 section')
 		.bail()
 		.custom(isArrayOfMongoIds('Product', 'sections'))
@@ -93,6 +96,7 @@ const validateUpdate = [
 		.custom(isArrayOfMongoIds('Product', 'sections'))
 ];
 
-const validator = { validateCreate, validateUpdate };
-
-export default validator;
+export default {
+	validateCreate,
+	validateUpdate
+};

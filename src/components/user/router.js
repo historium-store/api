@@ -23,12 +23,7 @@ userRouter.get('/account', controller.getAccount);
 
 userRouter
 	.route('/:id')
-	.get(
-		checkRole(['admin']),
-		validateId,
-		validator.validateGetOne,
-		controller.getOne
-	)
+	.get(checkRole(['admin']), validateId, controller.getOne)
 	.patch(validateId, validator.validateUpdate, controller.updateOne)
 	.delete(validateId, controller.deleteOne);
 
