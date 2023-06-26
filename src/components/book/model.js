@@ -196,12 +196,15 @@ const bookSchema = new Schema(
 			}
 		],
 
-		excerpts: [
-			{
-				type: String,
-				required: true
-			}
-		],
+		excerpts: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			],
+			required: false
+		},
 
 		suitableFor: [
 			{
