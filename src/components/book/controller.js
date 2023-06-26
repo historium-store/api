@@ -8,9 +8,9 @@ const createOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const data = matchedData(req);
+		const bookData = matchedData(req);
 
-		res.status(201).json(await service.createOne(data));
+		res.status(201).json(await service.createOne(bookData));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -41,30 +41,34 @@ const getAll = async (req, res, next) => {
 };
 
 const updateOne = async (req, res, next) => {
+	const { id } = req.params;
+	const { id: seller } = req.user;
+
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { id } = req.params;
-
 		const { ...changes } = matchedData(req);
 
-		res.json(await service.updateOne(id, changes));
+		res.json(await service.updateOne(id, changes, seller));
 	} catch (err) {
 		next(createError(err));
 	}
 };
 
 const deleteOne = async (req, res, next) => {
+	const { id } = req.params;
+	const { id: seller } = req.user;
+
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { id } = matchedData(req);
+		await service.deleteOne(id, seller);
 
-		res.json(await service.deleteOne(id));
+		res.sendStatus(204);
 	} catch (err) {
 		next(createError(err));
 	}

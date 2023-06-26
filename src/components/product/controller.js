@@ -51,6 +51,7 @@ const getAll = async (req, res, next) => {
 };
 
 const updateOne = async (req, res, next) => {
+	const { id } = req.params;
 	const { id: seller } = req.user;
 
 	try {
@@ -58,7 +59,7 @@ const updateOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { id, ...changes } = matchedData(req);
+		const { ...changes } = matchedData(req);
 
 		res.json(await service.updateOne(id, changes, seller));
 	} catch (err) {
@@ -68,13 +69,14 @@ const updateOne = async (req, res, next) => {
 
 const deleteOne = async (req, res, next) => {
 	const { id } = req.params;
+	const { id: seller } = req.user;
 
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
-		await service.deleteOne(id);
+		await service.deleteOne(id, seller);
 
 		res.sendStatus(204);
 	} catch (err) {

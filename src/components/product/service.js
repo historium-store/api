@@ -318,7 +318,7 @@ const updateOne = async (id, changes, seller) => {
 	}
 };
 
-const deleteOne = async id => {
+const deleteOne = async (id, seller) => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
@@ -328,8 +328,8 @@ const deleteOne = async id => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
-			.findOne()
-			.populate({ path: 'type', select: 'name key' });
+			.populate({ path: 'type', select: 'name key' })
+			.findOne();
 
 		if (!productToDelete) {
 			throw {
@@ -337,6 +337,21 @@ const deleteOne = async id => {
 				message: `Product with ${
 					isMongoId ? 'id' : 'key'
 				} '${id}' not found`
+			};
+		}
+
+		const foundSeller = await User.where('_id')
+			.equals(seller)
+			.findOne();
+		const isAdmin = foundSeller.role === 'admin';
+		const productOwner = foundSeller.products.includes(
+			productToDelete.id
+		);
+
+		if (!isAdmin && !productOwner) {
+			throw {
+				status: 403,
+				message: "Can't delete product from other seller"
 			};
 		}
 

@@ -8,6 +8,7 @@ import Product from '../product/model.js';
 import productService from '../product/service.js';
 import Publisher from '../publisher/model.js';
 import Translator from '../translator/model.js';
+import User from '../user/model.js';
 import Book from './model.js';
 
 const createOne = async bookData => {
@@ -351,7 +352,7 @@ const getAll = async queryParams => {
 	}
 };
 
-const updateOne = async (id, changes) => {
+const updateOne = async (id, changes, seller) => {
 	const {
 		publisher,
 		authors,
@@ -387,6 +388,21 @@ const updateOne = async (id, changes) => {
 				message: `Book with ${
 					isMongoId ? 'id' : 'key'
 				} '${id}' not found`
+			};
+		}
+
+		const foundSeller = await User.where('_id')
+			.equals(seller)
+			.findOne();
+		const isAdmin = foundSeller.role === 'admin';
+		const productOwner = foundSeller.products.includes(
+			bookToUpdate.product
+		);
+
+		if (!isAdmin && !productOwner) {
+			throw {
+				status: 403,
+				message: "Can't update book from other seller"
 			};
 		}
 
@@ -678,22 +694,51 @@ const updateOne = async (id, changes) => {
 	}
 };
 
-const deleteOne = async id => {
+const deleteOne = async (id, seller) => {
 	try {
-		const bookToDelete = await Book.where('_id')
-			.equals(id)
-			.where('deletedAt')
-			.exists(false)
-			.findOne();
+		const query = Book.where('deletedAt').exists(false);
+
+		const isMongoId = validator.isMongoId(id);
+
+		if (isMongoId) {
+			query.where('_id').equals(id);
+		} else {
+			const product = await Product.where('key')
+				.equals(id)
+				.where('deletedAt')
+				.exists(false)
+				.findOne();
+
+			query.where('product').equals(product?.id);
+		}
+
+		const bookToDelete = await query.findOne();
 
 		if (!bookToDelete) {
 			throw {
 				status: 404,
-				message: `Book with id '${id}' not found`
+				message: `Book with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
 			};
 		}
 
-		await productService.deleteOne(bookToDelete.product);
+		const foundSeller = await User.where('_id')
+			.equals(seller)
+			.findOne();
+		const isAdmin = foundSeller.role === 'admin';
+		const productOwner = foundSeller.products.includes(
+			bookToDelete.product
+		);
+
+		if (!isAdmin && !productOwner) {
+			throw {
+				status: 403,
+				message: "Can't delete book from other seller"
+			};
+		}
+
+		await Product.deleteOne(bookToDelete.product);
 
 		await Publisher.updateOne(
 			{ _id: bookToDelete.publisher },
@@ -702,32 +747,32 @@ const deleteOne = async id => {
 
 		await Author.updateMany(
 			{ _id: bookToDelete.authors },
-			{ $pull: { books: id } }
+			{ $pull: { books: bookToDelete.id } }
 		);
 
 		await Compiler.updateMany(
 			{ _id: bookToDelete.compilers },
-			{ $pull: { books: id } }
+			{ $pull: { books: bookToDelete.id } }
 		);
 
 		await Translator.updateMany(
 			{ _id: bookToDelete.translators },
-			{ $pull: { books: id } }
+			{ $pull: { books: bookToDelete.id } }
 		);
 
 		await Illustrator.updateMany(
 			{ _id: bookToDelete.illustrators },
-			{ $pull: { books: id } }
+			{ $pull: { books: bookToDelete.id } }
 		);
 
 		await Editor.updateMany(
 			{ _id: bookToDelete.editors },
-			{ $pull: { books: id } }
+			{ $pull: { books: bookToDelete.id } }
 		);
 
 		await BookSeries.updateOne(
 			{ _id: bookToDelete.series },
-			{ $pull: { books: id } }
+			{ $pull: { books: bookToDelete.id } }
 		);
 
 		await bookToDelete.deleteOne();
