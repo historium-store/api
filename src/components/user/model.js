@@ -64,6 +64,17 @@ const userSchema = new Schema(
 			}
 		],
 
+		products: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Product',
+					required: false
+				}
+			],
+			required: false
+		},
+
 		cart: {
 			type: ObjectId,
 			ref: 'Cart',
