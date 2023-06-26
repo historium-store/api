@@ -100,7 +100,7 @@ const removeItem = async (cart, itemData) => {
 
 		await existingItem.deleteOne();
 
-		await foundCart.updateOne({ $pull: { items: existingItem } });
+		await foundCart.updateOne({ $pull: { items: existingItem.id } });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
