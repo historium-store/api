@@ -167,18 +167,18 @@ const createOne = async orderData => {
 
 		const newOrder = await Order.create(orderData);
 
-		//#region to delete
+		// //#region to delete
 
-		const orders = await Order.find({
-			number: { $exists: true }
-		}).lean();
+		// const orders = await Order.find({
+		// 	number: { $exists: true }
+		// }).lean();
 
-		const lastUsedNumber = Math.max(...orders.map(o => o.number), 1);
+		// const lastUsedNumber = Math.max(...orders.map(o => o.number), 1);
 
-		const number =
-			lastUsedNumber === 1 ? 2000134348 : lastUsedNumber + 1;
+		// const number =
+		// 	lastUsedNumber === 1 ? 2000134348 : lastUsedNumber + 1;
 
-		//#endregion
+		// //#endregion
 
 		const mailData = {
 			from: '"Historium" noreply@historium.store',
