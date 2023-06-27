@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 export const increaseProductsQuantity = async () => {
 	try {
 		await mongoose.connection
-			.collection('product_quantity')
+			.collection('products_quantity')
 			.updateOne({}, { $inc: { currentProductsQuantity: 1 } });
 	} catch (err) {
 		throw {
@@ -16,7 +16,7 @@ export const increaseProductsQuantity = async () => {
 export const decreaseProductsQuantity = async () => {
 	try {
 		await mongoose.connection
-			.collection('product_quantity')
+			.collection('products_quantity')
 			.updateOne({}, { $inc: { currentProductsQuantity: -1 } });
 	} catch (err) {
 		throw {
