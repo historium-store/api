@@ -34,7 +34,10 @@ import userRouter from './components/user/router.js';
 
 const app = express();
 
-app.use(verifyApiKey);
+if (process.env.NODE_ENV === 'production') {
+	app.use(verifyApiKey);
+}
+
 app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());

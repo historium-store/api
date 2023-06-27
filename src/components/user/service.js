@@ -5,10 +5,10 @@ import cartService from '../cart/service.js';
 import User from './model.js';
 
 const createOne = async userData => {
-	let { phoneNumber, email } = userData;
-
 	try {
-		phoneNumber = normalizePhoneNumber(phoneNumber);
+		userData.phoneNumber = normalizePhoneNumber(userData.phoneNumber);
+
+		const { phoneNumber, email } = userData;
 
 		const existingUser = await User.where('deletedAt')
 			.exists(false)
@@ -93,9 +93,13 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	let { phoneNumber, email, password } = changes;
-
 	try {
+		if (phoneNumber) {
+			changes.phoneNumber = normalizePhoneNumber(changes.phoneNumber);
+		}
+
+		const { phoneNumber, email, password } = changes;
+
 		const userToUpdate = await User.where('_id')
 			.equals(id)
 			.where('deletedAt')
@@ -107,11 +111,6 @@ const updateOne = async (id, changes) => {
 				status: 404,
 				message: `User with id '${id}' not found`
 			};
-		}
-
-		if (phoneNumber) {
-			phoneNumber = normalizePhoneNumber(phoneNumber);
-			changes.phoneNumber = phoneNumber;
 		}
 
 		if (phoneNumber || email) {

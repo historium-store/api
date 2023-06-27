@@ -55,9 +55,9 @@ const createOne = async orderData => {
 			};
 		}
 
-		if (!user) {
-			let { phoneNumber, email } = contactInfo;
+		let { phoneNumber, email } = contactInfo;
 
+		if (!user) {
 			phoneNumber = normalizePhoneNumber(phoneNumber);
 
 			const userExists = await User.where('deletedAt')
@@ -83,28 +83,34 @@ const createOne = async orderData => {
 
 			await transporter.sendMail(mailData);
 
-			const newUser = await userService.createOne({
+			const { id } = await userService.createOne({
 				...contactInfo,
 				password
 			});
 
-			orderData.user = newUser._id;
-
-			const { items } = orderData;
-			delete orderData.items;
-
-			await cartService.merge(items, newUser.cart);
-
-			orderData.cart = newUser.cart;
-			await Cart.updateOne(
-				{ _id: newUser.cart },
-				{ $unset: { user: true } }
-			);
-
-			await newUser.updateOne({
-				$set: { cart: await Cart.create({ user: newUser }) }
-			});
+			orderData.user = id;
 		}
+
+		const foundUser = await User.where('_id')
+			.equals(orderData.user)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		const { items } = orderData;
+		delete orderData.items;
+
+		await cartService.merge(items, foundUser.cart);
+
+		orderData.cart = foundUser.cart;
+		await Cart.updateOne(
+			{ _id: foundUser.cart },
+			{ $unset: { user: true } }
+		);
+
+		await foundUser.updateOne({
+			$set: { cart: await Cart.create({ user: foundUser.id }) }
+		});
 
 		orderData.contactInfo = await ContactInfo.create(contactInfo);
 
@@ -136,7 +142,20 @@ const createOne = async orderData => {
 
 		orderData.deliveryInfo = await DeliveryInfo.create(deliveryInfo);
 
-		return await Order.create(orderData);
+		const newOrder = await Order.create(orderData);
+
+		const number = newOrder.number;
+
+		const mailData = {
+			from: '"Historium" noreply@historium.store',
+			to: email,
+			subject: 'Замовлення',
+			html: `Ваше замовлення <b>№${number}</b> прийнято.`
+		};
+
+		await transporter.sendMail(mailData);
+
+		return newOrder;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
