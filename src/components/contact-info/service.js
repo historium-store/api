@@ -1,3 +1,4 @@
+import { normalizePhoneNumber } from '../../utils.js';
 import ContactInfo from './model.js';
 
 const updateOne = async (id, changes) => {
@@ -9,6 +10,10 @@ const updateOne = async (id, changes) => {
 				status: 404,
 				message: `Contact info with id '${id}' not found`
 			};
+		}
+
+		if (changes.phoneNumber) {
+			changes.phoneNumber = normalizePhoneNumber(changes.phoneNumber);
 		}
 
 		Object.keys(changes).forEach(

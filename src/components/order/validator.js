@@ -198,8 +198,26 @@ const validateUpdateStatus = [
 const validateUpdate = [
 	body('receiverInfo')
 		.optional()
-		.isMongoId()
-		.withMessage('Order receiver info must be a valid mongo id'),
+		.isObject()
+		.withMessage('Receiver info must be an object'),
+	body('receiverInfo.firstName')
+		.if(body('receiverInfo').exists())
+		.trim()
+		.notEmpty()
+		.withMessage('Receiver first name is required'),
+	body('receiverInfo.lastName')
+		.if(body('receiverInfo').exists())
+		.trim()
+		.notEmpty()
+		.withMessage('Receiver last name is required'),
+	body('receiverInfo.phoneNumber')
+		.if(body('receiverInfo').exists())
+		.trim()
+		.notEmpty()
+		.withMessage('Receiver phone number is required')
+		.bail()
+		.isMobilePhone('uk-UA')
+		.withMessage('Invalid contact phone number'),
 	body('gift')
 		.optional()
 		.customSanitizer(value => Boolean(value)),

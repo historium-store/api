@@ -112,11 +112,17 @@ const createOne = async orderData => {
 			$set: { cart: await Cart.create({ user: foundUser.id }) }
 		});
 
+		orderData.contactInfo.phoneNumber = normalizePhoneNumber(
+			orderData.contactInfo.phoneNumber
+		);
 		orderData.contactInfo = await ContactInfo.create(contactInfo);
 
 		if (isEmptyObject(receiverInfo)) {
 			delete orderData.receiverInfo;
 		} else {
+			orderData.receiverInfo.phoneNumber = normalizePhoneNumber(
+				orderData.receiverInfo.phoneNumber
+			);
 			orderData.receiverInfo = await ContactInfo.create(receiverInfo);
 		}
 
@@ -144,18 +150,29 @@ const createOne = async orderData => {
 
 		const newOrder = await Order.create(orderData);
 
-		const number = newOrder.number;
+		//#region to delete
+
+		const orders = await Order.find({
+			number: { $exists: true }
+		}).lean();
+
+		const lastUsedNumber = Math.max(...orders.map(o => o.number), 1);
+
+		const number =
+			lastUsedNumber === 1 ? 2000134348 : lastUsedNumber + 1;
+
+		//#endregion
 
 		const mailData = {
 			from: '"Historium" noreply@historium.store',
 			to: email,
 			subject: 'Замовлення',
-			html: `Ваше замовлення <b>№${number}</b> прийнято.`
+			html: `Ваше замовлення <b>№ ${number}</b> прийнято.`
 		};
 
 		await transporter.sendMail(mailData);
 
-		return newOrder;
+		return await getOne(newOrder.id);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -360,14 +377,10 @@ const updateOne = async (id, changes) => {
 				};
 			}
 
-			const exists = await ContactInfo.exists({ _id: receiverInfo });
-
-			if (!exists) {
-				throw {
-					status: 404,
-					message: `Contact info with id '${receiverInfo}' not found`
-				};
-			}
+			receiverInfo.phoneNumber = normalizePhoneNumber(
+				receiverInfo.phoneNumber
+			);
+			changes.receiverInfo = await ContactInfo.create(receiverInfo);
 		}
 
 		if (companyInfo) {
@@ -380,14 +393,7 @@ const updateOne = async (id, changes) => {
 				};
 			}
 
-			const exists = await CompanyInfo.exists({ _id: companyInfo });
-
-			if (!exists) {
-				throw {
-					status: 404,
-					message: `Company info with id '${companyInfo}' not found`
-				};
-			}
+			changes.companyInfo = await CompanyInfo.create(companyInfo);
 		}
 
 		Object.keys(changes).forEach(
