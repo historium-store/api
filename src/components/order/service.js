@@ -167,24 +167,11 @@ const createOne = async orderData => {
 
 		const newOrder = await Order.create(orderData);
 
-		// //#region to delete
-
-		// const orders = await Order.find({
-		// 	number: { $exists: true }
-		// }).lean();
-
-		// const lastUsedNumber = Math.max(...orders.map(o => o.number), 1);
-
-		// const number =
-		// 	lastUsedNumber === 1 ? 2000134348 : lastUsedNumber + 1;
-
-		// //#endregion
-
 		const mailData = {
 			from: '"Historium" noreply@historium.store',
 			to: email,
 			subject: 'Замовлення',
-			html: `Ваше замовлення <b>№ ${number}</b> прийнято.`
+			html: `Ваше замовлення <b>№ ${newOrder.number}</b> прийнято.`
 		};
 
 		await transporter.sendMail(mailData);

@@ -125,7 +125,7 @@ const orderSchema = new Schema(
 			required: true
 		},
 
-		totalCount: {
+		totalQuantity: {
 			type: Number,
 			required: true
 		},
