@@ -5,7 +5,10 @@ import Cart from './model.js';
 const getByIdFromToken = async id => {
 	try {
 		const foundCart = await Cart.findById(id)
-			.populate('items')
+			.populate({
+				path: 'items',
+				select: 'product quantity createdAt'
+			})
 			.select('-_id items')
 			.lean();
 

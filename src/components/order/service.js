@@ -77,19 +77,42 @@ const createOne = async orderData => {
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
 				to: email,
-				subject: 'Password restoration',
+				subject: 'Welcome to Historium',
 				html: `Temporary password: <b>${password}</b>`
 			};
 
 			await transporter.sendMail(mailData);
 
-			const { id } = await userService.createOne({
+			const { _id: id, cart } = await userService.createOne({
 				...contactInfo,
 				password
 			});
 
 			orderData.user = id;
+			orderData.cart = cart;
+
+			const { items } = orderData;
+			delete orderData.items;
+
+			await cartService.merge(items, cart);
 		}
+
+		const foundCart = await cartService.getByIdFromToken(
+			orderData.cart
+		);
+
+		if (!foundCart.items.length) {
+			throw {
+				status: 400,
+				message: 'Cart must have at least 1 item'
+			};
+		}
+
+		delete orderData.cart;
+		foundCart.items.forEach(i => delete i._id);
+		Object.keys(foundCart).forEach(
+			key => (orderData[key] = foundCart[key])
+		);
 
 		const foundUser = await User.where('_id')
 			.equals(orderData.user)
@@ -97,12 +120,6 @@ const createOne = async orderData => {
 			.exists(false)
 			.findOne();
 
-		const { items } = orderData;
-		delete orderData.items;
-
-		await cartService.merge(items, foundUser.cart);
-
-		orderData.cart = foundUser.cart;
 		await Cart.updateOne(
 			{ _id: foundUser.cart },
 			{ $unset: { user: true } }
