@@ -69,9 +69,75 @@ const orderSchema = new Schema(
 			required: false
 		},
 
-		cart: {
-			type: ObjectId,
-			require: false
+		items: {
+			type: [
+				{
+					product: {
+						type: {
+							name: {
+								type: String,
+								required: true
+							},
+							key: {
+								type: String,
+								required: true
+							},
+							price: {
+								type: Number,
+								required: true
+							},
+							quantity: {
+								type: Number,
+								required: true
+							},
+							type: {
+								type: {
+									name: {
+										type: String,
+										required: true
+									},
+									key: {
+										type: String,
+										required: true
+									}
+								},
+								required: true
+							},
+							createdAt: {
+								type: Number
+							},
+							code: {
+								type: String,
+								required: true
+							},
+							image: {
+								type: String,
+								required: true
+							}
+						},
+						required: true
+					},
+
+					quantity: {
+						type: Number,
+						required: true
+					},
+
+					createdAt: {
+						type: Number
+					}
+				}
+			]
+		},
+
+		totalPrice: {
+			type: Number,
+			required: true
+		},
+
+		totalCount: {
+			type: Number,
+			required: true
 		},
 
 		number: {
