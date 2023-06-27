@@ -59,12 +59,12 @@ const updateOne = async (req, res, next) => {
 };
 
 const deleteOne = async (req, res, next) => {
+	const { id } = req.params;
+
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
-
-		const { id } = matchedData(req);
 
 		await service.deleteOne(id);
 

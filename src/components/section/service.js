@@ -4,6 +4,7 @@ import Section from './model.js';
 
 const createOne = async sectionData => {
 	let { name, sections } = sectionData;
+	sections = sections ?? [];
 
 	try {
 		const sectionExists = await Section.where('name')
