@@ -40,7 +40,7 @@ const createOne = async userData => {
 
 		const newUser = await User.create(userData);
 
-		newUser.cart = await Cart.create({ user: newUser });
+		newUser.cart = await Cart.create({ user: newUser.id });
 
 		return await newUser.save();
 	} catch (err) {
