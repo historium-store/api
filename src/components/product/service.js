@@ -48,7 +48,7 @@ const createOne = async productData => {
 
 		if (productExists) {
 			const { currentCode } = await mongoose.connection
-				.collection('productCodeCounter')
+				.collection('product_code_counter')
 				.findOne();
 
 			productData.key += `-${currentCode}`;
@@ -244,7 +244,7 @@ const updateOne = async (id, changes, seller) => {
 
 			if (productExists) {
 				const { currentCode } = await mongoose.connection
-					.collection('productCodeCounter')
+					.collection('product_code_counter')
 					.findOne();
 
 				productData.key += `-${currentCode}`;
