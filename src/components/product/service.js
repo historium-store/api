@@ -10,18 +10,23 @@ const createOne = async productData => {
 	let { name, key, type, sections, seller } = productData;
 
 	try {
-		const productTypeExists = await ProductType.where('_id')
+		const existingProductType = await ProductType.where('_id')
 			.equals(type)
 			.where('deletedAt')
 			.exists(false)
 			.findOne();
 
-		if (!productTypeExists) {
+		if (!existingProductType) {
 			throw {
 				status: 404,
 				message: `Product type with id '${type}' not found`
 			};
 		}
+
+		const typeName = existingProductType.name;
+
+		productData.model =
+			typeName.charAt(0).toUpperCase() + typeName.slice(1);
 
 		await Promise.all(
 			sections.map(async id => {
@@ -264,6 +269,11 @@ const updateOne = async (id, changes, seller) => {
 					message: `Product type with id '${type}' not found`
 				};
 			}
+
+			const typeName = existingProductType.name;
+
+			changes.model =
+				typeName.charAt(0).toUpperCase() + typeName.slice(1);
 		}
 
 		if (sections) {
