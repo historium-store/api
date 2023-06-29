@@ -1,6 +1,6 @@
 import validator from 'validator';
 import { transliterateToKey } from '../../utils.js';
-import Book from '../book/model.js';
+import bookService from '../book/service.js';
 import ProductType from '../product-type/model.js';
 import Section from '../section/model.js';
 import User from '../user/model.js';
@@ -373,7 +373,7 @@ const deleteOne = async (id, seller) => {
 		);
 
 		if (productToDelete.model === 'Book') {
-			await Book.deleteOne(productToDelete.specificProduct);
+			await bookService.deleteOne(productToDelete.specificProduct);
 		}
 
 		await productToDelete.deleteOne();
