@@ -85,6 +85,7 @@ app.use(
 					{ url: `http://localhost:${process.env.PORT ?? 3000}` }
 				],
 				tags: [
+					{ name: 'auth' },
 					{ name: 'user' },
 					{ name: 'order' },
 					{ name: 'banner' },
