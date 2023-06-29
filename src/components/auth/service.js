@@ -195,69 +195,9 @@ const restorePassword = async loginData => {
 	}
 };
 
-// const verifyRestore = async restoreData => {
-// 	let { phoneNumber, email, restorationToken } = restoreData;
-
-// 	try {
-// 		phoneNumber = normalizePhoneNumber(phoneNumber);
-
-// 		const foundUser = await User.where('deletedAt')
-// 			.exists(false)
-// 			.or([{ phoneNumber }, { email }])
-// 			.findOne();
-
-// 		if (!foundUser) {
-// 			throw {
-// 				status: 404,
-// 				message:
-// 					'User with ' +
-// 					(phoneNumber
-// 						? `phone number '${phoneNumber}'`
-// 						: `email '${email}'`) +
-// 					' not found'
-// 			};
-// 		}
-
-// 		if (!foundUser.restorationToken) {
-// 			throw {
-// 				status: 400,
-// 				message: "User doesn't need restoration"
-// 			};
-// 		}
-
-// 		if (restorationToken !== foundUser.restorationToken) {
-// 			throw {
-// 				status: 400,
-// 				message: 'Incorrect restoration token'
-// 			};
-// 		}
-
-// 		await foundUser.updateOne({
-// 			$unset: { restorationToken: true }
-// 		});
-
-// 		const payload = {
-// 			sub: foundUser.id
-// 		};
-// 		const options = {
-// 			expiresIn: process.env.JWT_EXPIRATION,
-// 			noTimestamp: true
-// 		};
-// 		const token = jwt.sign(payload, process.env.SECRET, options);
-
-// 		return { id: foundUser.id, token };
-// 	} catch (err) {
-// 		throw {
-// 			status: err.status ?? 500,
-// 			message: err.message ?? err
-// 		};
-// 	}
-// };
-
 export default {
 	signup,
 	login,
 	authenticate,
 	restorePassword
-	// verifyRestore
 };

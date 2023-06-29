@@ -53,6 +53,60 @@ export default authorRouter;
  *       content:
  *         application/json:
  *           schema:
+ *             $ref: '#/components/schemas/AuthorRequest'
+ *     responses:
+ *       '201':
+ *         description: Created author
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthorResponse'
+ *       '409':
+ *         $ref: '#/components/responses/AuthorAlreadyExists'
+ *   get:
+ *     summary: Get all authors
+ *     tags:
+ *       - author
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All authors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/AuthorResponse'
+ * /author/{id}:
+ *   get:
+ *     summary: Get one author
+ *     tags:
+ *       - author
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested author
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AuthorResponse'
+ *       '404':
+ *         $ref: '#/components/responses/AuthorNotFound'
+ *   patch:
+ *     summary: Update one author
+ *     tags:
+ *       - author
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
  *             type: object
  *             properties:
  *               fullName:
@@ -67,63 +121,108 @@ export default authorRouter;
  *                   type: string
  *                 minItems: 1
  *                 maxItems: 3
- *             required:
- *               - fullName
  *             example:
- *               fullName: Віктор Браун
- *               biography: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ac auctor augue mauris augue neque gravida in fermentum et. Vitae suscipit tellus mauris a. Massa id neque aliquam vestibulum morbi. Tincidunt praesent semper feugiat nibh. Eu sem integer vitae justo eget magna fermentum iaculis. Id consectetur purus ut faucibus pulvinar elementum integer enim neque. Vestibulum morbi blandit cursus risus at ultrices mi. Ut etiam sit amet nisl purus in. Et leo duis ut diam quam nulla. Eu consequat ac felis donec et. Pharetra magna ac placerat vestibulum lectus. Adipiscing diam donec adipiscing tristique risus nec feugiat. Egestas maecenas pharetra convallis posuere morbi. Cursus sit amet dictum sit amet justo donec.
+ *               fullName: Ім'ян Прізвиськов
  *               pictures:
- *                 - url-to-picture
- *                 - url-to-another-picture
+ *                 - url-to-new-picture
+ *                 - url-to-another-new-picture
  *     responses:
- *       '201':
- *         description: Author created successfully
+ *       '200':
+ *         description: Updated author
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 _id:
- *                   type: string
- *                 fullName:
- *                   type: string
- *                 biography:
- *                   type: string
- *                   minLength: 40
- *                   maxLength: 1000
- *                 pictures:
- *                   type: array
- *                   items:
- *                     type: string
- *                   minItems: 1
- *                   maxItems: 3
- *                 books:
- *                   type: array
- *                   items:
- *                     type: string
- *                 createdAt:
- *                   type: number
- *                 updatedAt:
- *                   type: number
- *               example:
- *                 _id: 649d5f0b3db3b3532c32b3cf
- *                 fullName: Віктор Браун
- *                 biography: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ac auctor augue mauris augue neque gravida in fermentum et. Vitae suscipit tellus mauris a. Massa id neque aliquam vestibulum morbi. Tincidunt praesent semper feugiat nibh. Eu sem integer vitae justo eget magna fermentum iaculis. Id consectetur purus ut faucibus pulvinar elementum integer enim neque. Vestibulum morbi blandit cursus risus at ultrices mi. Ut etiam sit amet nisl purus in. Et leo duis ut diam quam nulla. Eu consequat ac felis donec et. Pharetra magna ac placerat vestibulum lectus. Adipiscing diam donec adipiscing tristique risus nec feugiat. Egestas maecenas pharetra convallis posuere morbi. Cursus sit amet dictum sit amet justo donec.
- *                 pictures:
- *                   - url-to-picture
- *                   - url-to-another-picture
- *                 books: []
- *                 createdAt: 1687101928409
- *                 updatedAt: 1687101928409
+ *               $ref: '#/components/schemas/AuthorResponse'
+ *       '404':
+ *         $ref: '#/components/responses/AuthorNotFound'
  *       '409':
- *         description: Author already exists
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *               example:
- *                 message: Author with full name 'Віктор Браун' already exists
+ *         $ref: '#/components/responses/AuthorAlreadyExists'
+ *   delete:
+ *     summary: Delete one author
+ *     tags:
+ *       - author
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '204':
+ *         description: Author deleted successfully
+ *       '404':
+ *         $ref: '#/components/responses/AuthorNotFound'
+ * components:
+ *   schemas:
+ *     AuthorRequest:
+ *       type: object
+ *       properties:
+ *         fullName:
+ *           type: string
+ *         biography:
+ *           type: string
+ *           minLength: 40
+ *           maxLength: 1000
+ *         pictures:
+ *           type: array
+ *           items:
+ *             type: string
+ *           minItems: 1
+ *           maxItems: 3
+ *       required:
+ *         - fullName
+ *       example:
+ *         fullName: Ім'ян Прізвиськов
+ *         biography: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ac auctor augue mauris augue neque gravida in fermentum et. Vitae suscipit tellus mauris a. Massa id neque aliquam vestibulum morbi. Tincidunt praesent semper feugiat nibh. Eu sem integer vitae justo eget magna fermentum iaculis. Id consectetur purus ut faucibus pulvinar elementum integer enim neque. Vestibulum morbi blandit cursus risus at ultrices mi. Ut etiam sit amet nisl purus in. Et leo duis ut diam quam nulla. Eu consequat ac felis donec et. Pharetra magna ac placerat vestibulum lectus. Adipiscing diam donec adipiscing tristique risus nec feugiat. Egestas maecenas pharetra convallis posuere morbi. Cursus sit amet dictum sit amet justo donec.
+ *       pictures:
+ *         - url-to-picture
+ *         - url-to-another-picture
+ *     AuthorResponse:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         fullName:
+ *           type: string
+ *         biography:
+ *           type: string
+ *           minLength: 40
+ *           maxLength: 1000
+ *         pictures:
+ *           type: array
+ *           items:
+ *             type: string
+ *           minItems: 1
+ *           maxItems: 3
+ *         books:
+ *           type: array
+ *           items:
+ *             type: string
+ *         createdAt:
+ *           type: integer
+ *         updatedAt:
+ *           type: integer
+ *       example:
+ *         _id: 649d5f0b3db3b3532c32b3cf
+ *         fullName: Ім'ян Прізвиськов
+ *         biography: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ac auctor augue mauris augue neque gravida in fermentum et. Vitae suscipit tellus mauris a. Massa id neque aliquam vestibulum morbi. Tincidunt praesent semper feugiat nibh. Eu sem integer vitae justo eget magna fermentum iaculis. Id consectetur purus ut faucibus pulvinar elementum integer enim neque. Vestibulum morbi blandit cursus risus at ultrices mi. Ut etiam sit amet nisl purus in. Et leo duis ut diam quam nulla. Eu consequat ac felis donec et. Pharetra magna ac placerat vestibulum lectus. Adipiscing diam donec adipiscing tristique risus nec feugiat. Egestas maecenas pharetra convallis posuere morbi. Cursus sit amet dictum sit amet justo donec.
+ *         pictures:
+ *           - url-to-picture
+ *           - url-to-another-picture
+ *         books: []
+ *         createdAt: 1687101928409
+ *         updatedAt: 1687101928409
+ *   responses:
+ *     AuthorAlreadyExists:
+ *       description: Author already exists
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Error'
+ *           example:
+ *             message: Author with full name 'Ім'ян Прізвиськов' already exists
+ *     AuthorNotFound:
+ *       description: Author not found
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Error'
+ *           example:
+ *             message: Author with id '649d5f0b3db3b3532c32b3cf' not found
  */

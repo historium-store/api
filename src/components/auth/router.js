@@ -32,95 +32,20 @@ export default authRouter;
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
- *               phoneNumber:
- *                 type: string
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *             required:
- *               - firstName
- *               - lastName
- *               - phoneNumber
- *               - email
- *               - password
- *             example:
- *               firstName: Віталій
- *               lastName: Смердюк
- *               phoneNumber: '+380442138972'
- *               email: vitalii.smerduk@ukr.net
- *               password: '12345678'
+ *             $ref: '#/components/schemas/UserRequest'
  *     responses:
  *       '201':
- *         description: User successfully signed up
+ *         description: Created user
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 _id:
- *                   type: string
- *                 firstName:
- *                   type: string
- *                 lastName:
- *                   type: string
- *                 phoneNumber:
- *                   type: string
- *                 email:
- *                   type: string
- *                   format: email
- *                 password:
- *                   type: string
- *                 salt:
- *                   type: string
- *                 role:
- *                   type: string
- *                 reviews:
- *                   type: array
- *                   items:
- *                     type: string
- *                 wishlist:
- *                   type: array
- *                   items:
- *                     type: string
- *                 createdAt:
- *                   type: number
- *                   format: int64
- *                 updatedAt:
- *                   type: number
- *                   format: int64
- *                 cart:
- *                   type: string
- *               example:
- *                 _id: 617268ce1a9b261b6c35cc1d
- *                 firstName: Віталій
- *                 lastName: Смердюк
- *                 phoneNumber: '+380442138972'
- *                 email: vitalii.smerduk@ukr.net
- *                 password: d74eef53e89912dc618537ae00e91347d78747e1dd7f6fcfa26732f23fcfa79c
- *                 salt: c42af8db45f10eefb83d52cfd58a0b6e
- *                 role: user
- *                 reviews: []
- *                 wishlist: []
- *                 createdAt: 1686387456078
- *                 updatedAt: 1686387456078
- *                 cart: 617c9e5d4c5ad0c2a95e9b1f
+ *               $ref: '#/components/schemas/UserResponse'
  *       '409':
  *         description: User already exists
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
+ *               $ref: '#/components/schemas/Error'
  *             examples:
  *               phoneNumber:
  *                 summary: Phone number exists
@@ -129,7 +54,7 @@ export default authRouter;
  *               email:
  *                 summary: Email exists
  *                 value:
- *                   message: User with email 'vitalii.smerduk@ukr.net' already exists
+ *                   message: User with email 'imyan.prizviskov@ukr.net' already exists
  * /login:
  *   post:
  *     summary: Login existing user
@@ -158,11 +83,11 @@ export default authRouter;
  *             email:
  *               summary: Using email
  *               value:
- *                 login: vitalii.smerduk@ukr.net
+ *                 login: imyan.prizviskov@ukr.net
  *                 password: '12345678'
  *     responses:
  *       '200':
- *         description: User successfully logged in
+ *         description: User authorization token
  *         content:
  *           application/json:
  *             schema:
@@ -177,12 +102,9 @@ export default authRouter;
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *               example:
- *                 message: Incorrect password
+ *               $ref: '#/components/schemas/Error'
+ *             example:
+ *               message: Incorrect password
  *       '404':
  *         $ref: '#/components/responses/UserNotFound'
  * /password-restore:
@@ -207,10 +129,101 @@ export default authRouter;
  *               email:
  *                 summary: Using email
  *                 value:
- *                   login: vitalii.smerduk@ukr.net
+ *                   login: imyan.prizviskov@ukr.net
  *     responses:
  *       '204':
  *         description: Temporary password sent to user email/phone number
  *       '404':
  *         $ref: '#/components/responses/UserNotFound'
+ * components:
+ *   schemas:
+ *     UserRequest:
+ *       type: object
+ *       properties:
+ *         firstName:
+ *           type: string
+ *         lastName:
+ *           type: string
+ *         phoneNumber:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         password:
+ *           type: string
+ *       required:
+ *         - firstName
+ *         - lastName
+ *         - phoneNumber
+ *         - email
+ *         - password
+ *       example:
+ *         firstName: Ім'ян
+ *         lastName: Прізвиськов
+ *         phoneNumber: '+380442138972'
+ *         email: imyan.prizviskov@ukr.net
+ *         password: '12345678'
+ *     UserResponse:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         firstName:
+ *           type: string
+ *         lastName:
+ *           type: string
+ *         phoneNumber:
+ *           type: string
+ *         email:
+ *           type: string
+ *         password:
+ *           type: string
+ *         salt:
+ *           type: string
+ *         role:
+ *           type: string
+ *         reviews:
+ *           type: array
+ *           items:
+ *             type: string
+ *         wishlist:
+ *           type: array
+ *           items:
+ *             type: string
+ *         createdAt:
+ *           type: integer
+ *         updatedAt:
+ *           type: integer
+ *         cart:
+ *           type: string
+ *       example:
+ *         _id: 617268ce1a9b261b6c35cc1d
+ *         firstName: Ім'ян
+ *         lastName: Прізвиськов
+ *         phoneNumber: '+380442138972'
+ *         email: imyan.prizviskov@ukr.net
+ *         password: d74eef53e89912dc618537ae00e91347d78747e1dd7f6fcfa26732f23fcfa79c
+ *         salt: c42af8db45f10eefb83d52cfd58a0b6e
+ *         role: user
+ *         reviews: []
+ *         wishlist: []
+ *         createdAt: 1686387456078
+ *         updatedAt: 1686387456078
+ *         cart: 617c9e5d4c5ad0c2a95e9b1f
+ *   responses:
+ *     UserNotFound:
+ *       description: User not found
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Error'
+ *           examples:
+ *             phoneNumber:
+ *               summary: Phone number not found
+ *               value:
+ *                 message: User with phone number '+380442138972' not found
+ *             email:
+ *               summary: Email not found
+ *               value:
+ *                 message: User with email 'imyan.prizviskov@ukr.net' not found
  */

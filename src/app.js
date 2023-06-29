@@ -134,32 +134,40 @@ export default app;
  *       properties:
  *         message:
  *           type: string
- *       required:
- *         - message
- *   responses:
- *     UserNotFound:
- *       description: User not found
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Error'
- *           examples:
- *             phoneNumber:
- *               summary: Phone number not found
- *               value:
- *                 message: User with phone number '+380442138972' not found
- *             email:
- *               summary: Email not found
- *               value:
- *                 message: User with email 'vitalii.smerduk@ukr.net' not found
  *   parameters:
- *     idParam:
+ *     id:
  *       in: path
  *       name: id
  *       required: true
  *       schema:
  *         type: string
  *         example: 649d6ff51af81ee6f957f198
+ *       description: Mongo id of a document
+ *     limit:
+ *       in: query
+ *       name: limit
+ *       required: false
+ *       schema:
+ *         type: integer
+ *       description: The number of items to return
+ *     offset:
+ *       in: query
+ *       name: offset
+ *       schema:
+ *         type: integer
+ *       description: The number of items to skip before starting to collect the result set
+ *     orderBy:
+ *       in: query
+ *       name: orderBy
+ *       schema:
+ *         type: string
+ *       description: The property to order the result set by
+ *     order:
+ *       in: query
+ *       name: order
+ *       schema:
+ *         type: string
+ *       description: The direction to order the result set in
  *   securitySchemes:
  *     api_auth:
  *       type: http
