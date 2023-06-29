@@ -23,7 +23,7 @@ export default addressInfoRouter;
  *   patch:
  *     summary: Update existing address info
  *     security:
- *       - bearerAuth: []
+ *       - api_auth: []
  *     tags:
  *       - address-info
  *     parameters:
@@ -61,32 +61,44 @@ export default addressInfoRouter;
  *         description: Address info updated successfully
  *         content:
  *           application/json:
- *             type: object
- *             properties:
- *               _id:
- *                 type: string
- *               address:
- *                 type: string
- *               street:
- *                 type: string
- *               house:
- *                 type: string
- *               apartment:
- *                 type: string
- *               region:
- *                 type: string
- *               postcode:
- *                 type: string
- *               createdAt:
- *                 type: number
- *               updatedAt:
- *                 type: number
- *             example:
- *               _id: 648f20f4d6197b880bd9380c
- *               street: Вул. Перемоги
- *               house: 17/1
- *               apartment: 22
- *               postcode: 65000
- *               createdAt: 1687101928409
- *               updatedAt: 1687101928409
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                 address:
+ *                   type: string
+ *                 street:
+ *                   type: string
+ *                 house:
+ *                   type: string
+ *                 apartment:
+ *                   type: string
+ *                 region:
+ *                   type: string
+ *                 postcode:
+ *                   type: string
+ *                 createdAt:
+ *                   type: number
+ *                 updatedAt:
+ *                   type: number
+ *               example:
+ *                 _id: 648f20f4d6197b880bd9380c
+ *                 street: Вул. Перемоги
+ *                 house: 17/1
+ *                 apartment: 22
+ *                 postcode: 65000
+ *                 createdAt: 1687101928409
+ *                 updatedAt: 1687101928409
+ *       '404':
+ *         description: Address info not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: Address info with id '648f20f4d6197b880bd9380c' not found
  */
