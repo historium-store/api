@@ -91,10 +91,48 @@ const getAccount = async (req, res) => {
 	res.json(req.user);
 };
 
+const addToWishlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { product } = matchedData(req);
+
+		await service.addToWishlist(user, product);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+const removeFromWishlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { product } = matchedData(req);
+
+		await service.removeFromWishlist(user, product);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	getOne,
 	getAll,
 	updateOne,
 	deleteOne,
-	getAccount
+	getAccount,
+	addToWishlist,
+	removeFromWishlist
 };

@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto';
 import { hashPassword, normalizePhoneNumber } from '../../utils.js';
 import Cart from '../cart/model.js';
 import cartService from '../cart/service.js';
+import Product from '../product/model.js';
 import User from './model.js';
 
 const createOne = async userData => {
@@ -189,10 +190,88 @@ const deleteOne = async id => {
 	}
 };
 
+const addToWishlist = async (user, product) => {
+	try {
+		const userToUpdate = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!userToUpdate) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		const existingProduct = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!existingProduct) {
+			throw {
+				status: 404,
+				message: `Product with id '${product}' not found`
+			};
+		}
+
+		userToUpdate.wishlist.push(product);
+
+		await userToUpdate.save();
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+const removeFromWishlist = async (user, product) => {
+	try {
+		const userToUpdate = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!userToUpdate) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		const existingProduct = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!existingProduct) {
+			throw {
+				status: 404,
+				message: `Product with id '${product}' not found`
+			};
+		}
+
+		await userToUpdate.updateOne({ $pull: { wishlist: product } });
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne
+	deleteOne,
+	addToWishlist,
+	removeFromWishlist
 };

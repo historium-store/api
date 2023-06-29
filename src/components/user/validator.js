@@ -58,6 +58,13 @@ const validateUpdate = [
 		.withMessage('User birth date must be an integer')
 ];
 
+const validateWishlistProduct = [
+	body('product')
+		.isMongoId()
+		.withMessage('Product must be a valid mongo id')
+];
+
 export default {
-	validateUpdate
+	validateUpdate,
+	validateWishlistProduct
 };

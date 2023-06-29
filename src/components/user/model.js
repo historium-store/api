@@ -56,7 +56,7 @@ const userSchema = new Schema(
 			required: false
 		},
 
-		favorites: [
+		wishlist: [
 			{
 				type: ObjectId,
 				ref: 'Product',
