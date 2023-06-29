@@ -45,7 +45,6 @@ orderRouter
 export default orderRouter;
 
 /**
- * @swagger
  * /order:
  *   post:
  *     tags:

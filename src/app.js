@@ -87,12 +87,32 @@ app.use(
 				tags: [
 					{ name: 'auth' },
 					{ name: 'user' },
-					{ name: 'order' },
-					{ name: 'banner' },
-					{ name: 'address-info' }
+					{ name: 'cart' },
+					{ name: 'cart-item' },
+					{ name: 'section' },
+					{ name: 'product-type' },
+					{ name: 'product' },
+					{ name: 'review' },
+					{ name: 'publisher' },
+					{ name: 'book' },
+					{ name: 'author' },
+					{ name: 'compiler' },
+					{ name: 'translator' },
+					{ name: 'illustrator' },
+					{ name: 'editor' },
+					{ name: 'book-series' },
+					{ name: 'search' },
+					{ name: 'file' },
+					{ name: 'contact-info' },
+					{ name: 'country' },
+					{ name: 'address-info' },
+					{ name: 'company-info' },
+					{ name: 'delivery-type' },
+					{ name: 'delivery-info' },
+					{ name: 'order' }
 				]
 			},
-			apis: ['./src/components/*/router.js']
+			apis: ['./src/app.js', './src/components/*/router.js']
 		})
 	)
 );
@@ -104,3 +124,45 @@ app.use((req, res, next) =>
 app.use(errorHandler);
 
 export default app;
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Error:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *       required:
+ *         - message
+ *   responses:
+ *     UserNotFound:
+ *       description: User not found
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Error'
+ *           examples:
+ *             phoneNumber:
+ *               summary: Phone number not found
+ *               value:
+ *                 message: User with phone number '+380442138972' not found
+ *             email:
+ *               summary: Email not found
+ *               value:
+ *                 message: User with email 'vitalii.smerduk@ukr.net' not found
+ *   parameters:
+ *     idParam:
+ *       in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *         type: string
+ *         example: 649d6ff51af81ee6f957f198
+ *   securitySchemes:
+ *     api_auth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */

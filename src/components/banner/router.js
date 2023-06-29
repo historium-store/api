@@ -36,11 +36,10 @@ bannerRouter
 export default bannerRouter;
 
 /**
- * @swagger
  * /banner:
  *   post:
  *     security:
- *       - bearerAuth: []
+ *       - api_auth: []
  *     tags:
  *       - banner
  *     requestBody:
@@ -217,24 +216,4 @@ export default bannerRouter;
  *         message:
  *           type: string
  *           default: Internal server error
- *
- *   responses:
- *     Unauthorized:
- *       description: Authorization token is missing, invalid or expired
- *     Forbidden:
- *       description: No permission to use the endpoint
- *     BannerNotFoundError:
- *       description: Banner not found
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Error'
- *           example:
- *             message: Banner with id '648f20f4d6197b880bd9380c' not found
- *     InternalServerError:
- *       description: Internal server error
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Error'
  */

@@ -19,7 +19,7 @@ export default addressInfoRouter;
 
 /**
  * @swagger
- * /address-info:
+ * /address-info/{id}:
  *   patch:
  *     summary: Update existing address info
  *     security:
@@ -27,13 +27,7 @@ export default addressInfoRouter;
  *     tags:
  *       - address-info
  *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *           example: 648f20f4d6197b880bd9380c
- *         required: true
- *         description: Mongo id of an address info
+ *       - $ref: '#/components/parameters/idParam'
  *     requestBody:
  *       content:
  *         application/json:
@@ -90,15 +84,4 @@ export default addressInfoRouter;
  *                 postcode: 65000
  *                 createdAt: 1687101928409
  *                 updatedAt: 1687101928409
- *       '404':
- *         description: Address info not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *               example:
- *                 message: Address info with id '648f20f4d6197b880bd9380c' not found
  */

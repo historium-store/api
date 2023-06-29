@@ -36,12 +36,11 @@ userRouter
 export default userRouter;
 
 /**
- * @swagger
  * /user/wishlist:
  *   post:
  *     summary: Add product to wishlist
  *     security:
- *       - bearerAuth: []
+ *       - api_auth: []
  *     tags:
  *       - user
  *     requestBody:

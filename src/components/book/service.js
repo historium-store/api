@@ -5,7 +5,6 @@ import Compiler from '../compiler/model.js';
 import Editor from '../editor/model.js';
 import Illustrator from '../illustrator/model.js';
 import Product from '../product/model.js';
-import productService from '../product/service.js';
 import Publisher from '../publisher/model.js';
 import Translator from '../translator/model.js';
 import User from '../user/model.js';

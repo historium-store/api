@@ -130,10 +130,9 @@ export default authRouter;
  *                 summary: Email exists
  *                 value:
  *                   message: User with email 'vitalii.smerduk@ukr.net' already exists
- *
  * /login:
  *   post:
- *     summary: Login user
+ *     summary: Login existing user
  *     tags:
  *       - auth
  *     requestBody:
@@ -185,24 +184,7 @@ export default authRouter;
  *               example:
  *                 message: Incorrect password
  *       '404':
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *             examples:
- *               phoneNumber:
- *                 summary: Phone number not found
- *                 value:
- *                   message: User with phone number '+380442138972' not found
- *               email:
- *                 summary: Email not found
- *                 value:
- *                   message: User with email 'vitalii.smerduk@ukr.net' not found
- *
+ *         $ref: '#/components/responses/UserNotFound'
  * /password-restore:
  *   post:
  *     summary: Restore user password
@@ -230,21 +212,5 @@ export default authRouter;
  *       '204':
  *         description: Temporary password sent to user email/phone number
  *       '404':
- *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *             examples:
- *               phoneNumber:
- *                 summary: Phone number not found
- *                 value:
- *                   message: User with phone number '+380442138972' not found
- *               email:
- *                 summary: Email not found
- *                 value:
- *                   message: User with email 'vitalii.smerduk@ukr.net' not found
+ *         $ref: '#/components/responses/UserNotFound'
  */
