@@ -740,10 +740,12 @@ const deleteOne = async (id, seller) => {
 			};
 		}
 
+		await bookToDelete.populate('product');
+
 		await Product.deleteOne(bookToDelete.product);
 
 		await Section.updateMany(
-			{ _id: productToDelete.sections },
+			{ _id: bookToDelete.product.sections },
 			{ $pull: { products: bookToDelete.product } }
 		);
 
