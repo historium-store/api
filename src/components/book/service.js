@@ -6,6 +6,7 @@ import Editor from '../editor/model.js';
 import Illustrator from '../illustrator/model.js';
 import Product from '../product/model.js';
 import Publisher from '../publisher/model.js';
+import Section from '../section/model.js';
 import Translator from '../translator/model.js';
 import User from '../user/model.js';
 import Book from './model.js';
