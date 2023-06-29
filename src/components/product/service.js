@@ -373,7 +373,10 @@ const deleteOne = async (id, seller) => {
 		);
 
 		if (productToDelete.model === 'Book') {
-			await bookService.deleteOne(productToDelete.specificProduct);
+			await bookService.deleteOne(
+				productToDelete.specificProduct.toHexString(),
+				seller
+			);
 		}
 
 		await productToDelete.deleteOne();
