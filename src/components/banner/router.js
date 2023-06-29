@@ -107,7 +107,7 @@ export default bannerRouter;
  *           type: string
  *           example: 648f20f4d6197b880bd9380c
  *         required: true
- *         description: Mongo id of an banner
+ *         description: Mongo id of a banner
  *     responses:
  *       '200':
  *         description: Banner served successfully
@@ -132,7 +132,7 @@ export default bannerRouter;
  *           type: string
  *           example: 648f20f4d6197b880bd9380c
  *         required: true
- *         description: Mongo id of an banner
+ *         description: Mongo id of a banner
  *     requestBody:
  *       content:
  *         application/json:
@@ -172,7 +172,7 @@ export default bannerRouter;
  *           type: string
  *           example: 648f20f4d6197b880bd9380c
  *         required: true
- *         description: Mongo id of an banner
+ *         description: Mongo id of a banner
  *     responses:
  *       '204':
  *         description: Banner deleted successfully

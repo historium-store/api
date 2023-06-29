@@ -87,7 +87,8 @@ app.use(
 				tags: [
 					{ name: 'user' },
 					{ name: 'order' },
-					{ name: 'banner' }
+					{ name: 'banner' },
+					{ name: 'address-info' }
 				]
 			},
 			apis: ['./src/components/*/router.js']
