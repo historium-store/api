@@ -6,6 +6,9 @@ import Section from '../section/model.js';
 import User from '../user/model.js';
 import Product from './model.js';
 
+const typeNameToModel = new Map();
+typeToModel.set('Книга', 'Book');
+
 const createOne = async productData => {
 	let { name, key, type, sections, seller } = productData;
 
@@ -25,8 +28,7 @@ const createOne = async productData => {
 
 		const typeName = existingProductType.name;
 
-		productData.model =
-			typeName.charAt(0).toUpperCase() + typeName.slice(1);
+		productData.model = typeNameToModel.get(typeName);
 
 		await Promise.all(
 			sections.map(async id => {
