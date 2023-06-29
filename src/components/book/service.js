@@ -342,7 +342,9 @@ const getAll = async queryParams => {
 
 		return {
 			result: foundBooks,
-			total: await Book.countDocuments()
+			total: await Book.where('deletedAt')
+				.exists(false)
+				.countDocuments()
 		};
 	} catch (err) {
 		throw {
