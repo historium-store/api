@@ -173,15 +173,15 @@ const restorePassword = async loginData => {
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
 				to: foundUser.email,
-				subject: 'Password restoration',
-				html: `Temporary password: <b>${temporaryPassword}</b>`
+				subject: 'Відновлення паролю',
+				html: `Тимчасовий пароль: <b>${temporaryPassword}</b>`
 			};
 
 			await transporter.sendMail(mailData);
 		} else {
 			const from = 'Historium';
 			const to = phoneNumber;
-			const text = `Temporary password: ${temporaryPassword}\n\n`;
+			const text = `Тимчасовий пароль: ${temporaryPassword}\n\n`;
 
 			await vonage.sms.send({ to, from, text });
 		}

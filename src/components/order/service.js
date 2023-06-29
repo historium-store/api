@@ -77,8 +77,8 @@ const createOne = async orderData => {
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
 				to: email,
-				subject: 'Welcome to Historium',
-				html: `Temporary password: <b>${password}</b>`
+				subject: 'Реєстрація',
+				html: `Тимчасовий пароль: <b>${password}</b>`
 			};
 
 			await transporter.sendMail(mailData);
