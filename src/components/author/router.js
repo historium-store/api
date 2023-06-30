@@ -61,6 +61,8 @@ export default authorRouter;
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AuthorResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '409':
  *         $ref: '#/components/responses/AuthorAlreadyExists'
  *   get:
@@ -98,7 +100,7 @@ export default authorRouter;
  *       '404':
  *         $ref: '#/components/responses/AuthorNotFound'
  *   patch:
- *     summary: Update one author
+ *     summary: Update one existing author
  *     tags:
  *       - author
  *     parameters:
@@ -133,6 +135,8 @@ export default authorRouter;
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AuthorResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '404':
  *         $ref: '#/components/responses/AuthorNotFound'
  *       '409':
@@ -146,6 +150,8 @@ export default authorRouter;
  *     responses:
  *       '204':
  *         description: Author deleted successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '404':
  *         $ref: '#/components/responses/AuthorNotFound'
  * components:

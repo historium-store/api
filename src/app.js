@@ -9,6 +9,7 @@ import { errorHandler, verifyApiKey } from './middleware.js';
 import addressInfoRouter from './components/address-info/router.js';
 import authRouter from './components/auth/router.js';
 import authorRouter from './components/author/router.js';
+import bannerRouter from './components/banner/router.js';
 import bookSeriesRouter from './components/book-series/router.js';
 import bookRouter from './components/book/router.js';
 import cartItemRouter from './components/cart-item/router.js';
@@ -67,6 +68,7 @@ app.use('/company-info', companyInfoRouter);
 app.use('/delivery-type', deliveryTypeRouter);
 app.use('/delivery-info', deliveryInfoRouter);
 app.use('/order', orderRouter);
+app.use('/banner', bannerRouter);
 
 app.use(
 	'/docs',
@@ -109,7 +111,8 @@ app.use(
 					{ name: 'company-info' },
 					{ name: 'delivery-type' },
 					{ name: 'delivery-info' },
-					{ name: 'order' }
+					{ name: 'order' },
+					{ name: 'banner' }
 				]
 			},
 			apis: ['./src/app.js', './src/components/*/router.js']
@@ -168,6 +171,16 @@ export default app;
  *       schema:
  *         type: string
  *       description: The direction to order the result set in
+ *   responses:
+ *     Forbidden:
+ *       description: Insufficient permissions
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Error'
+ *           example:
+ *             message:
+ *               No permission to use this endpoint
  *   securitySchemes:
  *     api_auth:
  *       type: http

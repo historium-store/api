@@ -36,8 +36,10 @@ bannerRouter
 export default bannerRouter;
 
 /**
+ * @swagger
  * /banner:
  *   post:
+ *     summary: Create new banner
  *     security:
  *       - api_auth: []
  *     tags:
@@ -55,83 +57,60 @@ export default bannerRouter;
  *                 type: string
  *               imageSquare:
  *                 type: string
- *           example:
- *             leadsTo: /path/to/resource
- *             imageRect: url-to-wide-image
- *             imageSquare: url-to-compact-image
- *           required:
- *             - leadsTo
- *             - imageRect
- *             - imageSquare
+ *             required:
+ *               - leadsTo
+ *               - imageRect
+ *               - imageSquare
+ *             example:
+ *               leadsTo: /path/to/resource
+ *               imageRect: url-to-wide-image
+ *               imageSquare: url-to-compact-image
  *     responses:
  *       '201':
- *         description: Banner created successfully
+ *         description: Created banner
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Banner'
- *       '500':
- *         $ref: '#/components/responses/InternalServerError'
- *
+ *               $ref: '#/components/schemas/BannerResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
+ *     summary: Get all banners
  *     tags:
  *       - banner
  *     responses:
  *       '200':
- *         description: All banners served successfully
+ *         description: All banners
  *         content:
  *           application/json:
  *             schema:
- *             type: array
- *             items:
- *               $ref: '#/components/schemas/Banner'
- *             example:
- *               - _id: 648f20f4d6197b880bd9380c
- *                 leadsTo: /book?orderBy=createdAt
- *                 imageRect: url-to-wide-image
- *                 imageSquare: url-to-compact-image
- *                 createdAt: 1687101928409
- *                 updatedAt: 1687101928409
- *       '500':
- *         $ref: '#/components/responses/InternalServerError'
- *
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/BannerResponse'
  * /banner/{id}:
  *   get:
+ *     summary: Get one banner
  *     tags:
  *       - banner
  *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *           example: 648f20f4d6197b880bd9380c
- *         required: true
- *         description: Mongo id of a banner
+ *       - $ref: '#/components/parameters/id'
  *     responses:
  *       '200':
- *         description: Banner served successfully
+ *         description: Requested banner
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Banner'
+ *               $ref: '#/components/schemas/BannerResponse'
  *       '404':
- *         $ref: '#/components/responses/BannerNotFoundError'
- *       '500':
- *         $ref: '#/components/responses/InternalServerError'
- *
+ *         $ref: '#/components/responses/BannerNotFound'
  *   patch:
+ *     summary: Update one existing banner
  *     security:
- *       - bearerAuth: []
+ *       - api_auth: []
  *     tags:
  *       - banner
  *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *           example: 648f20f4d6197b880bd9380c
- *         required: true
- *         description: Mongo id of a banner
+ *       - $ref: '#/components/parameters/id'
  *     requestBody:
  *       content:
  *         application/json:
@@ -144,50 +123,39 @@ export default bannerRouter;
  *                 type: string
  *               imageSquare:
  *                 type: string
- *           example:
- *             leadsTo: /new/path/to/resource
- *             imageRect: url-to-new-wide-image
- *             imageSquare: url-to-new-compact-image
+ *             example:
+ *               leadsTo: /path/to/new/resource
+ *               imageRect: url-to-new-wide-image
+ *               imageSquare: url-to-new-compact-image
  *     responses:
  *       '200':
- *         description: Banner updated successfully
+ *         description: Updated banner
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Banner'
+ *               $ref: '#/components/schemas/BannerResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '404':
- *         $ref: '#/components/responses/BannerNotFoundError'
- *       '500':
- *         $ref: '#/components/responses/InternalServerError'
+ *         $ref: '#/components/responses/BannerNotFound'
  *   delete:
+ *     summary: Delete one banner
  *     security:
- *       - bearerAuth: []
+ *       - api_auth: []
  *     tags:
  *       - banner
  *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *           example: 648f20f4d6197b880bd9380c
- *         required: true
- *         description: Mongo id of a banner
+ *       - $ref: '#/components/parameters/id'
  *     responses:
  *       '204':
  *         description: Banner deleted successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '404':
- *         $ref: '#/components/responses/BannerNotFoundError'
- *       '500':
- *         $ref: '#/components/responses/InternalServerError'
- *
+ *         $ref: '#/components/responses/BannerNotFound'
  * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
  *   schemas:
- *     Banner:
+ *     BannerResponse:
  *       type: object
  *       properties:
  *         _id:
@@ -199,21 +167,23 @@ export default bannerRouter;
  *         imageSquare:
  *           type: string
  *         createdAt:
- *           type: number
+ *           type: integer
  *         updatedAt:
- *           type: number
+ *           type: integer
  *       example:
- *         _id: 648f20f4d6197b880bd9380c
+ *         _id: 649e6920b1a3a571dcd452ab
  *         leadsTo: /path/to/resource
  *         imageRect: url-to-wide-image
  *         imageSquare: url-to-compact-image
  *         createdAt: 1687101928409
  *         updatedAt: 1687101928409
- *
- *     Error:
- *       type: object
- *       properties:
- *         message:
- *           type: string
- *           default: Internal server error
+ *   responses:
+ *     BannerNotFound:
+ *       description: Banner not found
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Error'
+ *           example:
+ *             message: Banner with id '649e6920b1a3a571dcd452ab' not found
  */

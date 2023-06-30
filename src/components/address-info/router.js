@@ -21,7 +21,7 @@ export default addressInfoRouter;
  * @swagger
  * /address-info/{id}:
  *   patch:
- *     summary: Update existing address info
+ *     summary: Update one existing address info
  *     security:
  *       - api_auth: []
  *     tags:
@@ -40,6 +40,8 @@ export default addressInfoRouter;
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AddressInfoResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  * components:
  *   schemas:
  *     AddressInfoRequest:
