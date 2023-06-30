@@ -101,6 +101,8 @@ export default authorRouter;
  *         $ref: '#/components/responses/AuthorNotFound'
  *   patch:
  *     summary: Update one existing author
+ *     security:
+ *       - api_auth: []
  *     tags:
  *       - author
  *     parameters:
@@ -143,6 +145,8 @@ export default authorRouter;
  *         $ref: '#/components/responses/AuthorAlreadyExists'
  *   delete:
  *     summary: Delete one author
+ *     security:
+ *       - api_auth: []
  *     tags:
  *       - author
  *     parameters:

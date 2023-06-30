@@ -32,3 +32,17 @@ productRouter
 	);
 
 export default productRouter;
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     ProductNotFound:
+ *       description: Product not found
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Error'
+ *           example:
+ *             message: Product with id '649e9445c4fda9a679b0c347' not found
+ */

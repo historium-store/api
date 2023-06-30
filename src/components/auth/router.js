@@ -32,7 +32,31 @@ export default authRouter;
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserRequest'
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *             required:
+ *               - firstName
+ *               - lastName
+ *               - phoneNumber
+ *               - email
+ *               - password
+ *             example:
+ *               firstName: Ім'ян
+ *               lastName: Прізвиськов
+ *               phoneNumber: '+380442138972'
+ *               email: imyan.prizviskov@ukr.net
+ *               password: '12345678'
  *     responses:
  *       '201':
  *         description: Created user
@@ -106,7 +130,7 @@ export default authRouter;
  *             example:
  *               message: Incorrect password
  *       '404':
- *         $ref: '#/components/responses/UserNotFound'
+ *         $ref: '#/components/responses/UserCredentialsNotFound'
  * /password-restore:
  *   post:
  *     summary: Restore user password
@@ -134,96 +158,5 @@ export default authRouter;
  *       '204':
  *         description: Temporary password sent to user email/phone number
  *       '404':
- *         $ref: '#/components/responses/UserNotFound'
- * components:
- *   schemas:
- *     UserRequest:
- *       type: object
- *       properties:
- *         firstName:
- *           type: string
- *         lastName:
- *           type: string
- *         phoneNumber:
- *           type: string
- *         email:
- *           type: string
- *           format: email
- *         password:
- *           type: string
- *       required:
- *         - firstName
- *         - lastName
- *         - phoneNumber
- *         - email
- *         - password
- *       example:
- *         firstName: Ім'ян
- *         lastName: Прізвиськов
- *         phoneNumber: '+380442138972'
- *         email: imyan.prizviskov@ukr.net
- *         password: '12345678'
- *     UserResponse:
- *       type: object
- *       properties:
- *         _id:
- *           type: string
- *         firstName:
- *           type: string
- *         lastName:
- *           type: string
- *         phoneNumber:
- *           type: string
- *         email:
- *           type: string
- *         password:
- *           type: string
- *         salt:
- *           type: string
- *         role:
- *           type: string
- *         reviews:
- *           type: array
- *           items:
- *             type: string
- *         wishlist:
- *           type: array
- *           items:
- *             type: string
- *         createdAt:
- *           type: integer
- *         updatedAt:
- *           type: integer
- *         cart:
- *           type: string
- *       example:
- *         _id: 617268ce1a9b261b6c35cc1d
- *         firstName: Ім'ян
- *         lastName: Прізвиськов
- *         phoneNumber: '+380442138972'
- *         email: imyan.prizviskov@ukr.net
- *         password: d74eef53e89912dc618537ae00e91347d78747e1dd7f6fcfa26732f23fcfa79c
- *         salt: c42af8db45f10eefb83d52cfd58a0b6e
- *         role: user
- *         reviews: []
- *         wishlist: []
- *         createdAt: 1686387456078
- *         updatedAt: 1686387456078
- *         cart: 617c9e5d4c5ad0c2a95e9b1f
- *   responses:
- *     UserNotFound:
- *       description: User not found
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Error'
- *           examples:
- *             phoneNumber:
- *               summary: Phone number not found
- *               value:
- *                 message: User with phone number '+380442138972' not found
- *             email:
- *               summary: Email not found
- *               value:
- *                 message: User with email 'imyan.prizviskov@ukr.net' not found
+ *         $ref: '#/components/responses/UserCredentialsNotFound'
  */
