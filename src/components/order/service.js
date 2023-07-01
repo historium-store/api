@@ -153,17 +153,23 @@ const createOne = async orderData => {
 			orderData.companyInfo = await CompanyInfo.create(companyInfo);
 		}
 
-		deliveryInfo.addressInfo = await AddressInfo.create(
-			deliveryInfo.addressInfo
-		);
+		if (isEmptyObject(deliveryInfo)) {
+			delete orderData.deliveryInfo;
+		} else {
+			deliveryInfo.addressInfo = await AddressInfo.create(
+				deliveryInfo.addressInfo
+			);
 
-		if (deliveryInfo.contactInfo) {
-			deliveryInfo.contactInfo = await ContactInfo.create(
-				deliveryInfo.contactInfo
+			if (deliveryInfo.contactInfo) {
+				deliveryInfo.contactInfo = await ContactInfo.create(
+					deliveryInfo.contactInfo
+				);
+			}
+
+			orderData.deliveryInfo = await DeliveryInfo.create(
+				deliveryInfo
 			);
 		}
-
-		orderData.deliveryInfo = await DeliveryInfo.create(deliveryInfo);
 
 		const newOrder = await Order.create(orderData);
 
@@ -357,7 +363,7 @@ const updateStatus = async (id, status) => {
 };
 
 const updateOne = async (id, changes) => {
-	const { receiverInfo, companyInfo } = changes;
+	const { receiverInfo, companyInfo, deliveryInfo } = changes;
 
 	try {
 		const orderToUpdate = await Order.where('_id')
@@ -384,7 +390,6 @@ const updateOne = async (id, changes) => {
 			receiverInfo.phoneNumber = normalizePhoneNumber(
 				receiverInfo.phoneNumber
 			);
-			changes.receiverInfo = await ContactInfo.create(receiverInfo);
 		}
 
 		if (companyInfo) {
@@ -396,8 +401,17 @@ const updateOne = async (id, changes) => {
 					message: 'Order already has company info specified'
 				};
 			}
+		}
 
-			changes.companyInfo = await CompanyInfo.create(companyInfo);
+		if (deliveryInfo) {
+			const alreadySpecified = orderToUpdate.deliveryInfo;
+
+			if (alreadySpecified) {
+				throw {
+					status: 409,
+					message: 'Order already has company info specified'
+				};
+			}
 		}
 
 		Object.keys(changes).forEach(

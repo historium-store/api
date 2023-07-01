@@ -89,31 +89,25 @@ const validateCreate = [
 	body('callback').customSanitizer(value => Boolean(value)),
 
 	body('deliveryInfo')
-		.exists()
-		.withMessage('Delivery info is required')
-		.bail()
+		.optional()
 		.isObject()
 		.withMessage('Delivery info must be an object'),
 	body('deliveryInfo.country')
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery country is required')
-		.bail()
+		.optional()
 		.isMongoId()
 		.withMessage('Delivery country must be a valid mongo id'),
 	body('deliveryInfo.city')
+		.optional()
 		.trim()
 		.notEmpty()
 		.withMessage('Delivery city is required'),
 	body('deliveryInfo.type')
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery type is required')
-		.bail()
+		.optional()
 		.isMongoId()
 		.withMessage('Delivery type must be a valid mongo id'),
 
 	body('deliveryInfo.addressInfo')
+		.if(body('deliveryInfo').exists())
 		.exists()
 		.withMessage('Delivery addressInfo is required')
 		.bail()
@@ -225,6 +219,10 @@ const validateUpdate = [
 		.optional()
 		.isMongoId()
 		.withMessage('Order company info must be a valid mongo id'),
+	body('deliveryInfo')
+		.optional()
+		.isMongoId()
+		.withMessage('Order delivery info must be a valid mongo id'),
 	body('callback')
 		.optional()
 		.customSanitizer(value => Boolean(value)),

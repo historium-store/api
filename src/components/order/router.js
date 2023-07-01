@@ -251,7 +251,6 @@ export default orderRouter;
  *                        example: 3
  *              required:
  *                - contactInfo
- *                - deliveryInfo
  *                - paymentType
  *                - items
  *      responses:
