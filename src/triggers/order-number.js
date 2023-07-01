@@ -4,11 +4,7 @@ export const updateOrderNumber = async doc => {
 	try {
 		const orderCodeCounter = await mongoose.connection
 			.collection('order_number_counter')
-			.findOneAndUpdate(
-				{},
-				{ $inc: { 'value.number': 1 } },
-				{ new: false }
-			);
+			.findOneAndUpdate({}, { $inc: { number: 1 } });
 
 		await doc.set('number', orderCodeCounter.value.number);
 	} catch (err) {

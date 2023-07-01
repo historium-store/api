@@ -79,11 +79,13 @@ const clearItems = async cart => {
 		if (!foundCart) {
 			throw {
 				status: 404,
-				message: `Cart with id '${id}' not found`
+				message: `Cart with id '${cart}' not found`
 			};
 		}
 
 		await CartItem.deleteMany({ cart });
+
+		await foundCart.updateOne({ $set: { items: [] } });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

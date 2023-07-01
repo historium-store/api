@@ -1,4 +1,5 @@
-import { body } from 'express-validator';
+import { body, oneOf } from 'express-validator';
+import { normalizePhoneNumber } from '../../utils.js';
 
 const validateCreate = [
 	body('contactInfo')
@@ -8,21 +9,26 @@ const validateCreate = [
 		.isObject()
 		.withMessage('Contact info must be an object'),
 	body('contactInfo.firstName')
+		.if(body('contactInfo').exists())
 		.trim()
 		.notEmpty()
 		.withMessage('Contact first name is required'),
 	body('contactInfo.lastName')
+		.if(body('contactInfo').exists())
 		.trim()
 		.notEmpty()
 		.withMessage('Contact last name is required'),
 	body('contactInfo.phoneNumber')
+		.if(body('contactInfo').exists())
 		.trim()
 		.notEmpty()
 		.withMessage('Contact phone number is required')
 		.bail()
 		.isMobilePhone('uk-UA')
-		.withMessage('Invalid contact phone number'),
+		.withMessage('Invalid contact phone number')
+		.customSanitizer(normalizePhoneNumber),
 	body('contactInfo.email')
+		.if(body('contactInfo').exists())
 		.trim()
 		.notEmpty()
 		.withMessage('Contact email is required')
@@ -52,9 +58,8 @@ const validateCreate = [
 		.withMessage('Receiver phone number is required')
 		.bail()
 		.isMobilePhone('uk-UA')
-		.withMessage('Invalid contact phone number'),
-
-	body('gift').customSanitizer(value => Boolean(value)),
+		.withMessage('Invalid receiver phone number')
+		.customSanitizer(normalizePhoneNumber),
 
 	body('companyInfo')
 		.optional()
@@ -80,90 +85,57 @@ const validateCreate = [
 		.withMessage(
 			'Company identification number must be between 8 and 12 digits'
 		),
-	body('companyInfo.addressInfo.address')
+	body('companyInfo.address')
 		.if(body('companyInfo').exists())
 		.trim()
 		.notEmpty()
 		.withMessage('Company address is required'),
-
-	body('callback').customSanitizer(value => Boolean(value)),
 
 	body('deliveryInfo')
 		.optional()
 		.isObject()
 		.withMessage('Delivery info must be an object'),
 	body('deliveryInfo.country')
-		.optional()
-		.isMongoId()
-		.withMessage('Delivery country must be a valid mongo id'),
+		.if(body('deliveryInfo').exists())
+		.trim()
+		.notEmpty()
+		.withMessage('Delivery country is required'),
 	body('deliveryInfo.city')
-		.optional()
+		.if(body('deliveryInfo').exists())
 		.trim()
 		.notEmpty()
 		.withMessage('Delivery city is required'),
 	body('deliveryInfo.type')
-		.optional()
-		.isMongoId()
-		.withMessage('Delivery type must be a valid mongo id'),
-
-	body('deliveryInfo.addressInfo')
 		.if(body('deliveryInfo').exists())
-		.exists()
-		.withMessage('Delivery addressInfo is required')
-		.bail()
-		.isObject()
-		.withMessage('Delivery address info must be an object'),
-	body('deliveryInfo.addressInfo.address')
-		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Delivery address is required'),
-	body('deliveryInfo.addressInfo.street')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery street is required'),
-	body('deliveryInfo.addressInfo.house')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery house is required'),
-	body('deliveryInfo.addressInfo.apartment')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery apartment is required'),
-	body('deliveryInfo.addressInfo.region')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery region is required'),
-	body('deliveryInfo.addressInfo.postcode')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery postcode is required'),
+		.withMessage('Delivery type is required'),
+	oneOf(
+		[
+			body('deliveryInfo.address')
+				.trim()
+				.notEmpty()
+				.withMessage('Delivery address is required'),
+			[
+				body('deliveryInfo.street')
+					.trim()
+					.notEmpty()
+					.withMessage('Delivery street is required'),
+				body('deliveryInfo.house')
+					.trim()
+					.notEmpty()
+					.withMessage('Delivery house number is required'),
+				body('deliveryInfo.apartment')
+					.trim()
+					.notEmpty()
+					.withMessage('Delivery apartment number is required')
+			]
+		],
+		{ message: 'Invalid delivery address' }
+	),
 
-	body('deliveryInfo.contactInfo')
-		.optional()
-		.isObject()
-		.withMessage('Delivery contact info must be an object'),
-	body('deliveryInfo.contactInfo.firstName')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery contact first name is required'),
-	body('deliveryInfo.contactInfo.lastName')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery contact last name is required'),
-	body('deliveryInfo.contactInfo.middleName')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Delivery contact middle name is required'),
-
+	body('gift').customSanitizer(value => Boolean(value)),
+	body('callback').customSanitizer(value => Boolean(value)),
 	body('paymentType')
 		.trim()
 		.notEmpty()
@@ -174,13 +146,9 @@ const validateCreate = [
 		.isLength({ max: 500 })
 		.withMessage('Comment length can be up to 500 characters'),
 	body('items')
-		.if(body('cart').not().exists())
-		.isArray({ min: 1 })
-		.withMessage('Order must have at least 1 item'),
-	body('cart')
 		.optional()
-		.isMongoId()
-		.withMessage('Order cart must be a valid mongo id')
+		.isArray({ min: 1 })
+		.withMessage('Order must have at least 1 item')
 ];
 
 const validateUpdateStatus = [
@@ -190,39 +158,156 @@ const validateUpdateStatus = [
 ];
 
 const validateUpdate = [
+	body('contactInfo')
+		.optional()
+		.isObject()
+		.withMessage('Contact info must be an object'),
+	body('contactInfo.firstName')
+		.if(body('contactInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Contact first name can't be empty"),
+	body('contactInfo.lastName')
+		.if(body('contactInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Contact last name can't be empty"),
+	body('contactInfo.phoneNumber')
+		.if(body('contactInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Contact phone number can't be empty")
+		.bail()
+		.isMobilePhone('uk-UA')
+		.withMessage('Invalid contact phone number')
+		.customSanitizer(normalizePhoneNumber),
+	body('contactInfo.email')
+		.if(body('contactInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Contact email can't be empty")
+		.bail()
+		.isEmail()
+		.withMessage('Invalid contact email')
+		.normalizeEmail({ gmail_remove_dots: false }),
+
 	body('receiverInfo')
 		.optional()
 		.isObject()
 		.withMessage('Receiver info must be an object'),
 	body('receiverInfo.firstName')
 		.if(body('receiverInfo').exists())
+		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Receiver first name is required'),
+		.withMessage("Receiver first name can't be empty"),
 	body('receiverInfo.lastName')
 		.if(body('receiverInfo').exists())
+		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Receiver last name is required'),
+		.withMessage("Receiver last name can't be empty"),
 	body('receiverInfo.phoneNumber')
 		.if(body('receiverInfo').exists())
+		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Receiver phone number is required')
+		.withMessage("Receiver phone number can't be empty")
 		.bail()
 		.isMobilePhone('uk-UA')
-		.withMessage('Invalid contact phone number'),
+		.withMessage('Invalid receiver phone number')
+		.customSanitizer(normalizePhoneNumber),
+
+	body('companyInfo')
+		.optional()
+		.isObject()
+		.withMessage('Company info must be an object'),
+	body('companyInfo.name')
+		.if(body('companyInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Company name can't be empty"),
+	body('companyInfo.identificationNumber')
+		.if(body('companyInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Company identification number can't be empty")
+		.bail()
+		.isNumeric({ no_symbols: true })
+		.withMessage(
+			'Company identification number can only contain digits'
+		)
+		.bail()
+		.isLength({ min: 8, max: 12 })
+		.withMessage(
+			'Company identification number must be between 8 and 12 digits'
+		),
+	body('companyInfo.address')
+		.if(body('companyInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Company address can't be empty"),
+
+	body('deliveryInfo')
+		.optional()
+		.isObject()
+		.withMessage('Delivery info must be an object'),
+	body('deliveryInfo.country')
+		.if(body('deliveryInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Delivery country can't be empty"),
+	body('deliveryInfo.city')
+		.if(body('deliveryInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Delivery city can't be empty"),
+	body('deliveryInfo.type')
+		.if(body('deliveryInfo').exists())
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Delivery type can't be empty"),
+	oneOf(
+		[
+			body('deliveryInfo.address')
+				.optional()
+				.trim()
+				.notEmpty()
+				.withMessage("Delivery address can't be empty"),
+			[
+				body('deliveryInfo.street')
+					.optional()
+					.trim()
+					.notEmpty()
+					.withMessage("Delivery street can't be empty"),
+				body('deliveryInfo.house')
+					.optional()
+					.trim()
+					.notEmpty()
+					.withMessage("Delivery house number can't be empty"),
+				body('deliveryInfo.apartment')
+					.optional()
+					.trim()
+					.notEmpty()
+					.withMessage("Delivery apartment number can't be empty")
+			]
+		],
+		{ message: 'Invalid delivery address' }
+	),
+
 	body('gift')
 		.optional()
 		.customSanitizer(value => Boolean(value)),
-	body('companyInfo')
-		.optional()
-		.isMongoId()
-		.withMessage('Order company info must be a valid mongo id'),
-	body('deliveryInfo')
-		.optional()
-		.isMongoId()
-		.withMessage('Order delivery info must be a valid mongo id'),
 	body('callback')
 		.optional()
 		.customSanitizer(value => Boolean(value)),
@@ -230,16 +315,16 @@ const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Order payment type is required'),
+		.withMessage("Order payment type can't be empty"),
 	body('comment')
 		.optional()
 		.trim()
 		.isLength({ max: 500 })
 		.withMessage('Comment length can be up to 500 characters'),
-	body('status')
+	body('items')
 		.optional()
-		.isMongoId()
-		.withMessage('Order status must be a valid mongo id')
+		.isArray({ min: 1 })
+		.withMessage('Order must have at least 1 item')
 ];
 
 export default {

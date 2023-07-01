@@ -6,15 +6,37 @@ const { ObjectId } = Schema.Types;
 const orderSchema = new Schema(
 	{
 		contactInfo: {
-			type: ObjectId,
-			ref: 'ContactInfo',
-			required: true
+			firstName: {
+				type: String,
+				required: true
+			},
+			lastName: {
+				type: String,
+				required: true
+			},
+			phoneNumber: {
+				type: String,
+				required: true
+			},
+			email: {
+				type: String,
+				required: true
+			}
 		},
 
 		receiverInfo: {
-			type: ObjectId,
-			ref: 'ContactInfo',
-			required: false
+			firstName: {
+				type: String,
+				required: false
+			},
+			lastName: {
+				type: String,
+				required: false
+			},
+			phoneNumber: {
+				type: String,
+				required: false
+			}
 		},
 
 		gift: {
@@ -23,9 +45,18 @@ const orderSchema = new Schema(
 		},
 
 		companyInfo: {
-			type: ObjectId,
-			ref: 'CompanyInfo',
-			required: false
+			name: {
+				type: String,
+				required: false
+			},
+			identificationNumber: {
+				type: String,
+				required: false
+			},
+			address: {
+				type: String,
+				required: false
+			}
 		},
 
 		callback: {
@@ -34,9 +65,34 @@ const orderSchema = new Schema(
 		},
 
 		deliveryInfo: {
-			type: ObjectId,
-			ref: 'DeliveryInfo',
-			required: false
+			country: {
+				type: String,
+				required: false
+			},
+			city: {
+				type: String,
+				required: false
+			},
+			type: {
+				type: String,
+				required: false
+			},
+			address: {
+				type: String,
+				required: false
+			},
+			street: {
+				type: String,
+				required: false
+			},
+			house: {
+				type: String,
+				required: false
+			},
+			apartment: {
+				type: Number,
+				required: false
+			}
 		},
 
 		paymentType: {
@@ -46,6 +102,7 @@ const orderSchema = new Schema(
 
 		comment: {
 			type: String,
+			maxLength: 500,
 			required: false
 		},
 
@@ -55,7 +112,6 @@ const orderSchema = new Schema(
 				required: true,
 				default: 'Поточний'
 			},
-
 			key: {
 				type: String,
 				required: true,
@@ -66,40 +122,23 @@ const orderSchema = new Schema(
 		user: {
 			type: ObjectId,
 			ref: 'User',
-			required: false
+			required: true
 		},
 
 		items: [
 			{
 				product: {
-					name: {
+					type: {
 						type: String,
 						required: true
 					},
-					key: {
+					name: {
 						type: String,
 						required: true
 					},
 					price: {
 						type: Number,
 						required: true
-					},
-					quantity: {
-						type: Number,
-						required: true
-					},
-					type: {
-						name: {
-							type: String,
-							required: true
-						},
-						key: {
-							type: String,
-							required: true
-						}
-					},
-					createdAt: {
-						type: Number
 					},
 					code: {
 						type: String,
@@ -113,9 +152,6 @@ const orderSchema = new Schema(
 				quantity: {
 					type: Number,
 					required: true
-				},
-				createdAt: {
-					type: Number
 				}
 			}
 		],
@@ -141,11 +177,6 @@ const orderSchema = new Schema(
 
 		updatedAt: {
 			type: Number
-		},
-
-		deletedAt: {
-			type: Number,
-			required: false
 		}
 	},
 	{
@@ -158,10 +189,6 @@ orderSchema.pre('save', async function (next) {
 	await updateOrderNumber(this);
 	next();
 });
-
-orderSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
 
 const Order = model('Order', orderSchema);
 
