@@ -141,12 +141,16 @@ const orderSchema = new Schema(
 
 		updatedAt: {
 			type: Number
+		},
+
+		deletedAt: {
+			type: Number,
+			required: false
 		}
 	},
 	{
 		versionKey: false,
-		timestamps: true,
-		strict: false
+		timestamps: true
 	}
 );
 

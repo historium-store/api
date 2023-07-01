@@ -28,8 +28,7 @@ const bannerSchema = new Schema(
 	},
 	{
 		versionKey: false,
-		timestamps: true,
-		strict: false
+		timestamps: true
 	}
 );
 

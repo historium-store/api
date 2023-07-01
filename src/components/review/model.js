@@ -46,12 +46,16 @@ const reviewSchema = new Schema(
 
 		createdAt: {
 			type: Number
+		},
+
+		deletedAt: {
+			type: Number,
+			required: false
 		}
 	},
 	{
 		versionKey: false,
-		timestamps: true,
-		strict: false
+		timestamps: true
 	}
 );
 
