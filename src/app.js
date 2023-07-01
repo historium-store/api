@@ -181,22 +181,6 @@ export default app;
  *           example:
  *             message:
  *               No permission to use this endpoint
- *     UserOrProductNotFound:
- *       description: User or product not found
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Error'
- *           examples:
- *             user:
- *               summary: User not found
- *               value:
- *                 message:
- *                   User with id '617268ce1a9b261b6c35cc1d' not found
- *             product:
- *               summary: Product not found
- *               value:
- *                 message: Product with id '649e9445c4fda9a679b0c347' not found
  *   securitySchemes:
  *     api_auth:
  *       type: http

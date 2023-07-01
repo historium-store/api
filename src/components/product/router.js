@@ -35,6 +35,74 @@ export default productRouter;
 
 /**
  * @swagger
+ * /product:
+ *   get:
+ *     summary: Get all products
+ *     tags:
+ *       - product
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All products
+ *   post:
+ *     summary: Create new product
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - product
+ *     responses:
+ *       '201':
+ *         description: Created product
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ * /product/{id}:
+ *   get:
+ *     summary: Get one product
+ *     tags:
+ *       - product
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested product
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         $ref: '#/components/responses/ProductNotFound'
+ *   patch:
+ *     summary: Update one existing product
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - product
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested product
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         $ref: '#/components/responses/ProductNotFound'
+ *   delete:
+ *     summary: Delete one product
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - product
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '204':
+ *         description: Product deleted successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         $ref: '#/components/responses/ProductNotFound'
  * components:
  *   responses:
  *     ProductNotFound:

@@ -38,3 +38,75 @@ compilerRouter
 	);
 
 export default compilerRouter;
+
+/**
+ * @swagger
+ * /compiler:
+ *   get:
+ *     summary: Get all compilers
+ *     tags:
+ *       - compiler
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All compilers
+ *   post:
+ *     summary: Create new compiler
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - compiler
+ *     responses:
+ *       '201':
+ *         description: Created compiler
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ * /compiler/{id}:
+ *   get:
+ *     summary: Get one compiler
+ *     tags:
+ *       - compiler
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested compiler
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Compiler not found
+ *   patch:
+ *     summary: Update one existing compiler
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - compiler
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested compiler
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Compiler not found
+ *   delete:
+ *     summary: Delete one compiler
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - compiler
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '204':
+ *         description: Compiler deleted successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Compiler not found
+ */

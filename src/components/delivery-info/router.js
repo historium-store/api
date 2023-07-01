@@ -16,3 +16,21 @@ deliveryInfoRouter.patch(
 );
 
 export default deliveryInfoRouter;
+
+/**
+ * @swagger
+ * /delivery-info/{id}:
+ *   patch:
+ *     summary: Update one existing delivery info
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - delivery-info
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Updated delivery info
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ */

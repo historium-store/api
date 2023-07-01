@@ -38,3 +38,75 @@ bookSeriesRouter
 	);
 
 export default bookSeriesRouter;
+
+/**
+ * @swagger
+ * /book-series:
+ *   get:
+ *     summary: Get all book series
+ *     tags:
+ *       - book-series
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All book series
+ *   post:
+ *     summary: Create new book series
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - book-series
+ *     responses:
+ *       '201':
+ *         description: Created book series
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ * /book-series/{id}:
+ *   get:
+ *     summary: Get one book series
+ *     tags:
+ *       - book-series
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested book series
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Book series not found
+ *   patch:
+ *     summary: Update one existing book series
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - book-series
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested book series
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Book series not found
+ *   delete:
+ *     summary: Delete one book series
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - book-series
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '204':
+ *         description: Book series deleted successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Book series not found
+ */

@@ -101,6 +101,23 @@ const merge = async (items, cart) => {
 			};
 		}
 
+		await Promise.all(
+			items.map(async i => {
+				const existingProduct = await Product.where('_id')
+					.equals(i.product)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
+
+				if (!existingProduct) {
+					throw {
+						status: 404,
+						message: `Product with id '${i.product}' not found`
+					};
+				}
+			})
+		);
+
 		let existingItem;
 		let newCartItem;
 		for (let item of items) {

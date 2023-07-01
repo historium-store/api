@@ -38,3 +38,75 @@ translatorRouter
 	);
 
 export default translatorRouter;
+
+/**
+ * @swagger
+ * /translator:
+ *   get:
+ *     summary: Get all translators
+ *     tags:
+ *       - translator
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All translators
+ *   post:
+ *     summary: Create new translator
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - translator
+ *     responses:
+ *       '201':
+ *         description: Created translator
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ * /translator/{id}:
+ *   get:
+ *     summary: Get one translator
+ *     tags:
+ *       - translator
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested translator
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Translator not found
+ *   patch:
+ *     summary: Update one existing translator
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - translator
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested translator
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Translator not found
+ *   delete:
+ *     summary: Delete one translator
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - translator
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '204':
+ *         description: Translator deleted successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Translator not found
+ */

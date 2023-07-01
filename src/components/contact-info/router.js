@@ -16,3 +16,21 @@ contactInfoRouter.patch(
 );
 
 export default contactInfoRouter;
+
+/**
+ * @swagger
+ * /contact-info/{id}:
+ *   patch:
+ *     summary: Update one existing contact info
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - contact-info
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Updated contact info
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ */

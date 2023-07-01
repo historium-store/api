@@ -16,3 +16,21 @@ companyInfoRouter.patch(
 );
 
 export default companyInfoRouter;
+
+/**
+ * @swagger
+ * /company-info/{id}:
+ *   patch:
+ *     summary: Update one existing company info
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - company-info
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Updated company info
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ */
