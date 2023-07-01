@@ -25,6 +25,11 @@ const cartSchema = new Schema(
 
 		updatedAt: {
 			type: Number
+		},
+
+		deletedAt: {
+			type: Number,
+			required: false
 		}
 	},
 	{
@@ -32,6 +37,10 @@ const cartSchema = new Schema(
 		timestamps: true
 	}
 );
+
+cartSchema.methods.deleteOne = async function () {
+	await deleteDocument(this);
+};
 
 const Cart = model('Cart', cartSchema);
 

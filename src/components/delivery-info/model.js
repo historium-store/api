@@ -44,8 +44,7 @@ const deliveryInfoSchema = new Schema(
 	},
 	{
 		versionKey: false,
-		timestamps: true,
-		strict: false
+		timestamps: true
 	}
 );
 

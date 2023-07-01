@@ -83,17 +83,26 @@ const productSchema = new Schema(
 			}
 		],
 
+		requiresDelivery: {
+			type: Boolean,
+			default: true
+		},
+
 		createdAt: {
 			type: Number
 		},
 
 		updatedAt: {
 			type: Number
+		},
+
+		deletedAt: {
+			type: Number,
+			required: false
 		}
 	},
 	{
 		versionKey: false,
-		strict: false,
 		timestamps: true
 	}
 );
@@ -109,14 +118,10 @@ productSchema.methods.deleteOne = async function () {
 	await decreaseProductsQuantity();
 };
 
-productSchema.index({
-	_id: 1,
-	name: 1,
-	price: 1,
-	sections: 1,
-	type: 1,
-	quantity: 1
-});
+productSchema.statics.deleteOne = async function (productId) {
+	await deleteDocument(await this.findOne(productId));
+	await decreaseProductsQuantity();
+};
 
 const Product = model('Product', productSchema);
 
