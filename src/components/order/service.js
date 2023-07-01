@@ -108,6 +108,16 @@ const createOne = async orderData => {
 			};
 		}
 
+		if (
+			foundCart.items.some(i => i.product.requiresDelivery) &&
+			isEmptyObject(deliveryInfo)
+		) {
+			throw {
+				status: 400,
+				message: 'Delivery info required'
+			};
+		}
+
 		delete orderData.cart;
 		foundCart.items.forEach(i => delete i._id);
 		Object.keys(foundCart).forEach(

@@ -31,7 +31,9 @@ const getByIdFromToken = async id => {
 							select: '-_id authors'
 						}
 					])
-					.select('name key price quantity images createdAt code')
+					.select(
+						'name key price quantity images createdAt code requiresDelivery'
+					)
 					.lean();
 
 				i.product = {
