@@ -42,6 +42,17 @@ export default translatorRouter;
 /**
  * @swagger
  * /translator:
+ *   post:
+ *     summary: Create new translator
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - translator
+ *     responses:
+ *       '201':
+ *         description: Created translator
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
  *     summary: Get all translators
  *     tags:
@@ -54,17 +65,6 @@ export default translatorRouter;
  *     responses:
  *       '200':
  *         description: All translators
- *   post:
- *     summary: Create new translator
- *     security:
- *       - api_auth: []
- *     tags:
- *       - translator
- *     responses:
- *       '201':
- *         description: Created translator
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
  * /translator/{id}:
  *   get:
  *     summary: Get one translator

@@ -42,6 +42,17 @@ export default compilerRouter;
 /**
  * @swagger
  * /compiler:
+ *   post:
+ *     summary: Create new compiler
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - compiler
+ *     responses:
+ *       '201':
+ *         description: Created compiler
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
  *     summary: Get all compilers
  *     tags:
@@ -54,17 +65,6 @@ export default compilerRouter;
  *     responses:
  *       '200':
  *         description: All compilers
- *   post:
- *     summary: Create new compiler
- *     security:
- *       - api_auth: []
- *     tags:
- *       - compiler
- *     responses:
- *       '201':
- *         description: Created compiler
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
  * /compiler/{id}:
  *   get:
  *     summary: Get one compiler

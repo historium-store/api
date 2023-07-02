@@ -42,6 +42,17 @@ export default bookSeriesRouter;
 /**
  * @swagger
  * /book-series:
+ *   post:
+ *     summary: Create new book series
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - book-series
+ *     responses:
+ *       '201':
+ *         description: Created book series
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
  *     summary: Get all book series
  *     tags:
@@ -54,17 +65,6 @@ export default bookSeriesRouter;
  *     responses:
  *       '200':
  *         description: All book series
- *   post:
- *     summary: Create new book series
- *     security:
- *       - api_auth: []
- *     tags:
- *       - book-series
- *     responses:
- *       '201':
- *         description: Created book series
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
  * /book-series/{id}:
  *   get:
  *     summary: Get one book series

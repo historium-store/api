@@ -232,6 +232,15 @@ export default userRouter;
  *         createdAt: 1686387456078
  *         updatedAt: 1686387456078
  *         cart: 617c9e5d4c5ad0c2a95e9b1f
+ *     WishlistProduct:
+ *       type: object
+ *       properties:
+ *         product:
+ *           type: string
+ *       required:
+ *         - product
+ *       example:
+ *         product: 649d2022af43bbb201d8e129
  *   responses:
  *     UserCredentialsNotFound:
  *       description: User credentials not found

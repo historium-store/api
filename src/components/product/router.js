@@ -36,6 +36,17 @@ export default productRouter;
 /**
  * @swagger
  * /product:
+ *   post:
+ *     summary: Create new product
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - product
+ *     responses:
+ *       '201':
+ *         description: Created product
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
  *     summary: Get all products
  *     tags:
@@ -48,17 +59,6 @@ export default productRouter;
  *     responses:
  *       '200':
  *         description: All products
- *   post:
- *     summary: Create new product
- *     security:
- *       - api_auth: []
- *     tags:
- *       - product
- *     responses:
- *       '201':
- *         description: Created product
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
  * /product/{id}:
  *   get:
  *     summary: Get one product

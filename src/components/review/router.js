@@ -27,6 +27,17 @@ export default reviewRouter;
 /**
  * @swagger
  * /review:
+ *   post:
+ *     summary: Create new review
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - review
+ *     responses:
+ *       '201':
+ *         description: Created review
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
  *     summary: Get all reviews
  *     tags:
@@ -39,17 +50,6 @@ export default reviewRouter;
  *     responses:
  *       '200':
  *         description: All reviews
- *   post:
- *     summary: Create new review
- *     security:
- *       - api_auth: []
- *     tags:
- *       - review
- *     responses:
- *       '201':
- *         description: Created review
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
  * /review/{id}:
  *   get:
  *     summary: Get one review

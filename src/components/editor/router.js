@@ -42,6 +42,17 @@ export default editorRouter;
 /**
  * @swagger
  * /editor:
+ *   post:
+ *     summary: Create new editor
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - editor
+ *     responses:
+ *       '201':
+ *         description: Created editor
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
  *     summary: Get all editors
  *     tags:
@@ -54,17 +65,6 @@ export default editorRouter;
  *     responses:
  *       '200':
  *         description: All editors
- *   post:
- *     summary: Create new editor
- *     security:
- *       - api_auth: []
- *     tags:
- *       - editor
- *     responses:
- *       '201':
- *         description: Created editor
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
  * /editor/{id}:
  *   get:
  *     summary: Get one editor

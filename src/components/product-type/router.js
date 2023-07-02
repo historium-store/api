@@ -42,18 +42,6 @@ export default productTypeRouter;
 /**
  * @swagger
  * /product-type:
- *   get:
- *     summary: Get all product types
- *     tags:
- *       - product-type
- *     parameters:
- *       - $ref: '#/components/parameters/limit'
- *       - $ref: '#/components/parameters/offset'
- *       - $ref: '#/components/parameters/orderBy'
- *       - $ref: '#/components/parameters/order'
- *     responses:
- *       '200':
- *         description: All product types
  *   post:
  *     summary: Create new product type
  *     security:
@@ -67,6 +55,18 @@ export default productTypeRouter;
  *         $ref: '#/components/responses/Forbidden'
  *       '409':
  *         description: Product type already exists
+ *   get:
+ *     summary: Get all product types
+ *     tags:
+ *       - product-type
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All product types
  * /product-type/{id}:
  *   get:
  *     summary: Get one product type

@@ -24,6 +24,11 @@ export default cartItemRouter;
  *       - api_auth: []
  *     tags:
  *       - cart-item
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CartItemRequest'
  *     responses:
  *       '204':
  *         description: Item successfully added to cart
@@ -35,6 +40,11 @@ export default cartItemRouter;
  *       - api_auth: []
  *     tags:
  *       - cart-item
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CartItemRequest'
  *     responses:
  *       '204':
  *         description: Item successfully removed from cart

@@ -42,6 +42,17 @@ export default illustratorRouter;
 /**
  * @swagger
  * /illustrator:
+ *   post:
+ *     summary: Create new illustrator
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - illustrator
+ *     responses:
+ *       '201':
+ *         description: Created illustrator
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
  *     summary: Get all illustrators
  *     tags:
@@ -54,17 +65,6 @@ export default illustratorRouter;
  *     responses:
  *       '200':
  *         description: All illustrators
- *   post:
- *     summary: Create new illustrator
- *     security:
- *       - api_auth: []
- *     tags:
- *       - illustrator
- *     responses:
- *       '201':
- *         description: Created illustrator
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
  * /illustrator/{id}:
  *   get:
  *     summary: Get one illustrator

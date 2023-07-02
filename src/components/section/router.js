@@ -38,18 +38,6 @@ export default sectionRouter;
 /**
  * @swagger
  * /section:
- *   get:
- *     summary: Get all sections
- *     tags:
- *       - section
- *     parameters:
- *       - $ref: '#/components/parameters/limit'
- *       - $ref: '#/components/parameters/offset'
- *       - $ref: '#/components/parameters/orderBy'
- *       - $ref: '#/components/parameters/order'
- *     responses:
- *       '200':
- *         description: All sections
  *   post:
  *     summary: Create new section
  *     security:
@@ -63,6 +51,18 @@ export default sectionRouter;
  *         $ref: '#/components/responses/Forbidden'
  *       '409':
  *         description: Section already exists
+ *   get:
+ *     summary: Get all sections
+ *     tags:
+ *       - section
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All sections
  * /section/{id}:
  *   get:
  *     summary: Get one section

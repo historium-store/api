@@ -38,6 +38,17 @@ export default bookRouter;
 /**
  * @swagger
  * /book:
+ *   post:
+ *     summary: Create new book
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - book
+ *     responses:
+ *       '201':
+ *         description: Created book
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
  *     summary: Get all books
  *     tags:
@@ -50,17 +61,6 @@ export default bookRouter;
  *     responses:
  *       '200':
  *         description: All books
- *   post:
- *     summary: Create new book
- *     security:
- *       - api_auth: []
- *     tags:
- *       - book
- *     responses:
- *       '201':
- *         description: Created book
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
  * /book/{id}:
  *   get:
  *     summary: Get one book

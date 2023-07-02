@@ -42,6 +42,17 @@ export default publisherRouter;
 /**
  * @swagger
  * /publisher:
+ *   post:
+ *     summary: Create new publisher
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - publisher
+ *     responses:
+ *       '201':
+ *         description: Created publisher
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *   get:
  *     summary: Get all publishers
  *     tags:
@@ -54,17 +65,6 @@ export default publisherRouter;
  *     responses:
  *       '200':
  *         description: All publishers
- *   post:
- *     summary: Create new publisher
- *     security:
- *       - api_auth: []
- *     tags:
- *       - publisher
- *     responses:
- *       '201':
- *         description: Created publisher
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
  * /publisher/{id}:
  *   get:
  *     summary: Get one publisher
