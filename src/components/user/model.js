@@ -64,6 +64,14 @@ const userSchema = new Schema(
 			}
 		],
 
+		history: [
+			{
+				type: ObjectId,
+				ref: 'Product',
+				required: false
+			}
+		],
+
 		products: {
 			type: [
 				{
