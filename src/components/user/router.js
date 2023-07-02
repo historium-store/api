@@ -23,9 +23,13 @@ userRouter.get('/account', controller.getAccount);
 
 userRouter
 	.route('/wishlist')
-	.all(validator.validateWishlistProduct)
+	.all(validator.validateProductEntry)
 	.post(controller.addToWishlist)
 	.delete(controller.removeFromWishlist);
+
+userRouter
+	.route('/history')
+	.post(validator.validateProductEntry, controller.addToHistory);
 
 userRouter
 	.route('/:id')
@@ -160,7 +164,7 @@ export default userRouter;
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/WishlistProduct'
+ *             $ref: '#/components/schemas/ProductEntry'
  *     responses:
  *       '204':
  *         description: Product added to user's wishlist successfully
@@ -177,10 +181,30 @@ export default userRouter;
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/WishlistProduct'
+ *             $ref: '#/components/schemas/ProductEntry'
  *     responses:
  *       '204':
  *         description: Product removed from user's wishlist successfully
+ *       '404':
+ *         description: User or product not found
+ * /user/history:
+ *   post:
+ *     summary: Add product to user's viewed products history
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductEntry'
+ *     responses:
+ *       '204':
+ *         description: Product added to user's history successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '404':
  *         description: User or product not found
  * components:
@@ -232,7 +256,7 @@ export default userRouter;
  *         createdAt: 1686387456078
  *         updatedAt: 1686387456078
  *         cart: 617c9e5d4c5ad0c2a95e9b1f
- *     WishlistProduct:
+ *     ProductEntry:
  *       type: object
  *       properties:
  *         product:

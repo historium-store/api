@@ -1,16 +1,14 @@
 import { randomBytes } from 'crypto';
-import { hashPassword, normalizePhoneNumber } from '../../utils.js';
+import { MAX_HISTORY_SIZE, hashPassword } from '../../utils.js';
 import Cart from '../cart/model.js';
 import cartService from '../cart/service.js';
 import Product from '../product/model.js';
 import User from './model.js';
 
 const createOne = async userData => {
+	const { phoneNumber, email } = userData;
+
 	try {
-		userData.phoneNumber = normalizePhoneNumber(userData.phoneNumber);
-
-		const { phoneNumber, email } = userData;
-
 		const existingUser = await User.where('deletedAt')
 			.exists(false)
 			.or([{ phoneNumber }, { email }])
@@ -40,8 +38,9 @@ const createOne = async userData => {
 		userData.salt = salt.toString('hex');
 
 		const newUser = await User.create(userData);
+		const { id: cart } = await Cart.create({ user: newUser.id });
 
-		newUser.cart = await Cart.create({ user: newUser.id });
+		newUser.cart = cart;
 
 		return await newUser.save();
 	} catch (err) {
@@ -94,13 +93,9 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
+	const { phoneNumber, email, password } = changes;
+
 	try {
-		if (phoneNumber) {
-			changes.phoneNumber = normalizePhoneNumber(changes.phoneNumber);
-		}
-
-		const { phoneNumber, email, password } = changes;
-
 		const userToUpdate = await User.where('_id')
 			.equals(id)
 			.where('deletedAt')
@@ -218,9 +213,7 @@ const addToWishlist = async (user, product) => {
 			};
 		}
 
-		userToUpdate.wishlist.push(product);
-
-		await userToUpdate.save();
+		await userToUpdate.updateOne({ $push: { wishlist: product } });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -266,6 +259,59 @@ const removeFromWishlist = async (user, product) => {
 	}
 };
 
+const addToHistory = async (user, product) => {
+	try {
+		const userToUpdate = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!userToUpdate) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		const existingProduct = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!existingProduct) {
+			throw {
+				status: 404,
+				message: `Product with id '${product}' not found`
+			};
+		}
+
+		const productInHistory = userToUpdate.history.some(
+			p => p.toHexString() === product
+		);
+
+		if (productInHistory) {
+			return;
+		}
+
+		const historySize = userToUpdate.history.length;
+
+		if (historySize === MAX_HISTORY_SIZE) {
+			userToUpdate.history.pop();
+		}
+
+		userToUpdate.history.unshift(product);
+
+		await userToUpdate.save();
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
@@ -273,5 +319,6 @@ export default {
 	updateOne,
 	deleteOne,
 	addToWishlist,
-	removeFromWishlist
+	removeFromWishlist,
+	addToHistory
 };

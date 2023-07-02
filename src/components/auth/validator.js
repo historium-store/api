@@ -1,5 +1,8 @@
 import { body } from 'express-validator';
-import { isEmailOrPhoneNumber } from '../../utils.js';
+import {
+	isEmailOrPhoneNumber,
+	normalizePhoneNumber
+} from '../../utils.js';
 
 const validateSignup = [
 	body('firstName')
@@ -26,7 +29,8 @@ const validateSignup = [
 		.withMessage('User phone number is required')
 		.bail()
 		.isMobilePhone('uk-UA')
-		.withMessage('Invalid user phone number format'),
+		.withMessage('Invalid user phone number format')
+		.customSanitizer(normalizePhoneNumber),
 	body('email')
 		.trim()
 		.notEmpty()

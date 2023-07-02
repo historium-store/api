@@ -1,4 +1,5 @@
 import { body } from 'express-validator';
+import { normalizePhoneNumber } from '../../utils.js';
 
 const validateUpdate = [
 	body('firstName')
@@ -28,7 +29,8 @@ const validateUpdate = [
 		.withMessage("User phone number can't be empty")
 		.bail()
 		.isMobilePhone('uk-UA')
-		.withMessage('Invalid user phone number format'),
+		.withMessage('Invalid user phone number format')
+		.customSanitizer(normalizePhoneNumber),
 	body('email')
 		.optional()
 		.trim()
@@ -58,7 +60,7 @@ const validateUpdate = [
 		.withMessage('User birth date must be an integer')
 ];
 
-const validateWishlistProduct = [
+const validateProductEntry = [
 	body('product')
 		.isMongoId()
 		.withMessage('Product must be a valid mongo id')
@@ -66,5 +68,5 @@ const validateWishlistProduct = [
 
 export default {
 	validateUpdate,
-	validateWishlistProduct
+	validateProductEntry
 };
