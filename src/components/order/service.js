@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { isEmptyObject, transporter } from '../../utils.js';
 import Cart from '../cart/model.js';
 import cartService from '../cart/service.js';
+import DeliveryType from '../delivery-type/model.js';
 import Product from '../product/model.js';
 import User from '../user/model.js';
 import userService from '../user/service.js';
@@ -128,10 +129,25 @@ const createOne = async orderData => {
 			await cartService.clearItems(foundCart._id);
 		}
 
-		orderData.totalPrice = orderData.items.reduce(
+		const itemsTotalPrice = orderData.items.reduce(
 			(acc, item) => acc + item.product.price * item.quantity,
 			0
 		);
+
+		const deliveryType = await DeliveryType.where('name')
+			.equals(orderData.deliveryInfo.type)
+			.findOne();
+
+		let deliveryPrice = deliveryType.price;
+		const deliveryCanBeFree = deliveryType.freeDeliveryFrom;
+		const suitableItemsPrice =
+			itemsTotalPrice >= deliveryType.freeDeliveryFrom;
+
+		if (deliveryCanBeFree && suitableItemsPrice) {
+			deliveryPrice = 0;
+		}
+
+		orderData.totalPrice = itemsTotalPrice + deliveryPrice;
 
 		orderData.totalQuantity = orderData.items.reduce(
 			(acc, item) => acc + item.quantity,
