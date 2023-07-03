@@ -222,10 +222,6 @@ export default userRouter;
  *           type: string
  *         email:
  *           type: string
- *         password:
- *           type: string
- *         salt:
- *           type: string
  *         role:
  *           type: string
  *         reviews:
@@ -248,8 +244,6 @@ export default userRouter;
  *         lastName: Прізвиськов
  *         phoneNumber: '+380442138972'
  *         email: imyan.prizviskov@ukr.net
- *         password: d74eef53e89912dc618537ae00e91347d78747e1dd7f6fcfa26732f23fcfa79c
- *         salt: c42af8db45f10eefb83d52cfd58a0b6e
  *         role: user
  *         reviews: []
  *         wishlist: []

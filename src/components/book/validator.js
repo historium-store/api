@@ -131,8 +131,8 @@ const validateCreate = [
 		.withMessage('Book suitable for must be an array'),
 	body('excerpts')
 		.optional()
-		.isArray({ max: 8 })
-		.withMessage('Book can have up to 8 excerpts')
+		.isArray({ max: 50 })
+		.withMessage('Book can have up to 50 excerpts')
 ];
 
 const validateUpdate = [
@@ -263,8 +263,8 @@ const validateUpdate = [
 		.withMessage('Book suitable for must be an array'),
 	body('excerpts')
 		.optional()
-		.isArray({ max: 8 })
-		.withMessage('Book can have up to 8 excerpts')
+		.isArray({ max: 50 })
+		.withMessage('Book can have up to 50 excerpts')
 ];
 
 export default {

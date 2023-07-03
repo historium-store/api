@@ -39,10 +39,13 @@ const createOne = async userData => {
 
 		const newUser = await User.create(userData);
 		const { id: cart } = await Cart.create({ user: newUser.id });
+		await newUser.updateOne({ $set: { cart } });
 
-		newUser.cart = cart;
-
-		return await newUser.save();
+		return {
+			...newUser.toObject(),
+			password: undefined,
+			salt: undefined
+		};
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -57,6 +60,7 @@ const getOne = async id => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.select('-password -salt')
 			.findOne();
 
 		if (!foundUser) {
@@ -83,7 +87,8 @@ const getAll = async queryParams => {
 			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order });
+			.sort({ [orderBy]: order })
+			.select('-password -salt');
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -149,7 +154,13 @@ const updateOne = async (id, changes) => {
 			key => (userToUpdate[key] = changes[key])
 		);
 
-		return await userToUpdate.save();
+		await userToUpdate.save();
+
+		return {
+			...userToUpdate.toObject(),
+			password: undefined,
+			salt: undefined
+		};
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
