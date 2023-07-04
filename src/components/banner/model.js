@@ -28,14 +28,9 @@ const bannerSchema = new Schema(
 	},
 	{
 		versionKey: false,
-		timestamps: true,
-		strict: false
+		timestamps: true
 	}
 );
-
-bannerSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
 
 const Banner = model('Banner', bannerSchema);
 

@@ -56,13 +56,33 @@ const userSchema = new Schema(
 			required: false
 		},
 
-		favorites: [
+		wishlist: [
 			{
 				type: ObjectId,
 				ref: 'Product',
 				required: false
 			}
 		],
+
+		history: [
+			{
+				type: ObjectId,
+				ref: 'Product',
+				required: false
+			}
+		],
+
+		products: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Product',
+					required: false
+				}
+			],
+			required: false,
+			default: []
+		},
 
 		cart: {
 			type: ObjectId,

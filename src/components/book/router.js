@@ -34,3 +34,75 @@ bookRouter
 	);
 
 export default bookRouter;
+
+/**
+ * @swagger
+ * /book:
+ *   post:
+ *     summary: Create new book
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - book
+ *     responses:
+ *       '201':
+ *         description: Created book
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *   get:
+ *     summary: Get all books
+ *     tags:
+ *       - book
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All books
+ * /book/{id}:
+ *   get:
+ *     summary: Get one book
+ *     tags:
+ *       - book
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested book
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Book not found
+ *   patch:
+ *     summary: Update one existing book
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - book
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested book
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Book not found
+ *   delete:
+ *     summary: Delete one book
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - book
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '204':
+ *         description: Book deleted successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Book not found
+ */

@@ -15,13 +15,16 @@ const authorSchema = new Schema(
 			required: false
 		},
 
-		books: [
-			{
-				type: ObjectId,
-				ref: 'Book',
-				required: false
-			}
-		],
+		books: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Book',
+					required: false
+				}
+			],
+			default: []
+		},
 
 		pictures: [
 			{
@@ -36,12 +39,16 @@ const authorSchema = new Schema(
 
 		updatedAt: {
 			type: Number
+		},
+
+		deletedAt: {
+			type: Number,
+			required: false
 		}
 	},
 	{
 		versionKey: false,
-		timestamps: true,
-		strict: false
+		timestamps: true
 	}
 );
 

@@ -18,9 +18,9 @@ const getOne = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const { id, withDeleted } = matchedData(req);
+		const { id } = matchedData(req);
 
-		res.json(await service.getOne(id, withDeleted));
+		res.json(await service.getOne(id));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -48,7 +48,11 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
-		if (changes.role && req.user.role !== 'admin') {
+		const isAdmin = req.user.role === 'admin';
+		const isSameUser = req.user.id === req.params.id;
+		const canChangeRole = changes.role && isAdmin;
+
+		if ((!isAdmin && !isSameUser) || !canChangeRole) {
 			throw {
 				status: 403,
 				message: 'Forbidden'
@@ -91,10 +95,67 @@ const getAccount = async (req, res) => {
 	res.json(req.user);
 };
 
+const addToWishlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { product } = matchedData(req);
+
+		await service.addToWishlist(user, product);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+const removeFromWishlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { product } = matchedData(req);
+
+		await service.removeFromWishlist(user, product);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+const addToHistory = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { product } = matchedData(req);
+
+		await service.addToHistory(user, product);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	getOne,
 	getAll,
 	updateOne,
 	deleteOne,
-	getAccount
+	getAccount,
+	addToWishlist,
+	removeFromWishlist,
+	addToHistory
 };

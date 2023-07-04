@@ -4,4 +4,6 @@ const validateMerge = [
 	body('items').isArray().withMessage('Cart items must be an array')
 ];
 
-export default { validateMerge };
+export default {
+	validateMerge
+};

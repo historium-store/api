@@ -7,11 +7,7 @@ const getByIdFromToken = async id => {
 		const foundCart = await Cart.findById(id)
 			.populate({
 				path: 'items',
-				populate: {
-					path: 'product',
-					populate: { path: 'type', select: '-_id name key' }
-				},
-				select: '-_id quantity createdAt'
+				select: 'product quantity createdAt'
 			})
 			.select('-_id items')
 			.lean();
@@ -35,7 +31,9 @@ const getByIdFromToken = async id => {
 							select: '-_id authors'
 						}
 					])
-					.select('name key price quantity images createdAt code')
+					.select(
+						'name key price quantity images createdAt code requiresDelivery'
+					)
 					.lean();
 
 				i.product = {
@@ -81,11 +79,13 @@ const clearItems = async cart => {
 		if (!foundCart) {
 			throw {
 				status: 404,
-				message: `Cart with id '${id}' not found`
+				message: `Cart with id '${cart}' not found`
 			};
 		}
 
-		await CartItem.deleteMany();
+		await CartItem.deleteMany({ cart });
+
+		await foundCart.updateOne({ $set: { items: [] } });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -104,6 +104,23 @@ const merge = async (items, cart) => {
 				message: `Cart with id '${id}' not found`
 			};
 		}
+
+		await Promise.all(
+			items.map(async i => {
+				const existingProduct = await Product.where('_id')
+					.equals(i.product)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
+
+				if (!existingProduct) {
+					throw {
+						status: 404,
+						message: `Product with id '${i.product}' not found`
+					};
+				}
+			})
+		);
 
 		let existingItem;
 		let newCartItem;
@@ -137,4 +154,8 @@ const merge = async (items, cart) => {
 	}
 };
 
-export default { getByIdFromToken, clearItems, merge };
+export default {
+	getByIdFromToken,
+	clearItems,
+	merge
+};

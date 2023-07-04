@@ -11,6 +11,11 @@ import { transliterate } from 'transliteration';
 import { promisify } from 'util';
 import validator from 'validator';
 
+export const JWT_OPTIONS = {
+	expiresIn: process.env.JWT_EXPIRATION,
+	noTimestamp: true
+};
+
 const s3 = new S3Client({
 	region: process.env.S3_BUCKET_REGION,
 	credentials: {
@@ -53,6 +58,8 @@ export const createError = err => {
 };
 
 export const hashPassword = promisify(pbkdf2);
+
+export const signJWT = promisify(jwt.sign);
 
 export const verifyJWT = promisify(jwt.verify);
 
@@ -121,3 +128,5 @@ export const normalizePhoneNumber = phoneNumber => {
 		? `+38${phoneNumber}`
 		: phoneNumber;
 };
+
+export const MAX_HISTORY_SIZE = 12;

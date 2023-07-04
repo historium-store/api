@@ -32,12 +32,16 @@ const merge = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const data = matchedData(req);
+		const { items } = matchedData(req);
 
-		res.json(await service.merge(data.items, cart));
+		res.json(await service.merge(items, cart));
 	} catch (err) {
 		next(createError(err));
 	}
 };
 
-export default { getByIdFromToken, clearItems, merge };
+export default {
+	getByIdFromToken,
+	clearItems,
+	merge
+};

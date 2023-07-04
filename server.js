@@ -4,7 +4,6 @@ import app from './src/app.js';
 
 importData().then(() => {
 	const PORT = process.env.PORT || 3000;
-
 	mongoose
 		.connect(process.env.CONNECTION_STRING, {
 			dbName: 'historium-db'
@@ -19,7 +18,6 @@ importData().then(() => {
 		});
 
 	process.on('unhandledRejection', event => {
-		console.log(event.promise);
-		console.log(event.reason);
+		console.log(event);
 	});
 });

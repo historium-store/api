@@ -1,15 +1,54 @@
 import { Router } from 'express';
-import { checkRole, validateQueryParams } from '../../middleware.js';
+import {
+	checkRole,
+	validateId,
+	validateQueryParams
+} from '../../middleware.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
 const orderRouter = Router();
 
+orderRouter
+	.route('/')
+	.get(
+		authenticate,
+		checkRole(['admin']),
+		validateQueryParams,
+		controller.getAll
+	)
+	.post(validator.validateCreate, controller.createOne);
+
+orderRouter.get('/statuses', controller.getStatuses);
+
+orderRouter.patch(
+	'/status/:id',
+	authenticate,
+	checkRole(['admin', 'seller']),
+	validateId,
+	validator.validateUpdateStatus,
+	controller.updateStatus
+);
+
+orderRouter
+	.route('/:id')
+	.get(authenticate, validateId, controller.getOne)
+	.patch(
+		authenticate,
+		checkRole(['admin', 'seller']),
+		validateId,
+		validator.validateUpdate,
+		controller.updateOne
+	);
+
+export default orderRouter;
+
 /**
  * @swagger
  * /order:
  *   post:
+ *     summary: Create new order
  *     tags:
  *       - order
  *     requestBody:
@@ -30,17 +69,11 @@ const orderRouter = Router();
  *                     type: string
  *                   email:
  *                     type: string
- *                     format: email
  *                 required:
  *                   - firstName
  *                   - lastName
  *                   - phoneNumber
  *                   - email
- *                 example:
- *                   firstName: Michael
- *                   lastName: Wheat
- *                   phoneNumber: '+380445294771'
- *                   email: michael.wheat@ukr.net
  *               receiverInfo:
  *                 type: object
  *                 properties:
@@ -54,189 +87,356 @@ const orderRouter = Router();
  *                   - firstName
  *                   - lastName
  *                   - phoneNumber
- *                 example:
- *                   firstName: Judy
- *                   lastName: Alvares
- *                   phoneNumber: '+380971123752'
- *               gift:
- *                 type: boolean
- *                 default: false
  *               companyInfo:
  *                 type: object
  *                 properties:
  *                   name:
  *                     type: string
- *                     example: Gigasoft
  *                   identificationNumber:
  *                     type: string
- *                     description: EDRPOU/ITIN code
- *                     example: '38492456'
- *                   addressInfo:
- *                     type: object
- *                     properties:
- *                       address:
- *                         type: string
- *                     required:
- *                       - address
- *                     example:
- *                       address: Sigma Rd. 25
+ *                   address:
+ *                     type: string
  *                 required:
  *                   - name
  *                   - identificationNumber
- *                   - addressInfo
- *               callback:
- *                 type: boolean
- *                 default: false
+ *                   - address
  *               deliveryInfo:
  *                 type: object
  *                 properties:
  *                   country:
  *                     type: string
- *                     example: 6485a3c27f77c14cc954680e
  *                   city:
  *                     type: string
- *                     example: Полтава
  *                   type:
  *                     type: string
- *                     example: 6485ac70c1aa743f45c89a42
- *                   addressInfo:
- *                     type: object
- *                     oneOf:
- *                       - properties:
- *                           address:
- *                             type: string
- *                         required:
- *                           - address
- *                       - properties:
- *                           street:
- *                             type: string
- *                           house:
- *                             type: string
- *                           apartment:
- *                             type: string
- *                         required:
- *                           - street
- *                           - house
- *                           - apartment
- *                       - properties:
- *                           region:
- *                             type: string
- *                           postcode:
- *                             type: string
- *                           street:
- *                             type: string
- *                         required:
- *                           - region
- *                           - postcode
- *                           - street
- *                     example:
- *                       street: Фруктова
- *                       house: '28'
- *                       apartment: 74
- *                   contactInfo:
- *                     type: object
- *                     properties:
- *                       firstName:
- *                         type: string
- *                       lastName:
- *                         type: string
- *                       middleName:
- *                         type: string
- *                     required:
- *                       - firstName
- *                       - lastName
- *                       - middleName
- *                     example:
- *                       firstName: Vitalii
- *                       lastName: Vitaliev
- *                       middleName: Vitalievich
+ *                   address:
+ *                     type: string
+ *                   street:
+ *                     type: string
+ *                   house:
+ *                     type: string
+ *                   apartment:
+ *                     type: string
  *                 required:
  *                   - country
  *                   - city
  *                   - type
- *                   - addressInfo
+ *               gift:
+ *                 type: boolean
+ *               callback:
+ *                 type: boolean
  *               paymentType:
  *                 type: string
- *                 example: Оплата карткою On-line
  *               comment:
  *                 type: string
- *                 example: not required
+ *                 maxLength: 500
  *               items:
+ *                 description: If authorization token is provided - items will be taken from user's cart. No need to send it
  *                 type: array
  *                 items:
  *                   type: object
  *                   properties:
  *                     product:
- *                       type: object
- *                       properties:
- *                         _id:
- *                           type: string
- *                           example: 6473b317569debe2438c784d
- *                         name:
- *                           type: string
- *                           example: Я бачу, вас цікавить пітьма
- *                         type:
- *                           type: object
- *                           properties:
- *                             name:
- *                               type: string
- *                               example: Книга
- *                             key:
- *                               type: string
- *                               example: book
- *                         key:
- *                           type: string
- *                           example: ya-bachu-vas-cikavit-pitma
- *                         image:
- *                           type: string
- *                           example: https://historium-bucket-eu.s3.eu-central-1.amazonaws.com/5fd2d6a8-f84a-4bda-b86e-c524a2fb7feb.webp
- *                         price:
- *                           type: number
- *                           example: 500
- *                         code:
- *                           type: string
- *                           example: '115968'
+ *                       type: string
  *                     quantity:
  *                       type: integer
- *                       format: int32
- *                       example: 3
  *             required:
  *               - contactInfo
- *               - deliveryInfo
  *               - paymentType
- *               - items
+ *             example:
+ *               contactInfo:
+ *                 firstName: Ім'ян
+ *                 lastName: Прізвиськов
+ *                 phoneNumber: '+380442138972'
+ *                 email: imyan.prizviskov@ukr.net
+ *               receiverInfo:
+ *                 firstName: Прізва
+ *                 lastName: Ім'янова
+ *                 phoneNumber: '+380445139822'
+ *               companyInfo:
+ *                 name: Компакт
+ *                 identificationNumber: '18452271'
+ *                 address: вул. Поточна, 23/1
+ *               callback: true
+ *               deliveryInfo:
+ *                 country: Україна
+ *                 city: Полтава
+ *                 type: Відділення Нова Пошта
+ *                 address: просп. Довідкова, 12
+ *               paymentType: 'Готівкою або карткою: При отриманні'
+ *               items:
+ *                 - product: 6473c4ef569debe2438c794f
+ *                 - product: 6474dd020472d62ed62f4513
+ *                   quantity: 3
  *     responses:
  *       '201':
- *         description: Order created successfully
+ *         description: Created order
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/OrderResponse'
+ *       '400':
+ *         description: User exists or no items provided
+ *       '404':
+ *         $ref: '#/components/responses/ProductNotFound'
+ *   get:
+ *     summary: Get all orders
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - order
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All orders
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ * /order/statuses:
+ *   get:
+ *     summary: Get all order statuses
+ *     tags:
+ *       - order
+ *     responses:
+ *       '200':
+ *         description: All order statuses
+ * /order/{id}:
+ *   get:
+ *     summary: Get one order
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - order
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested order
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/OrderResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Order not found
+ *   patch:
+ *     summary: Update one existing order
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - order
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Updated order
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/OrderResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Order not found
+ * /order/status/{id}:
+ *   patch:
+ *     summary: Update status of one existing order
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - order
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *             example:
+ *               status: Виконаний
+ *     responses:
+ *       '200':
+ *         description: Updated order
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/OrderResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Order not found
+ * components:
+ *   schemas:
+ *     OrderResponse:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         contactInfo:
+ *           type: object
+ *           properties:
+ *             firstName:
+ *               type: string
+ *             lastName:
+ *               type: string
+ *             phoneNumber:
+ *               type: string
+ *             email:
+ *               type: string
+ *         receiverInfo:
+ *           type: object
+ *           properties:
+ *             firstName:
+ *               type: string
+ *             lastName:
+ *               type: string
+ *             phoneNumber:
+ *               type: string
+ *         companyInfo:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *             identificationNumber:
+ *               type: string
+ *             address:
+ *               type: string
+ *         deliveryInfo:
+ *           type: object
+ *           properties:
+ *             country:
+ *               type: string
+ *             city:
+ *               type: string
+ *             type:
+ *               type: string
+ *             address:
+ *               type: string
+ *             street:
+ *               type: string
+ *             house:
+ *               type: string
+ *             apartment:
+ *               type: string
+ *         gift:
+ *           type: boolean
+ *         callback:
+ *           type: boolean
+ *         paymentType:
+ *           type: string
+ *         comment:
+ *           type: string
+ *           maxLength: 500
+ *         items:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               product:
+ *                 type: object
+ *                 properties:
+ *                   type:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   price:
+ *                     type: integer
+ *                   code:
+ *                     type: string
+ *                   image:
+ *                     type: string
+ *               quantity:
+ *                 type: integer
+ *         status:
+ *           type: object
+ *           properties:
+ *             name:
+ *               type: string
+ *             key:
+ *               type: string
+ *         totalPrice:
+ *           type: integer
+ *         totalQuantity:
+ *           type: integer
+ *         number:
+ *           type: string
+ *         createdAt:
+ *           type: integer
+ *         updatedAt:
+ *           type: integer
+ *       example:
+ *         contactInfo:
+ *           firstName: Ім'ян
+ *           lastName: Прізвиськов
+ *           phoneNumber: "+380442138972"
+ *           email: imyan.prizviskov@ukr.net
+ *         receiverInfo:
+ *           firstName: Прізва
+ *           lastName: Ім'янова
+ *           phoneNumber: "+380445139822"
+ *         gift: false
+ *         companyInfo:
+ *           name: Компакт
+ *           identificationNumber: '18452271'
+ *           address: вул. Поточна, 23/1
+ *         callback: true
+ *         deliveryInfo:
+ *           country: Україна
+ *           city: Полтава
+ *           type: Відділення Нова Пошта
+ *           address: просп. Довідкова, 12
+ *         paymentType: 'Готівкою або карткою: При отриманні'
+ *         status:
+ *           name: Поточний
+ *           key: active
+ *         user:
+ *           firstName: Ім'ян
+ *           lastName: Прізвиськов
+ *           phoneNumber: "+380442138972"
+ *           email: imyan.prizviskov@ukr.net
+ *           password: 8b89f0f7e1ba551a3875cd39f318e64994b0b8735aa7a3228ac1e39d401867d3
+ *           salt: f556aedd3805753a17df728e1e30f200
+ *           role: user
+ *           reviews: []
+ *           wishlist: []
+ *           products: []
+ *           _id: 64a16b673415f20927d3dc67
+ *           createdAt: 1688300391024
+ *           updatedAt: 1688300391027
+ *           cart:
+ *             items: []
+ *             user: 64a16b673415f20927d3dc67
+ *             _id: 64a16b673415f20927d3dc69
+ *             createdAt: 1688300391025
+ *             updatedAt: 1688300391025
+ *         items:
+ *         - product:
+ *             type: Книга
+ *             name: Мистецтво говорити. Таємниці ефективного спілкування
+ *             price: 320
+ *             code: '115975'
+ *             image: https://historium-bucket-eu.s3.eu-central-1.amazonaws.com/       3de802f9-836c-42ac-b6d9-a3aeae97f82d.webp
+ *           quantity: 1
+ *           _id: 64a16b673415f20927d3dc6e
+ *         - product:
+ *             type: Книга
+ *             name: Бетмен. Книга 1. Суд сов
+ *             price: 468
+ *             code: '115979'
+ *             image: https://historium-bucket-eu.s3.eu-central-1.amazonaws.com/       b50bb425-4fc3-4ab3-ada2-9c95b377f081.webp
+ *           quantity: 3
+ *           _id: 64a16b673415f20927d3dc6f
+ *         totalPrice: 1784
+ *         totalQuantity: 4
+ *         _id: 64a16b673415f20927d3dc6d
+ *         createdAt: 1688300391031
+ *         updatedAt: 1688300391031
+ *         number: '2000134373'
  */
-orderRouter
-	.route('/')
-	.get(
-		authenticate,
-		checkRole(['admin']),
-		validateQueryParams,
-		controller.getAll
-	)
-	.post(validator.validateCreate, controller.createOne);
-
-orderRouter.get('/statuses', controller.getStatuses);
-
-orderRouter.patch(
-	'/status/:id',
-	authenticate,
-	checkRole(['admin', 'seller']),
-	validator.validateUpdateStatus,
-	controller.updateStatus
-);
-
-orderRouter
-	.route('/:id')
-	.get(authenticate, validator.validateId, controller.getOne)
-	.patch(
-		authenticate,
-		checkRole(['admin', 'seller']),
-		validator.validateUpdate,
-		controller.updateOne
-	);
-
-export default orderRouter;

@@ -9,4 +9,17 @@ const getAll = async (req, res, next) => {
 	}
 };
 
-export default { getAll };
+const getOne = async (req, res, next) => {
+	const { id } = req.params;
+
+	try {
+		res.json(await service.getOne(id));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+export default {
+	getAll,
+	getOne
+};

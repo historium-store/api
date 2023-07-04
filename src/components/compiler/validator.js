@@ -1,34 +1,21 @@
-import { body, param } from 'express-validator';
-import { isArrayOfMongoIds } from '../../utils.js';
-
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Compiler id must be a valid mongo id')
-];
+import { body } from 'express-validator';
 
 const validateCreate = [
 	body('fullName')
 		.trim()
 		.notEmpty()
-		.withMessage('Compiler full name is required'),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Compiler', 'books'))
+		.withMessage('Compiler full name is required')
 ];
 
 const validateUpdate = [
-	...validateId,
 	body('fullName')
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Compiler full name can't be empty"),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Compiler', 'books'))
+		.withMessage("Compiler full name can't be empty")
 ];
 
-const validator = { validateId, validateCreate, validateUpdate };
-
-export default validator;
+export default {
+	validateCreate,
+	validateUpdate
+};

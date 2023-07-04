@@ -2,48 +2,12 @@ import { body } from 'express-validator';
 import { isArrayOfIsbns, isArrayOfMongoIds } from '../../utils.js';
 
 const validateCreate = [
-	body('product.name')
-		.trim()
-		.notEmpty()
-		.withMessage('Product name is required'),
-	body('product.key')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Product key can't be empty"),
-	body('product.type')
+	body('product')
 		.exists()
-		.withMessage('Product type is required')
+		.withMessage('Book product is required')
 		.bail()
 		.isMongoId()
-		.withMessage('Product type must be a valid mongo id'),
-	body('product.price')
-		.isCurrency({
-			allow_negatives: false,
-			digits_after_decimal: [1, 2]
-		})
-		.withMessage('Product price must be a valid currency value'),
-	body('product.description')
-		.trim()
-		.notEmpty()
-		.withMessage('Product description is required')
-		.bail()
-		.isLength({ min: 50, max: 10000 })
-		.withMessage(
-			'Product description must be between 50 and 10000 characters'
-		),
-	body('product.images')
-		.isArray({ min: 1, max: 8 })
-		.withMessage('Product must have between 1 and 8 images'),
-	body('product.quantity')
-		.optional()
-		.isInt({ min: 0 })
-		.withMessage('Product quantity must be a positive integer'),
-	body('product.sections')
-		.exists()
-		.withMessage('Product must be in at least 1 section')
-		.bail()
-		.custom(isArrayOfMongoIds('Product', 'sections')),
+		.withMessage('Book product must be a valid mongo id'),
 	body('type').trim().notEmpty().withMessage('Book type is required'),
 	body('languages')
 		.isArray({ min: 1 })
@@ -164,53 +128,14 @@ const validateCreate = [
 	body('suitableFor')
 		.optional()
 		.isArray()
-		.withMessage('Book suitable for must be an array')
+		.withMessage('Book suitable for must be an array'),
+	body('excerpts')
+		.optional()
+		.isArray({ max: 50 })
+		.withMessage('Book can have up to 50 excerpts')
 ];
 
 const validateUpdate = [
-	body('product.name')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Product name can't be empty"),
-	body('product.key')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Product key can't be empty"),
-	body('product.type')
-		.optional()
-		.isMongoId()
-		.withMessage('Product type must be a valid mongo id'),
-	body('product.price')
-		.optional()
-		.isCurrency({
-			allow_negatives: false,
-			digits_after_decimal: [1, 2]
-		})
-		.withMessage('Product price must be a valid currency value'),
-	body('product.description')
-		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage("Product description can't be empty")
-		.bail()
-		.isLength({ min: 50, max: 10000 })
-		.withMessage(
-			'Product description must be between 50 and 10000 characters'
-		),
-	body('product.images')
-		.optional()
-		.isArray({ min: 1, max: 8 })
-		.withMessage('Product must have between 1 and 8 images'),
-	body('product.quantity')
-		.optional()
-		.isInt({ min: 0 })
-		.withMessage('Product quantity must be a positive integer'),
-	body('product.sections')
-		.optional()
-		.custom(isArrayOfMongoIds('Product', 'sections')),
-
 	body('type')
 		.optional()
 		.trim()
@@ -335,9 +260,14 @@ const validateUpdate = [
 	body('suitableFor')
 		.optional()
 		.isArray()
-		.withMessage('Book suitable for must be an array')
+		.withMessage('Book suitable for must be an array'),
+	body('excerpts')
+		.optional()
+		.isArray({ max: 50 })
+		.withMessage('Book can have up to 50 excerpts')
 ];
 
-const validator = { validateCreate, validateUpdate };
-
-export default validator;
+export default {
+	validateCreate,
+	validateUpdate
+};

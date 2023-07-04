@@ -1,34 +1,21 @@
-import { body, param } from 'express-validator';
-import { isArrayOfMongoIds } from '../../utils.js';
-
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Illustrator id must be a valid mongo id')
-];
+import { body } from 'express-validator';
 
 const validateCreate = [
 	body('fullName')
 		.trim()
 		.notEmpty()
-		.withMessage('Illustrator full name is required'),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Illustrator', 'books'))
+		.withMessage('Illustrator full name is required')
 ];
 
 const validateUpdate = [
-	...validateId,
 	body('fullName')
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Illustrator full name can't be empty"),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Illustrator', 'books'))
+		.withMessage("Illustrator full name can't be empty")
 ];
 
-const validator = { validateId, validateCreate, validateUpdate };
-
-export default validator;
+export default {
+	validateCreate,
+	validateUpdate
+};

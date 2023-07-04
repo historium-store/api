@@ -1,70 +1,76 @@
 import validator from 'validator';
-import { getProductCode } from '../../triggers/product-code.js';
 import { transliterateToKey } from '../../utils.js';
-
-import Book from '../book/model.js';
+import bookService from '../book/service.js';
 import ProductType from '../product-type/model.js';
 import Section from '../section/model.js';
+import User from '../user/model.js';
 import Product from './model.js';
 
+const typeNameToModel = new Map();
+typeNameToModel.set('Книга', 'Book');
+
 const createOne = async productData => {
-	// деструктуризация входных данных
-	// для более удобного использования
-	let { name, key, type, sections } = productData;
-	sections = sections ?? [];
+	let { name, key, type, sections, seller } = productData;
 
 	try {
-		// проверка существования
-		// входного типа продукта
-		const productTypeExists = await ProductType.exists({
-			_id: type,
-			deletedAt: { $exists: false }
-		});
+		const existingProductType = await ProductType.where('_id')
+			.equals(type)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (!productTypeExists) {
+		if (!existingProductType) {
 			throw {
 				status: 404,
 				message: `Product type with id '${type}' not found`
 			};
 		}
 
-		// проверка существования
-		// входных разделов продукта
-		const notFoundIndex = (
-			await Section.find({ _id: sections })
-		).findIndex(s => !s || s.deletedAt);
+		const typeName = existingProductType.name;
 
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Section with id '${sections[notFoundIndex]}' not found`
-			};
-		}
+		productData.model = typeNameToModel.get(typeName);
 
-		// проверка существования
-		// входного ключа продукта,
-		// генерация при отсутствии
+		await Promise.all(
+			sections.map(async id => {
+				const existingSection = await Section.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.findOne();
+
+				if (!existingSection) {
+					throw {
+						status: 404,
+						message: `Section with id '${id}' not found`
+					};
+				}
+			})
+		);
+
 		if (!key) {
 			productData.key = key = transliterateToKey(name);
 		}
 
-		// проверка на уникальность
-		// входного ключа продукта
-		// добавление кода продукта
-		// в конец при неуникальности
 		const productExists = await Product.exists({ key });
 
 		if (productExists) {
-			productData.key += `-${await getProductCode()}`;
+			const { currentCode } = await mongoose.connection
+				.collection('product_code_counter')
+				.findOne();
+
+			productData.key += `-${currentCode}`;
 		}
 
 		const newProduct = await Product.create(productData);
 
-		// добавление ссылки на новый продукт
-		// в соответствущие разделы
 		await Section.updateMany(
 			{ _id: sections },
-			{ $push: { products: newProduct.id } }
+			{ $push: { products: newProduct } }
+		);
+
+		await User.updateOne(
+			{ _id: seller },
+			{ $push: { products: newProduct } }
 		);
 
 		return newProduct;
@@ -80,10 +86,14 @@ const getOne = async (id, preview) => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
-		const foundProduct = await Product.findOne({
-			...(isMongoId ? { _id: id } : { key: id }),
-			deletedAt: { $exists: false }
-		}).populate({ path: 'type', select: '-_id name key' });
+		const foundProduct = await Product.where(
+			isMongoId ? '_id' : 'key'
+		)
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne()
+			.populate({ path: 'type', select: 'name key' });
 
 		if (!foundProduct) {
 			throw {
@@ -105,7 +115,7 @@ const getOne = async (id, preview) => {
 				select: 'authors'
 			});
 
-			const productPreview = {
+			return {
 				_id: foundProduct.id,
 				name: foundProduct.name,
 				key: foundProduct.key,
@@ -119,30 +129,25 @@ const getOne = async (id, preview) => {
 					a => a.fullName
 				)
 			};
-
-			return productPreview;
 		}
 
-		await foundProduct.populate([
-			{ path: 'sections', select: 'name key' },
-			{
-				path: 'specificProduct',
-				model: foundProduct.model,
-				populate: [
-					{ path: 'publisher', select: 'name' },
-					{
-						path: 'authors',
-						select: 'fullName pictures biography'
-					},
-					{ path: 'compilers', select: 'fullName' },
-					{ path: 'translators', select: 'fullName' },
-					{ path: 'illustrators', select: 'fullName' },
-					{ path: 'editors', select: 'fullName' },
-					{ path: 'series', select: 'name' }
-				],
-				select: '-product'
-			}
-		]);
+		await foundProduct.populate({
+			path: 'specificProduct',
+			model: foundProduct.model,
+			populate: [
+				{ path: 'publisher', select: 'name' },
+				{
+					path: 'authors',
+					select: 'fullName pictures biography'
+				},
+				{ path: 'compilers', select: 'fullName' },
+				{ path: 'translators', select: 'fullName' },
+				{ path: 'illustrators', select: 'fullName' },
+				{ path: 'editors', select: 'fullName' },
+				{ path: 'series', select: 'name' }
+			],
+			select: '-product'
+		});
 
 		return foundProduct;
 	} catch (err) {
@@ -156,16 +161,13 @@ const getOne = async (id, preview) => {
 const getAll = async queryParams => {
 	const { limit, offset: skip, orderBy, order } = queryParams;
 
-	const filter = {
-		deletedAt: { $exists: false }
-	};
-
 	try {
-		const foundProducts = await Product.find(filter)
+		const foundProducts = await Product.where('deletedAt')
+			.exists(false)
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order })
-			.populate({ path: 'type', select: '-_id name key' });
+			.populate({ path: 'type', select: 'name key' });
 
 		await Promise.all(
 			foundProducts.map(
@@ -182,21 +184,19 @@ const getAll = async queryParams => {
 			)
 		);
 
-		const productPreviews = foundProducts.map(p => ({
-			_id: p.id,
-			name: p.name,
-			key: p.key,
-			price: p.price,
-			quantity: p.quantity,
-			type: p.type,
-			createdAt: p.createdAt,
-			code: p.code,
-			image: p.images[0],
-			authors: p.specificProduct.authors?.map(a => a.fullName)
-		}));
-
 		return {
-			result: productPreviews,
+			result: foundProducts.map(p => ({
+				_id: p.id,
+				name: p.name,
+				key: p.key,
+				price: p.price,
+				quantity: p.quantity,
+				type: p.type,
+				createdAt: p.createdAt,
+				code: p.code,
+				image: p.images[0],
+				authors: p.specificProduct.authors?.map(a => a.fullName)
+			})),
 			total: await Product.countDocuments()
 		};
 	} catch (err) {
@@ -207,98 +207,121 @@ const getAll = async queryParams => {
 	}
 };
 
-const updateOne = async (id, changes) => {
-	// деструктуризация входных данных
-	// для более удобного использования
+const updateOne = async (id, changes, seller) => {
 	const { key, type, sections } = changes;
 
 	try {
-		// проверка существования продукта
-		// с входным id
-		const productToUpdate = await Product.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		});
+		const isMongoId = validator.isMongoId(id);
+
+		const productToUpdate = await Product.where(
+			isMongoId ? '_id' : 'key'
+		)
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne()
+			.populate({ path: 'type', select: 'name key' });
 
 		if (!productToUpdate) {
 			throw {
 				status: 404,
-				message: `Product with id '${id}' not found`
+				message: `Product with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
 			};
 		}
 
-		// проверка на уникальность
-		// входного ключа продукта
-		// если он был изменён,
-		// добавление кода продукта
-		// в конец при неуникальности
+		const foundSeller = await User.where('_id')
+			.equals(seller)
+			.findOne();
+		const isAdmin = foundSeller.role === 'admin';
+		const productOwner = foundSeller.products.includes(
+			productToUpdate.id
+		);
+
+		if (!isAdmin && !productOwner) {
+			throw {
+				status: 403,
+				message: "Can't update product from other seller"
+			};
+		}
+
 		if (key && productToUpdate.key !== key) {
 			const productExists = await Product.exists({ key });
 
 			if (productExists) {
-				changes.key = `${key}-${productToUpdate.code}`;
+				const { currentCode } = await mongoose.connection
+					.collection('product_code_counter')
+					.findOne();
+
+				productData.key += `-${currentCode}`;
 			}
 		}
 
-		// проверка существования
-		// входного типа продукта
-		// если он был изменён
-		if (type && type !== productToUpdate.type.toHexString()) {
-			const productTypeExists = await ProductType.exists({
-				_id: type,
-				deletedAt: { $exists: false }
-			});
+		if (type) {
+			const existingProductType = await ProductType.where('_id')
+				.equals(id)
+				.where('deletedAt')
+				.exists(false)
+				.findOne();
 
-			if (!productTypeExists) {
+			if (!existingProductType) {
 				throw {
 					status: 404,
 					message: `Product type with id '${type}' not found`
 				};
 			}
+
+			const typeName = existingProductType.name;
+
+			changes.model =
+				typeName.charAt(0).toUpperCase() + typeName.slice(1);
 		}
 
-		// проверка существования
-		// входных разделов продукта
-		let addedSectionIds = [];
-		let removedSectionIds = [];
 		if (sections) {
-			const notFoundIndex = (
-				await Section.find({ _id: sections })
-			).findIndex(s => !s || s.deletedAt);
+			await Promise.all(
+				sections.map(async id => {
+					const existingSection = await Section.where('_id')
+						.equals(id)
+						.where('deletedAt')
+						.exists(false)
+						.findOne();
 
-			if (notFoundIndex > -1) {
-				throw {
-					status: 404,
-					message: `Section with id '${sections[notFoundIndex]}' not found`
-				};
-			}
+					if (!existingSection) {
+						throw {
+							status: 404,
+							message: `Section with id '${id}' not found`
+						};
+					}
+				})
+			);
 
 			const oldSectionIds = productToUpdate.sections.map(s =>
-				s.id.toHexString()
+				s.toHexString()
 			);
-
-			addedSectionIds = sections.filter(
+			const addedSectionIds = sections.filter(
 				s => !oldSectionIds.includes(s)
 			);
-			removedSectionIds = oldSectionIds.filter(
+			const removedSectionIds = oldSectionIds.filter(
 				s => !sections.includes(s)
+			);
+
+			await Section.updateMany(
+				{ _id: addedSectionIds },
+				{ $push: { products: productToUpdate.id } }
+			);
+
+			await Section.updateMany(
+				{ _id: removedSectionIds },
+				{ $pull: { products: productToUpdate.id } }
 			);
 		}
 
-		// обновление соответствующих
-		// разделов продукта
-		await Section.updateMany(
-			{ _id: addedSectionIds },
-			{ $addToSet: { products: productToUpdate.id } }
-		);
-		await Section.updateMany(
-			{ _id: removedSectionIds },
-			{ $pull: { products: productToUpdate.id } }
+		Object.keys(changes).forEach(
+			key => (productToUpdate[key] = changes[key])
 		);
 
-		await productToUpdate.updateOne(changes);
-
-		return await Product.findById(id);
+		return await productToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -307,44 +330,56 @@ const updateOne = async (id, changes) => {
 	}
 };
 
-const deleteOne = async id => {
+const deleteOne = async (id, seller) => {
 	try {
-		// проверка существования продукта
-		// с входным id
-		const productToDelete = await Product.findOne({
-			_id: id,
-			deletedAt: { $exists: false }
-		}).populate([{ path: 'type', select: 'name' }]);
+		const isMongoId = validator.isMongoId(id);
+
+		const productToDelete = await Product.where(
+			isMongoId ? '_id' : 'key'
+		)
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.populate({ path: 'type', select: 'name key' })
+			.findOne();
 
 		if (!productToDelete) {
 			throw {
 				status: 404,
-				message: `Product with id '${id}' not found`
+				message: `Product with ${
+					isMongoId ? 'id' : 'key'
+				} '${id}' not found`
 			};
 		}
 
-		// удаление ссылки на продукт
-		// в соответствующих секциях
+		const foundSeller = await User.where('_id')
+			.equals(seller)
+			.findOne();
+		const isAdmin = foundSeller.role === 'admin';
+		const productOwner = foundSeller.products.includes(
+			productToDelete.id
+		);
+
+		if (!isAdmin && !productOwner) {
+			throw {
+				status: 403,
+				message: "Can't delete product from other seller"
+			};
+		}
+
 		await Section.updateMany(
 			{ _id: productToDelete.sections },
 			{ $pull: { products: productToDelete.id } }
 		);
 
-		// удаление конкретного продукта
-		// в зависимости от типа продукта
-		switch (productToDelete.type.name) {
-			case 'Книга':
-			case 'Електронна книга':
-			case 'Аудіокнига':
-				await Book.deleteOne({
-					product: productToDelete.id
-				});
-				break;
+		if (productToDelete.model === 'Book') {
+			await bookService.deleteOne(
+				productToDelete.specificProduct.toHexString(),
+				seller
+			);
 		}
 
 		await productToDelete.deleteOne();
-
-		return productToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

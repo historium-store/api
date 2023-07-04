@@ -14,9 +14,7 @@ const createOne = async (req, res, next) => {
 		const authHeader = req.get('Authorization');
 
 		if (authHeader) {
-			orderData.user = (
-				await authService.authenticate(authHeader)
-			).id;
+			orderData.user = await authService.authenticate(authHeader);
 		}
 
 		res.status(201).json(await service.createOne(orderData));
@@ -49,7 +47,7 @@ const getOne = async (req, res, next) => {
 			};
 		}
 
-		res.json({ ...order });
+		res.json(order);
 	} catch (err) {
 		next(createError(err));
 	}
@@ -99,7 +97,7 @@ const updateOne = async (req, res, next) => {
 
 		const { id, ...changes } = matchedData(req);
 
-		res.json(await service.updateStatus(id, changes));
+		res.json(await service.updateOne(id, changes));
 	} catch (err) {
 		next(createError(err));
 	}

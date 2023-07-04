@@ -1,104 +1,92 @@
 import { randomBytes } from 'crypto';
 import mongoose from 'mongoose';
 import { isEmptyObject, transporter } from '../../utils.js';
-import AddressInfo from '../address-info/model.js';
 import Cart from '../cart/model.js';
 import cartService from '../cart/service.js';
-import CompanyInfo from '../company-info/model.js';
-import ContactInfo from '../contact-info/model.js';
-import Country from '../country/model.js';
-import DeliveryInfo from '../delivery-info/model.js';
 import DeliveryType from '../delivery-type/model.js';
+import Product from '../product/model.js';
 import User from '../user/model.js';
 import userService from '../user/service.js';
 import Order from './model.js';
 
 const createOne = async orderData => {
-	const {
-		contactInfo,
-		receiverInfo,
-		companyInfo,
-		deliveryInfo,
-		paymentType,
-		user
-	} = orderData;
-
-	const { country, type } = deliveryInfo;
+	const { contactInfo, items } = orderData;
 
 	try {
-		const foundCountry = await Country.findOne({
-			_id: country,
-			deletedAt: { $exists: false }
+		Object.keys(orderData).forEach(key => {
+			const isObject = typeof orderData[key] === 'object';
+
+			if (isObject && isEmptyObject(orderData[key])) {
+				delete orderData[key];
+			}
 		});
 
-		if (!foundCountry) {
-			throw {
-				status: 404,
-				message: `Country with id '${country}' not found`
-			};
-		}
-
-		const foundDeliveryType = await DeliveryType.findOne({
-			_id: type,
-			deletedAt: { $exists: false }
-		});
-
-		if (!foundDeliveryType) {
-			throw {
-				status: 404,
-				message: `Delivery type with id '${type}' not found`
-			};
-		}
-
-		if (!foundDeliveryType.countries.includes(foundCountry.id)) {
-			throw {
-				status: 400,
-				message: `Invalid delivery type '${foundDeliveryType.name}' for country '${foundCountry.name}'`
-			};
-		}
-
-		const countryHasCities = foundCountry.cities.length;
-		const existingCityProvided = foundCountry.cities.includes(
-			deliveryInfo.city
-		);
-
-		if (countryHasCities && !existingCityProvided) {
-			throw {
-				status: 404,
-				message: `City '${deliveryInfo.city}' not found in country '${foundCountry.name}'`
-			};
-		}
-
-		if (!foundDeliveryType.paymentTypes.includes(paymentType)) {
-			throw {
-				status: 400,
-				message: `Delivery type '${foundDeliveryType.name}' doesn't support payment type '${paymentType}'`
-			};
-		}
-
-		if (!user) {
+		if (!orderData.user) {
 			const { phoneNumber, email } = contactInfo;
-			const userExists = await User.exists({
-				$or: [
-					{ phoneNumber, deletedAt: { $exists: false } },
-					{ email, deletedAt: { $exists: false } }
-				]
-			});
+
+			const userExists = await User.where('deletedAt')
+				.exists(false)
+				.or([{ phoneNumber }, { email }])
+				.findOne()
+				.lean();
 
 			if (userExists) {
 				throw {
-					status: 409,
+					status: 400,
 					message: 'User exists. Authorization needed'
 				};
 			}
+
+			if (!items || !items.length) {
+				throw {
+					status: 400,
+					message: 'Order must have at least 1 item'
+				};
+			}
+
+			orderData.items = await Promise.all(
+				items.map(async i => {
+					const existingProduct = await Product.where('_id')
+						.equals(i.product)
+						.where('deletedAt')
+						.exists(false)
+						.findOne()
+						.populate({
+							path: 'type',
+							select: '-_id name',
+							transform: type => type.name
+						})
+						.select('-_id name price code images')
+						.transform(product => ({
+							type: product.type,
+							name: product.name,
+							price: product.price,
+							code: product.code,
+							image: product.image ?? product.images[0]
+						}))
+						.lean();
+
+					if (!existingProduct) {
+						throw {
+							status: 404,
+							message: `Product with id '${i.product}' not found`
+						};
+					}
+
+					return {
+						product: existingProduct,
+						quantity: i.quantity ?? 1
+					};
+				})
+			);
 
 			const password = randomBytes(8).toString('hex');
 
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
 				to: email,
-				subject: 'Password restoration',
-				html: `Temporary password: <b>${password}</b>`
+				subject: 'Реєстрація',
+				html: `Тимчасовий пароль: <b>${password}</b>`
 			};
 
 			await transporter.sendMail(mailData);
@@ -108,57 +96,76 @@ const createOne = async orderData => {
 				password
 			});
 
-			orderData.user = newUser._id;
-
-			const { items } = orderData;
-			delete orderData.items;
-			await cartService.merge(items, newUser.cart);
-			orderData.cart = newUser.cart;
-			await Cart.updateOne(
-				{ _id: newUser.cart },
-				{ $unset: { user: true } }
-			);
-
-			const newCart = await Cart.create({ user: newUser });
-			await newUser.updateOne({ $set: { cart: newCart } });
-		}
-
-		orderData.contactInfo = await ContactInfo.create(contactInfo);
-
-		if (isEmptyObject(receiverInfo)) {
-			delete orderData.receiverInfo;
+			orderData.user = newUser;
 		} else {
-			orderData.receiverInfo = await ContactInfo.create(receiverInfo);
+			const foundCart = await Cart.where('_id')
+				.equals(orderData.user.cart)
+				.populate({
+					path: 'items',
+					populate: {
+						path: 'product',
+						populate: {
+							path: 'type',
+							select: '-_id name',
+							transform: type => type.name
+						},
+						select: '-_id name price code images',
+						transform: product => ({
+							type: product.type,
+							name: product.name,
+							price: product.price,
+							code: product.code,
+							image: product.images[0]
+						})
+					},
+					select: '-_id quantity'
+				})
+				.select('items')
+				.findOne()
+				.lean();
+
+			orderData.items = foundCart.items;
+
+			await cartService.clearItems(foundCart._id);
 		}
 
-		if (isEmptyObject(companyInfo)) {
-			delete orderData.companyInfo;
-		} else {
-			companyInfo.addressInfo = await AddressInfo.create(
-				companyInfo.addressInfo
-			);
-
-			orderData.companyInfo = await CompanyInfo.create(companyInfo);
-		}
-
-		deliveryInfo.addressInfo = await AddressInfo.create(
-			deliveryInfo.addressInfo
+		const itemsTotalPrice = orderData.items.reduce(
+			(acc, item) => acc + item.product.price * item.quantity,
+			0
 		);
 
-		if (deliveryInfo.contactInfo) {
-			deliveryInfo.contactInfo = await ContactInfo.create(
-				deliveryInfo.contactInfo
-			);
+		const deliveryType = await DeliveryType.where('name')
+			.equals(orderData.deliveryInfo.type)
+			.findOne();
+
+		let deliveryPrice = deliveryType.price;
+		const deliveryCanBeFree = deliveryType.freeDeliveryFrom;
+		const suitableItemsPrice =
+			itemsTotalPrice >= deliveryType.freeDeliveryFrom;
+
+		if (deliveryCanBeFree && suitableItemsPrice) {
+			deliveryPrice = 0;
 		}
 
-		orderData.deliveryInfo = await DeliveryInfo.create(deliveryInfo);
+		orderData.totalPrice = itemsTotalPrice + deliveryPrice;
 
-		orderData.status = {
-			name: 'Поточний',
-			key: 'active'
+		orderData.totalQuantity = orderData.items.reduce(
+			(acc, item) => acc + item.quantity,
+			0
+		);
+
+		const newOrder = await Order.create(orderData);
+
+		const mailData = {
+			from: '"Historium" noreply@historium.store',
+			to: contactInfo.email,
+			subject: 'Замовлення',
+			html: `Ваше замовлення <b>№ ${newOrder.number}</b> прийнято`
 		};
 
-		return await Order.create(orderData);
+		await transporter.sendMail(mailData);
+
+		return await newOrder.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -169,43 +176,7 @@ const createOne = async orderData => {
 
 const getOne = async id => {
 	try {
-		const foundOrder = await Order.findById(id)
-			.populate([
-				{
-					path: 'contactInfo',
-					select: '-_id firstName lastName phoneNumber email'
-				},
-				{
-					path: 'receiverInfo',
-					select: '-_id firstName lastName phoneNumber'
-				},
-				{
-					path: 'companyInfo',
-					populate: { path: 'addressInfo', select: '-_id address' },
-					select: '-_id name identificationNumber'
-				},
-				{
-					path: 'deliveryInfo',
-					populate: [
-						{ path: 'country', select: '-_id name' },
-						{ path: 'type', select: '-_id name price' },
-						{
-							path: 'addressInfo',
-							select: '-_id -createdAt -updatedAt'
-						},
-						{
-							path: 'contactInfo',
-							select: '-_id firstName lastName middleName'
-						}
-					],
-					select: '-_id city'
-				},
-				{
-					path: 'user',
-					select: 'firstName lastName phoneNumber email'
-				}
-			])
-			.lean();
+		const foundOrder = await Order.findById(id).lean();
 
 		if (!foundOrder) {
 			throw {
@@ -213,15 +184,6 @@ const getOne = async id => {
 				message: `Order with id '${id}' not found`
 			};
 		}
-
-		if (foundOrder.companyInfo) {
-			foundOrder.companyInfo.address =
-				foundOrder.companyInfo.addressInfo.address;
-			delete foundOrder.companyInfo?.addressInfo;
-		}
-
-		foundOrder.deliveryInfo.country =
-			foundOrder.deliveryInfo.country.name;
 
 		return foundOrder;
 	} catch (err) {
@@ -236,44 +198,7 @@ const getAll = async queryParams => {
 	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Order.find()
-			.limit(limit)
-			.skip(skip)
-			.populate([
-				{
-					path: 'contactInfo',
-					select: '-_id firstName lastName phoneNumber email'
-				},
-				{
-					path: 'receiverInfo',
-					select: '-_id firstName lastName phoneNumber'
-				},
-				{
-					path: 'companyInfo',
-					populate: { path: 'addressInfo', select: '-_id address' },
-					select: '-_id name identificationNumber'
-				},
-				{
-					path: 'deliveryInfo',
-					populate: [
-						{ path: 'country', select: '-_id name' },
-						{ path: 'type', select: '-_id name price' },
-						{
-							path: 'addressInfo',
-							select: '-_id -createdAt -updatedAt'
-						},
-						{
-							path: 'contactInfo',
-							select: '-_id firstName lastName middleName'
-						}
-					],
-					select: '-_id city'
-				},
-				{
-					path: 'user',
-					select: 'firstName lastName phoneNumber email'
-				}
-			]);
+		return await Order.find().limit(limit).skip(skip).lean();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -298,9 +223,11 @@ const getStatuses = async () => {
 
 const updateStatus = async (id, status) => {
 	try {
-		const orderExists = await Order.exists({ _id: id });
+		const orderToUpdate = await Order.where('_id')
+			.equals(id)
+			.findOne();
 
-		if (!orderExists) {
+		if (!orderToUpdate) {
 			throw {
 				status: 404,
 				message: `Order with id '${id}' not found`
@@ -323,45 +250,9 @@ const updateStatus = async (id, status) => {
 
 		delete foundStatus._id;
 
-		return await Order.findByIdAndUpdate(
-			id,
-			{ $set: { status: foundStatus } },
-			{ new: true }
-		).populate([
-			{
-				path: 'contactInfo',
-				select: '-_id firstName lastName phoneNumber email'
-			},
-			{
-				path: 'receiverInfo',
-				select: '-_id firstName lastName phoneNumber'
-			},
-			{
-				path: 'companyInfo',
-				populate: { path: 'addressInfo', select: '-_id address' },
-				select: '-_id name identificationNumber'
-			},
-			{
-				path: 'deliveryInfo',
-				populate: [
-					{ path: 'country', select: '-_id name' },
-					{ path: 'type', select: '-_id name price' },
-					{
-						path: 'addressInfo',
-						select: '-_id -createdAt -updatedAt'
-					},
-					{
-						path: 'contactInfo',
-						select: '-_id firstName lastName middleName'
-					}
-				],
-				select: '-_id city'
-			},
-			{
-				path: 'user',
-				select: 'firstName lastName phoneNumber email'
-			}
-		]);
+		orderToUpdate.status = foundStatus;
+
+		return await orderToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -371,10 +262,10 @@ const updateStatus = async (id, status) => {
 };
 
 const updateOne = async (id, changes) => {
-	const { receiverInfo, companyInfo } = changes;
-
 	try {
-		const orderToUpdate = await Order.findOne({ _id: id });
+		const orderToUpdate = await Order.where('_id')
+			.equals(id)
+			.findOne();
 
 		if (!orderToUpdate) {
 			throw {
@@ -383,83 +274,11 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		if (receiverInfo) {
-			const specified = orderToUpdate.receiverInfo;
+		Object.keys(changes).forEach(
+			key => (orderToUpdate[key] = changes[key])
+		);
 
-			if (specified) {
-				throw {
-					status: 409,
-					message: 'Order already has receiver info specified'
-				};
-			}
-
-			const exists = await ContactInfo.exists({ _id: receiverInfo });
-
-			if (!exists) {
-				throw {
-					status: 404,
-					message: `Contact info with id '${receiverInfo}' not found`
-				};
-			}
-		}
-
-		if (companyInfo) {
-			const specified = orderToUpdate.companyInfo;
-
-			if (specified) {
-				throw {
-					status: 409,
-					message: 'Order already has company info specified'
-				};
-			}
-
-			const exists = await CompanyInfo.exists({ _id: companyInfo });
-
-			if (!exists) {
-				throw {
-					status: 404,
-					message: `Company info with id '${companyInfo}' not found`
-				};
-			}
-		}
-
-		return await Order.findByIdAndUpdate(id, changes, {
-			new: true
-		}).populate([
-			{
-				path: 'contactInfo',
-				select: '-_id firstName lastName phoneNumber email'
-			},
-			{
-				path: 'receiverInfo',
-				select: '-_id firstName lastName phoneNumber'
-			},
-			{
-				path: 'companyInfo',
-				populate: { path: 'addressInfo', select: '-_id address' },
-				select: '-_id name identificationNumber'
-			},
-			{
-				path: 'deliveryInfo',
-				populate: [
-					{ path: 'country', select: '-_id name' },
-					{ path: 'type', select: '-_id name price' },
-					{
-						path: 'addressInfo',
-						select: '-_id -createdAt -updatedAt'
-					},
-					{
-						path: 'contactInfo',
-						select: '-_id firstName lastName middleName'
-					}
-				],
-				select: '-_id city'
-			},
-			{
-				path: 'user',
-				select: 'firstName lastName phoneNumber email'
-			}
-		]);
+		return await orderToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

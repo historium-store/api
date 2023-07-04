@@ -196,20 +196,48 @@ const bookSchema = new Schema(
 			}
 		],
 
+		excerpts: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			],
+			required: false
+		},
+
 		suitableFor: [
 			{
 				type: String,
 				required: false
 			}
-		]
+		],
+
+		createdAt: {
+			type: Number
+		},
+
+		updatedAt: {
+			type: Number
+		},
+
+		deletedAt: {
+			type: Number,
+			required: false
+		}
 	},
 	{
-		versionKey: false
+		versionKey: false,
+		timestamps: true
 	}
 );
 
 bookSchema.methods.deleteOne = async function () {
 	await deleteDocument(this);
+};
+
+bookSchema.statics.deleteOne = async function (bookId) {
+	await deleteDocument(await this.findOne(bookId));
 };
 
 const Book = model('Book', bookSchema);

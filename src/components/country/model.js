@@ -15,18 +15,27 @@ const countrySchema = new Schema(
 			}
 		],
 
+		key: {
+			type: String,
+			required: true
+		},
+
 		createdAt: {
 			type: Number
 		},
 
 		updatedAt: {
 			type: Number
+		},
+
+		deletedAt: {
+			type: Number,
+			requried: false
 		}
 	},
 	{
 		versionKey: false,
-		timestamps: true,
-		strict: false
+		timestamps: true
 	}
 );
 

@@ -1,14 +1,10 @@
-import { body, param } from 'express-validator';
-import { isArrayOfMongoIds } from '../../utils.js';
+import { body } from 'express-validator';
 
 const validateCreate = [
 	body('fullName')
 		.trim()
 		.notEmpty()
 		.withMessage('Author full name is required'),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Author', 'books')),
 	body('biography')
 		.optional()
 		.trim()
@@ -25,22 +21,12 @@ const validateCreate = [
 		.withMessage('Author can have between 1 and 3 pictures')
 ];
 
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Author id must be a valid mongo id')
-];
-
 const validateUpdate = [
-	...validateId,
 	body('fullName')
 		.optional()
 		.trim()
 		.notEmpty()
 		.withMessage("Author full name can't be empty"),
-	body('books')
-		.optional()
-		.custom(isArrayOfMongoIds('Author', 'books')),
 	body('biography')
 		.optional()
 		.trim()
@@ -58,7 +44,6 @@ const validateUpdate = [
 ];
 
 export default {
-	validateId,
 	validateCreate,
 	validateUpdate
 };

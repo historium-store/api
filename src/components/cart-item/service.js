@@ -38,14 +38,14 @@ const addItem = async (cart, itemData) => {
 			return;
 		}
 
-		const newCartItem = await CartItem.create({
-			cart,
-			product,
-			quantity: quantity ?? 1
-		});
-
 		await foundCart.updateOne({
-			$push: { items: newCartItem }
+			$push: {
+				items: await CartItem.create({
+					cart,
+					product,
+					quantity: quantity ?? 1
+				})
+			}
 		});
 	} catch (err) {
 		throw {
@@ -59,10 +59,11 @@ const removeItem = async (cart, itemData) => {
 	const { product, quantity } = itemData;
 
 	try {
-		const productExists = await Product.exists({
-			_id: product,
-			deletedAt: { $exists: false }
-		});
+		const productExists = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (!productExists) {
 			throw {
@@ -98,6 +99,8 @@ const removeItem = async (cart, itemData) => {
 		}
 
 		await existingItem.deleteOne();
+
+		await foundCart.updateOne({ $pull: { items: existingItem.id } });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -106,4 +109,7 @@ const removeItem = async (cart, itemData) => {
 	}
 };
 
-export default { addItem, removeItem };
+export default {
+	addItem,
+	removeItem
+};

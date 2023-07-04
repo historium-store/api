@@ -1,20 +1,7 @@
-import { body, param, query } from 'express-validator';
-
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('User id must be a valid mongo id')
-];
-
-const validateGetOne = [
-	...validateId,
-	query('withDeleted')
-		.optional()
-		.customSanitizer(() => true)
-];
+import { body } from 'express-validator';
+import { normalizePhoneNumber } from '../../utils.js';
 
 const validateUpdate = [
-	...validateId,
 	body('firstName')
 		.optional()
 		.trim()
@@ -42,7 +29,8 @@ const validateUpdate = [
 		.withMessage("User phone number can't be empty")
 		.bail()
 		.isMobilePhone('uk-UA')
-		.withMessage('Invalid user phone number format'),
+		.withMessage('Invalid user phone number format')
+		.customSanitizer(normalizePhoneNumber),
 	body('email')
 		.optional()
 		.trim()
@@ -72,8 +60,13 @@ const validateUpdate = [
 		.withMessage('User birth date must be an integer')
 ];
 
+const validateProductEntry = [
+	body('product')
+		.isMongoId()
+		.withMessage('Product must be a valid mongo id')
+];
+
 export default {
-	validateId,
-	validateGetOne,
-	validateUpdate
+	validateUpdate,
+	validateProductEntry
 };

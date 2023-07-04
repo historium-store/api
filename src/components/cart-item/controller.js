@@ -38,4 +38,7 @@ const removeItem = async (req, res, next) => {
 	}
 };
 
-export default { addItem, removeItem };
+export default {
+	addItem,
+	removeItem
+};

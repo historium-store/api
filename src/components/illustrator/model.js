@@ -10,13 +10,16 @@ const illustratorSchema = new Schema(
 			required: true
 		},
 
-		books: [
-			{
-				type: ObjectId,
-				ref: 'Book',
-				required: false
-			}
-		],
+		books: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Book',
+					required: false
+				}
+			],
+			default: []
+		},
 
 		createdAt: {
 			type: Number
@@ -24,12 +27,16 @@ const illustratorSchema = new Schema(
 
 		updatedAt: {
 			type: Number
+		},
+
+		deletedAt: {
+			type: Number,
+			required: false
 		}
 	},
 	{
 		versionKey: false,
-		timestamps: true,
-		strict: false
+		timestamps: true
 	}
 );
 

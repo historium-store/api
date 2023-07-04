@@ -1,15 +1,14 @@
 import { randomBytes } from 'crypto';
-import { hashPassword, normalizePhoneNumber } from '../../utils.js';
+import { MAX_HISTORY_SIZE, hashPassword } from '../../utils.js';
 import Cart from '../cart/model.js';
 import cartService from '../cart/service.js';
+import Product from '../product/model.js';
 import User from './model.js';
 
 const createOne = async userData => {
-	let { phoneNumber, email } = userData;
+	const { phoneNumber, email } = userData;
 
 	try {
-		phoneNumber = normalizePhoneNumber(phoneNumber);
-
 		const existingUser = await User.where('deletedAt')
 			.exists(false)
 			.or([{ phoneNumber }, { email }])
@@ -39,11 +38,14 @@ const createOne = async userData => {
 		userData.salt = salt.toString('hex');
 
 		const newUser = await User.create(userData);
-		const newCart = await Cart.create({ user: newUser });
-		newUser.cart = newCart.id;
-		await newUser.save();
+		const { id: cart } = await Cart.create({ user: newUser.id });
+		await newUser.updateOne({ $set: { cart } });
 
-		return newUser;
+		return {
+			...newUser.toObject(),
+			password: undefined,
+			salt: undefined
+		};
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -52,15 +54,14 @@ const createOne = async userData => {
 	}
 };
 
-const getOne = async (id, withDeleted) => {
+const getOne = async id => {
 	try {
-		const query = User.where('_id').equals(id);
-
-		if (!withDeleted) {
-			query.where('deletedAt').exists(false);
-		}
-
-		const foundUser = await query.findOne();
+		const foundUser = await User.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.select('-password -salt')
+			.findOne();
 
 		if (!foundUser) {
 			throw {
@@ -79,29 +80,15 @@ const getOne = async (id, withDeleted) => {
 };
 
 const getAll = async queryParams => {
-	const {
-		limit,
-		offset: skip,
-		orderBy,
-		order,
-		withDeleted
-	} = queryParams;
+	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
-		const query = User.find();
-
-		if (!withDeleted) {
-			query.where('deletedAt').exists(false);
-		}
-
-		query
+		return await User.where('deletedAt')
+			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order });
-
-		const foundUsers = await query.exec();
-
-		return foundUsers;
+			.sort({ [orderBy]: order })
+			.select('-password -salt');
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -111,15 +98,10 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	let { phoneNumber, email } = changes;
+	const { phoneNumber, email, password } = changes;
 
 	try {
-		if (phoneNumber) {
-			phoneNumber = normalizePhoneNumber(phoneNumber);
-			changes.phoneNumber = phoneNumber;
-		}
-
-		let userToUpdate = await User.where('_id')
+		const userToUpdate = await User.where('_id')
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
@@ -132,24 +114,26 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		const existingUser = await User.where('deletedAt')
-			.exists(false)
-			.or([{ phoneNumber }, { email }])
-			.findOne();
+		if (phoneNumber || email) {
+			const existingUser = await User.where('deletedAt')
+				.exists(false)
+				.or([{ phoneNumber }, { email }])
+				.findOne();
 
-		if (existingUser) {
-			throw {
-				status: 409,
-				message:
-					'User with ' +
-					(existingUser.phoneNumber === phoneNumber
-						? `phone number '${phoneNumber}'`
-						: `email '${email}'`) +
-					' already exists'
-			};
+			if (existingUser) {
+				throw {
+					status: 409,
+					message:
+						'User with ' +
+						(existingUser.phoneNumber === phoneNumber
+							? `phone number '${phoneNumber}'`
+							: `email '${email}'`) +
+						' already exists'
+				};
+			}
 		}
 
-		if (changes.password) {
+		if (password) {
 			const salt = randomBytes(16);
 			const hashedPassword = await hashPassword(
 				changes.password,
@@ -170,7 +154,13 @@ const updateOne = async (id, changes) => {
 			key => (userToUpdate[key] = changes[key])
 		);
 
-		return await userToUpdate.save();
+		await userToUpdate.save();
+
+		return {
+			...userToUpdate.toObject(),
+			password: undefined,
+			salt: undefined
+		};
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -206,10 +196,140 @@ const deleteOne = async id => {
 	}
 };
 
+const addToWishlist = async (user, product) => {
+	try {
+		const userToUpdate = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!userToUpdate) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		const existingProduct = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!existingProduct) {
+			throw {
+				status: 404,
+				message: `Product with id '${product}' not found`
+			};
+		}
+
+		await userToUpdate.updateOne({ $push: { wishlist: product } });
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+const removeFromWishlist = async (user, product) => {
+	try {
+		const userToUpdate = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!userToUpdate) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		const existingProduct = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!existingProduct) {
+			throw {
+				status: 404,
+				message: `Product with id '${product}' not found`
+			};
+		}
+
+		await userToUpdate.updateOne({ $pull: { wishlist: product } });
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+const addToHistory = async (user, product) => {
+	try {
+		const userToUpdate = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!userToUpdate) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		const existingProduct = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
+
+		if (!existingProduct) {
+			throw {
+				status: 404,
+				message: `Product with id '${product}' not found`
+			};
+		}
+
+		const productInHistory = userToUpdate.history.some(
+			p => p.toHexString() === product
+		);
+
+		if (productInHistory) {
+			return;
+		}
+
+		const historySize = userToUpdate.history.length;
+
+		if (historySize === MAX_HISTORY_SIZE) {
+			userToUpdate.history.pop();
+		}
+
+		userToUpdate.history.unshift(product);
+
+		await userToUpdate.save();
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
-	deleteOne
+	deleteOne,
+	addToWishlist,
+	removeFromWishlist,
+	addToHistory
 };

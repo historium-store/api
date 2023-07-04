@@ -1,8 +1,9 @@
 import { randomBytes, timingSafeEqual } from 'crypto';
-import jwt from 'jsonwebtoken';
 import {
+	JWT_OPTIONS,
 	hashPassword,
 	normalizePhoneNumber,
+	signJWT,
 	transporter,
 	verifyJWT,
 	vonage
@@ -65,14 +66,11 @@ const login = async loginData => {
 			}
 		}
 
-		const payload = {
-			sub: foundUser.id
-		};
-		const options = {
-			expiresIn: process.env.JWT_EXPIRATION,
-			noTimestamp: true
-		};
-		const token = jwt.sign(payload, process.env.SECRET, options);
+		const token = await signJWT(
+			{ sub: foundUser.id },
+			process.env.SECRET,
+			JWT_OPTIONS
+		);
 
 		return { token };
 	} catch (err) {
@@ -175,15 +173,15 @@ const restorePassword = async loginData => {
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
 				to: foundUser.email,
-				subject: 'Password restoration',
-				html: `Temporary password: <b>${temporaryPassword}</b>`
+				subject: 'Відновлення паролю',
+				html: `Тимчасовий пароль: <b>${temporaryPassword}</b>`
 			};
 
 			await transporter.sendMail(mailData);
 		} else {
 			const from = 'Historium';
 			const to = phoneNumber;
-			const text = `Temporary password: ${temporaryPassword}\n\n`;
+			const text = `Тимчасовий пароль: ${temporaryPassword}\n\n`;
 
 			await vonage.sms.send({ to, from, text });
 		}
@@ -197,69 +195,9 @@ const restorePassword = async loginData => {
 	}
 };
 
-// const verifyRestore = async restoreData => {
-// 	let { phoneNumber, email, restorationToken } = restoreData;
-
-// 	try {
-// 		phoneNumber = normalizePhoneNumber(phoneNumber);
-
-// 		const foundUser = await User.where('deletedAt')
-// 			.exists(false)
-// 			.or([{ phoneNumber }, { email }])
-// 			.findOne();
-
-// 		if (!foundUser) {
-// 			throw {
-// 				status: 404,
-// 				message:
-// 					'User with ' +
-// 					(phoneNumber
-// 						? `phone number '${phoneNumber}'`
-// 						: `email '${email}'`) +
-// 					' not found'
-// 			};
-// 		}
-
-// 		if (!foundUser.restorationToken) {
-// 			throw {
-// 				status: 400,
-// 				message: "User doesn't need restoration"
-// 			};
-// 		}
-
-// 		if (restorationToken !== foundUser.restorationToken) {
-// 			throw {
-// 				status: 400,
-// 				message: 'Incorrect restoration token'
-// 			};
-// 		}
-
-// 		await foundUser.updateOne({
-// 			$unset: { restorationToken: true }
-// 		});
-
-// 		const payload = {
-// 			sub: foundUser.id
-// 		};
-// 		const options = {
-// 			expiresIn: process.env.JWT_EXPIRATION,
-// 			noTimestamp: true
-// 		};
-// 		const token = jwt.sign(payload, process.env.SECRET, options);
-
-// 		return { id: foundUser.id, token };
-// 	} catch (err) {
-// 		throw {
-// 			status: err.status ?? 500,
-// 			message: err.message ?? err
-// 		};
-// 	}
-// };
-
 export default {
 	signup,
 	login,
 	authenticate,
 	restorePassword
-	// verifyRestore
 };

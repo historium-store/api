@@ -1,6 +1,10 @@
 import { Router } from 'express';
-import { checkRole, validateQueryParams } from '../../middleware.js';
-import authController from '../auth/controller.js';
+import {
+	checkRole,
+	validateId,
+	validateQueryParams
+} from '../../middleware.js';
+import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -10,7 +14,7 @@ publisherRouter
 	.route('/')
 	.get(validateQueryParams, controller.getAll)
 	.post(
-		authController.authenticate,
+		authenticate,
 		checkRole(['admin', 'seller']),
 		validator.validateCreate,
 		controller.createOne
@@ -18,18 +22,91 @@ publisherRouter
 
 publisherRouter
 	.route('/:id')
-	.get(validator.validateId, controller.getOne)
+	.get(validateId, controller.getOne)
 	.patch(
-		authController.authenticate,
+		authenticate,
 		checkRole(['admin', 'seller']),
+		validateId,
 		validator.validateUpdate,
 		controller.updateOne
 	)
 	.delete(
-		authController.authenticate,
+		authenticate,
 		checkRole(['admin', 'seller']),
-		validator.validateId,
+		validateId,
 		controller.deleteOne
 	);
 
 export default publisherRouter;
+
+/**
+ * @swagger
+ * /publisher:
+ *   post:
+ *     summary: Create new publisher
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - publisher
+ *     responses:
+ *       '201':
+ *         description: Created publisher
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *   get:
+ *     summary: Get all publishers
+ *     tags:
+ *       - publisher
+ *     parameters:
+ *       - $ref: '#/components/parameters/limit'
+ *       - $ref: '#/components/parameters/offset'
+ *       - $ref: '#/components/parameters/orderBy'
+ *       - $ref: '#/components/parameters/order'
+ *     responses:
+ *       '200':
+ *         description: All publishers
+ * /publisher/{id}:
+ *   get:
+ *     summary: Get one publisher
+ *     tags:
+ *       - publisher
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested publisher
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Publisher not found
+ *   patch:
+ *     summary: Update one existing publisher
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - publisher
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '200':
+ *         description: Requested publisher
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Publisher not found
+ *   delete:
+ *     summary: Delete one publisher
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - publisher
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     responses:
+ *       '204':
+ *         description: Publisher deleted successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Publisher not found
+ */

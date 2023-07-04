@@ -2,14 +2,14 @@ import Book from '../book/model.js';
 import Editor from './model.js';
 
 const createOne = async editorData => {
-	let { fullName, books } = editorData;
-	books = books ?? [];
+	let { fullName } = editorData;
 
 	try {
-		const existingEditor = await Editor.exists({
-			fullName,
-			deletedAt: { $exists: false }
-		});
+		const existingEditor = await Editor.where('fullName')
+			.equals(fullName)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
 		if (existingEditor) {
 			throw {
@@ -18,26 +18,7 @@ const createOne = async editorData => {
 			};
 		}
 
-		const notFoundIndex = (
-			await Book.find({
-				_id: books
-			})
-		).findIndex(b => !b || b.deletedAt);
-		if (notFoundIndex > -1) {
-			throw {
-				status: 404,
-				message: `Book with id '${books[notFoundIndex]}' not found`
-			};
-		}
-
-		const newEditor = await Editor.create(editorData);
-
-		await Book.updateMany(
-			{ _id: books },
-			{ $push: { editors: newEditor.id } }
-		);
-
-		return newEditor;
+		return await Editor.create(editorData);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -48,9 +29,13 @@ const createOne = async editorData => {
 
 const getOne = async id => {
 	try {
-		const foundEditor = await Editor.findById(id);
+		const foundEditor = await Editor.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (!foundEditor || foundEditor.deletedAt) {
+		if (!foundEditor) {
 			throw {
 				status: 404,
 				message: `Editor with id '${id}' not found`
@@ -70,11 +55,8 @@ const getAll = async queryParams => {
 	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
-		const filter = {
-			deletedAt: { $exists: false }
-		};
-
-		return await Editor.find(filter)
+		return await Editor.where('deletedAt')
+			.exists(false)
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order });
@@ -87,63 +69,40 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	const { fullName, books } = changes;
+	const { fullName } = changes;
 
 	try {
-		const editorToUpdate = await Editor.findById(id);
+		const editorToUpdate = await Editor.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (!editorToUpdate || editorToUpdate.deletedAt) {
+		if (!editorToUpdate) {
 			throw {
 				status: 404,
 				message: `Editor with id '${id}' not found`
 			};
 		}
 
-		const existingEditor = await Editor.exists({
-			fullName,
-			deletedAt: { $exists: false }
-		});
+		const existingEditor = await Editor.where('fullName')
+			.equals(fullName)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (existingEditor && existingEdito._id.toHexString() !== id) {
+		if (existingEditor) {
 			throw {
 				status: 409,
 				message: `Editor with full name '${fullName}' already exists`
 			};
 		}
 
-		if (books) {
-			const notFoundIndex = (
-				await Book.find({ _id: books })
-			).findIndex(b => !b || b.deletedAt);
-			if (notFoundIndex > -1) {
-				throw {
-					status: 404,
-					message: `Book with id '${books[notFoundIndex]}' not found`
-				};
-			}
+		Object.keys(changes).forEach(
+			key => (editorToUpdate[key] = changes[key])
+		);
 
-			const oldBookIds = editorToUpdate.books.map(b =>
-				b.id.toString('hex')
-			);
-
-			const addedBookIds = books.filter(b => !oldBookIds.includes(b));
-			await Book.updateMany(
-				{ _id: addedBookIds },
-				{ $push: { editors: editorToUpdate.id } }
-			);
-
-			const removedBookIds = oldBookIds.filter(
-				b => !books.includes(b)
-			);
-			await Book.updateMany(
-				{ _id: removedBookIds },
-				{ $pull: { editors: editorToUpdate.id } }
-			);
-		}
-
-		await editorToUpdate.updateOne(changes);
-
-		return await Editor.findById(id);
+		return await editorToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -154,9 +113,13 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const editorToDelete = await Editor.findById(id);
+		const editorToDelete = await Editor.where('_id')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		if (!editorToDelete || editorToDelete.deletedAt) {
+		if (!editorToDelete) {
 			throw {
 				status: 404,
 				message: `Editor with id '${id}' not found`
@@ -169,8 +132,6 @@ const deleteOne = async id => {
 		);
 
 		await editorToDelete.deleteOne();
-
-		return editorToDelete;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

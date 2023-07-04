@@ -16,8 +16,7 @@ const cartSchema = new Schema(
 		user: {
 			type: ObjectId,
 			ref: 'User',
-			required: true,
-			unique: true
+			required: false
 		},
 
 		createdAt: {
@@ -26,6 +25,11 @@ const cartSchema = new Schema(
 
 		updatedAt: {
 			type: Number
+		},
+
+		deletedAt: {
+			type: Number,
+			required: false
 		}
 	},
 	{
@@ -34,9 +38,9 @@ const cartSchema = new Schema(
 	}
 );
 
-cartSchema.virtual('totalPrice').get(async function () {
-	return await getCartTotalPrice(this);
-});
+cartSchema.methods.deleteOne = async function () {
+	await deleteDocument(this);
+};
 
 const Cart = model('Cart', cartSchema);
 

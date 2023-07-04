@@ -24,14 +24,9 @@ const productTypeSchema = new Schema(
 	},
 	{
 		versionKey: false,
-		timestamps: true,
-		strict: false
+		timestamps: true
 	}
 );
-
-productTypeSchema.methods.deleteOne = async function () {
-	await deleteDocument(this);
-};
 
 const ProductType = model('ProductType', productTypeSchema);
 

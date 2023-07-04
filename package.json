@@ -2,7 +2,6 @@
 	"type": "module",
 	"main": "server.js",
 	"scripts": {
-		"build": "npm install",
 		"start": "node -r dotenv/config server.js",
 		"dev": "nodemon -r dotenv/config",
 		"test": "mocha -r dotenv/config test/book-test.js"

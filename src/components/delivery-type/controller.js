@@ -1,4 +1,4 @@
-import { matchedData, validationResult } from 'express-validator';
+import { validationResult } from 'express-validator';
 import { createError } from '../../utils.js';
 import service from './service.js';
 
@@ -8,12 +8,12 @@ const getAll = async (req, res, next) => {
 			.formatWith(e => e.msg)
 			.throw();
 
-		const queryParams = matchedData(req);
-
-		res.json(await service.getAll(queryParams));
+		res.json(await service.getAll());
 	} catch (err) {
 		next(createError(err));
 	}
 };
 
-export default { getAll };
+export default {
+	getAll
+};

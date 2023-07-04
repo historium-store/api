@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body } from 'express-validator';
 
 const validateCreate = [
 	body('leadsTo')
@@ -15,14 +15,7 @@ const validateCreate = [
 		.withMessage("Banner property 'imageSquare' is required")
 ];
 
-const validateId = [
-	param('id')
-		.isMongoId()
-		.withMessage('Banner id must be a valid mongo id')
-];
-
 const validateUpdate = [
-	...validateId,
 	body('leadsTo')
 		.optional()
 		.trim()
@@ -42,6 +35,5 @@ const validateUpdate = [
 
 export default {
 	validateCreate,
-	validateId,
 	validateUpdate
 };

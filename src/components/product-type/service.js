@@ -1,13 +1,13 @@
+import Product from '../product/model.js';
 import ProductType from './model.js';
 
 const createOne = async productTypeData => {
 	const { name } = productTypeData;
 
 	try {
-		const existsingProductType = await ProductType.exists({
-			name,
-			deletedAt: { $exists: false }
-		});
+		const existsingProductType = await ProductType.where('name')
+			.equals(name)
+			.findOne();
 
 		if (existsingProductType) {
 			throw {
@@ -49,9 +49,7 @@ const getAll = async queryParams => {
 	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
-		return await ProductType.find({
-			deletedAt: { $exists: false }
-		})
+		return await ProductType.find()
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order });
@@ -69,27 +67,31 @@ const updateOne = async (id, changes) => {
 	try {
 		const productTypeToUpdate = await ProductType.findById(id);
 
-		if (!productTypeToUpdate || productTypeToUpdate.deletedAt) {
+		if (!productTypeToUpdate) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
 			};
 		}
 
-		const existsingProductType = await ProductType.exists({
-			name,
-			deletedAt: { $exists: false }
-		});
-		if (existsingProductType) {
-			throw {
-				status: 409,
-				message: `Product type with name '${name}' already exists`
-			};
+		if (name) {
+			const existsingProductType = await ProductType.where('name')
+				.equals(name)
+				.findOne();
+
+			if (existsingProductType) {
+				throw {
+					status: 409,
+					message: `Product type with name '${name}' already exists`
+				};
+			}
 		}
 
-		await productTypeToUpdate.updateOne(changes);
+		Object.keys(changes).forEach(
+			key => (productTypeToUpdate[key] = changes[key])
+		);
 
-		return await ProductType.findById(id);
+		return await productTypeToUpdate.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -102,16 +104,28 @@ const deleteOne = async id => {
 	try {
 		const productTypeToDelete = await ProductType.findById(id);
 
-		if (!productTypeToDelete || productTypeToDelete.deletedAt) {
+		if (!productTypeToDelete) {
 			throw {
 				status: 404,
 				message: `Product type with id '${id}' not found`
 			};
 		}
 
-		productTypeToDelete.deleteOne();
+		const productExists = await Product.where('type')
+			.equals(id)
+			.where('deletedAt')
+			.exists(false)
+			.findOne();
 
-		return productTypeToDelete;
+		if (productExists) {
+			throw {
+				status: 400,
+				message:
+					"Can't delete product type while some products are using it"
+			};
+		}
+
+		await productTypeToDelete.deleteOne();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
