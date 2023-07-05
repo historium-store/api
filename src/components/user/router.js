@@ -4,7 +4,10 @@ import {
 	validateId,
 	validateQueryParams
 } from '../../middleware.js';
-import { authenticate as authentication } from '../auth/controller.js';
+import {
+	authenticate,
+	authenticate as authentication
+} from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -30,6 +33,8 @@ userRouter
 userRouter
 	.route('/history')
 	.post(validator.validateProductEntry, controller.addToHistory);
+
+userRouter.route('/orders').get(controller.getOrders);
 
 userRouter
 	.route('/:id')
@@ -207,6 +212,67 @@ export default userRouter;
  *         $ref: '#/components/responses/Forbidden'
  *       '404':
  *         description: User or product not found
+ * /user/orders:
+ *   get:
+ *     summary: Get all orders made by user
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     responses:
+ *       '200':
+ *         description: All orders made by user
+ *         content:
+ *           application/json:
+ *             example:
+ *               - contactInfo:
+ *                   firstName: Ім'ян
+ *                   lastName: Прізвиськов
+ *                   phoneNumber: "+380442138972"
+ *                   email: bimlicupsu@gufum.com
+ *                 receiverInfo:
+ *                   firstName: Прізва
+ *                   lastName: Ім'янова
+ *                   phoneNumber: "+380445139822"
+ *                 companyInfo:
+ *                   name: Компакт
+ *                   identificationNumber: '18452271'
+ *                   address: вул. Поточна, 23/1
+ *                 deliveryInfo:
+ *                   country: Україна
+ *                   city: Полтава
+ *                   type: Відділення Нова Пошта
+ *                   address: просп. Довідкова, 12
+ *                 status:
+ *                   name: Поточний
+ *                   key: active
+ *                 _id: 64a5b36c488aec4d50a691c4
+ *                 gift: false
+ *                 callback: true
+ *                 paymentType: 'Готівкою або карткою: При отриманні'
+ *                 user: 64a5b36c488aec4d50a691be
+ *                 items:
+ *                 - product:
+ *                     type: Книга
+ *                     name: Мистецтво говорити. Таємниці ефективного спілкування
+ *                     price: 320
+ *                     code: '115994'
+ *                     image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/206ec0fb-7f22-43c5-b7a6-c361f7b416ef.webp
+ *                   quantity: 1
+ *                   _id: 64a5b36c488aec4d50a691c5
+ *                 - product:
+ *                     type: Книга
+ *                     name: Бетмен. Книга 1. Суд сов
+ *                     price: 468
+ *                     code: '116000'
+ *                     image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/cbdd4b36-50e5-47c6-b516-a3632476ee7e.webp
+ *                   quantity: 3
+ *                   _id: 64a5b36c488aec4d50a691c6
+ *                 totalPrice: 1784
+ *                 totalQuantity: 4
+ *                 createdAt: 1688580972442
+ *                 updatedAt: 1688580972442
+ *                 number: '2000134351'
  * components:
  *   schemas:
  *     UserResponse:
