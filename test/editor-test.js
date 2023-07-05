@@ -1,15 +1,13 @@
+import { ObjectId } from 'bson';
 import { expect } from 'chai';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' editor system ', () => {
-	let userToken = 'Bearer ';
-	let editorId;
-
 	before(async () => {
 		await mongoose
-			.connect(process.env.TEST_CONNECTIONG_STRING)
+			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
@@ -33,6 +31,9 @@ describe(' editor system ', () => {
 	afterEach(() => {
 		userToken = 'Bearer ';
 	});
+
+	let userToken = 'Bearer ';
+	let editorId;
 
 	describe(' "/editor/" post request ', () => {
 		it(' the editor data is correct; the new editor object is returned ', async () => {
@@ -126,6 +127,31 @@ describe(' editor system ', () => {
 						'application/json'
 					);
 					expect(response.body).to.include.keys(...expectedFields);
+				});
+		});
+	});
+
+	describe(' "/editor/:id" DELETE request ', () => {
+		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+			await request(app)
+				.delete(`/editor/${editorId}`)
+				.set('Authorization', userToken)
+				.then(async response => {
+					// get arr of editors from request
+					const editors = (
+						await request(app)
+							.get('/editor/')
+							.set('Authorization', userToken)
+					).body;
+
+					// get editor object from db
+					const editorObject = await mongoose.connection
+						.collection('editors')
+						.findOne(new ObjectId(editorId));
+
+					expect(response.status).to.be.equal(204);
+					expect(editors).to.be.empty;
+					expect(editorObject.deletedAt).to.not.be.null;
 				});
 		});
 	});

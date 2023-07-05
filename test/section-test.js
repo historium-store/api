@@ -1,3 +1,4 @@
+import { ObjectId } from 'bson';
 import { expect } from 'chai';
 import mongoose from 'mongoose';
 import request from 'supertest';
@@ -9,7 +10,7 @@ describe(' section system', () => {
 
 	before(async () => {
 		await mongoose
-			.connect(process.env.TEST_CONNECTIONG_STRING)
+			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
@@ -86,13 +87,7 @@ describe(' section system', () => {
 
 	describe(' "/section/:id" GET request ', () => {
 		it(' should return section object', async () => {
-			const expectedFields = [
-				'name',
-				'key',
-				'products',
-				'_id',
-				'sections'
-			];
+			const expectedFields = ['name', 'key', '_id', 'sections'];
 
 			await request(app)
 				.get(`/section/${sectionId}`)
@@ -112,28 +107,42 @@ describe(' section system', () => {
 			const updatedSectionData = {
 				key: 'fc'
 			};
-			const expectedFields = [
-				'name',
-				'key',
-				'products',
-				'_id',
-				'sections',
-				'createdAt',
-				'updatedAt'
-			];
 
 			await request(app)
 				.patch(`/section/${sectionId}`)
 				.set('Authorization', userToken)
 				.send(updatedSectionData)
 				.then(response => {
-					console.log(response.body.message);
-
 					expect(response.status).to.equal(200);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
-					expect(response.body).to.include.keys(...expectedFields);
+					expect(response.body.key).to.equal('fc');
+				});
+		});
+	});
+
+	describe(' "/section/:id" DELETE request ', () => {
+		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+			await request(app)
+				.delete(`/section/${sectionId}`)
+				.set('Authorization', userToken)
+				.then(async response => {
+					// get arr of sections from request
+					const sections = (
+						await request(app)
+							.get('/section/')
+							.set('Authorization', userToken)
+					).body;
+
+					// get section object from db
+					const sectionObject = await mongoose.connection
+						.collection('sections')
+						.findOne(new ObjectId(sectionId));
+
+					expect(response.status).to.be.equal(204);
+					expect(sections).to.be.empty;
+					expect(sectionObject.deletedAt).to.not.be.null;
 				});
 		});
 	});

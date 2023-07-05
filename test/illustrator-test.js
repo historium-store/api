@@ -1,15 +1,13 @@
+import { ObjectId } from 'bson';
 import { expect } from 'chai';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' illustrator system ', () => {
-	let userToken = 'Bearer ';
-	let illustratorId;
-
 	before(async () => {
 		await mongoose
-			.connect(process.env.TEST_CONNECTIONG_STRING)
+			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
@@ -33,6 +31,9 @@ describe(' illustrator system ', () => {
 	afterEach(() => {
 		userToken = 'Bearer ';
 	});
+
+	let userToken = 'Bearer ';
+	let illustratorId;
 
 	describe(' "/illustrator/" post request ', () => {
 		it(' the illustrator data is correct; the new illustrator object is returned ', async () => {
@@ -126,6 +127,31 @@ describe(' illustrator system ', () => {
 						'application/json'
 					);
 					expect(response.body).to.include.keys(...expectedFields);
+				});
+		});
+	});
+
+	describe(' "/illustrator/:id" DELETE request ', () => {
+		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+			await request(app)
+				.delete(`/illustrator/${illustratorId}`)
+				.set('Authorization', userToken)
+				.then(async response => {
+					// get arr of illustrators from request
+					const illustrators = (
+						await request(app)
+							.get('/illustrator/')
+							.set('Authorization', userToken)
+					).body;
+
+					// get illustrator object from db
+					const illustratorObject = await mongoose.connection
+						.collection('illustrators')
+						.findOne(new ObjectId(illustratorId));
+
+					expect(response.status).to.be.equal(204);
+					expect(illustrators).to.be.empty;
+					expect(illustratorObject.deletedAt).to.not.be.null;
 				});
 		});
 	});

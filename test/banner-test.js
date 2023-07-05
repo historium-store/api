@@ -1,3 +1,4 @@
+import { ObjectId } from 'bson';
 import { expect } from 'chai';
 import mongoose from 'mongoose';
 import request from 'supertest';
@@ -9,7 +10,7 @@ describe(' banner system ', () => {
 
 	before(async () => {
 		await mongoose
-			.connect(process.env.TEST_CONNECTIONG_STRING)
+			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
@@ -48,5 +49,9 @@ describe(' banner system ', () => {
 
 	describe(' "/banner/:id" PATCH request ', () => {
 		it(' correct values are sent; the changed banner object is returned ', async () => {});
+	});
+
+	describe(' "/banner/:id" DELETE request ', () => {
+		it(' should set the "deletedAt" field. the object must be removed from the database ', async () => {});
 	});
 });

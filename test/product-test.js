@@ -1,10 +1,9 @@
-import { ObjectId } from 'bson';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
-describe(' boook system ', () => {
+describe(' product-type system ', () => {
 	before(async () => {
 		await mongoose
 			.connect(process.env.TEST_CONNECTION_STRING)
@@ -44,10 +43,10 @@ describe(' boook system ', () => {
 	});
 
 	let userToken = 'Bearer ';
-	let bookId;
+	let productId;
 
-	describe(' "/book/" POST request', async () => {
-		it(' the book data is correct; the new book type object is returned ', async () => {
+	describe(' "/product/" GET request ', () => {
+		it(' should return "result" -  an array of products, and "total" - count of products ', async () => {
 			//#region adding the necessary objects to the database
 
 			const productType = {
@@ -160,50 +159,14 @@ describe(' boook system ', () => {
 				sections: [sectionId],
 				model: 'Book'
 			};
-			const productId = (
+			productId = (
 				await request(app)
 					.post('/product/')
 					.set('Authorization', userToken)
 					.send(product)
 			).body._id;
 
-			//#endregion
-
-			const expectedFields = [
-				'product',
-				'type',
-				'publisher',
-				'languages',
-				'publishedIn',
-				'authors',
-				'compilers',
-				'translators',
-				'illustrators',
-				'editors',
-				'series',
-				'copies',
-				'isbns',
-				'firstPublishedIn',
-				'originalName',
-				'font',
-				'format',
-				'pages',
-				'weight',
-				'bindingType',
-				'paperType',
-				'illustrationsType',
-				'literaturePeriod',
-				'literatureCountry',
-				'foreignLiterature',
-				'timePeriod',
-				'suitableAge',
-				'packaging',
-				'occasion',
-				'style',
-				'suitableFor'
-			];
-
-			const newBook = {
+			const book = {
 				product: productId,
 				type: 'Паперова',
 				publisher: publisherId,
@@ -236,96 +199,17 @@ describe(' boook system ', () => {
 				style: ['Сучасна поезія'],
 				suitableFor: ['Дорослих']
 			};
+			const bookId = (
+				await request(app)
+					.post('/book/')
+					.set('Authorization', userToken)
+					.send(book)
+			).body._id;
+
+			//#endregion
 
 			await request(app)
-				.post('/book/')
-				.set('Authorization', userToken)
-				.send(newBook)
-				.then(async response => {
-					expect(response.status).to.equal(201);
-					expect(response.header['content-type']).to.include(
-						'application/json'
-					);
-
-					bookId = response.body._id;
-
-					//#region check data integrity
-					await mongoose.connection
-						.collection('sections')
-						.findOne(sectionId)
-						.then(result => {
-							expect(
-								result.products.map(id => id.toString())
-							).to.include(productId);
-						});
-					await mongoose.connection
-						.collection('publishers')
-						.findOne(publisherId)
-						.then(result => {
-							expect(
-								result.books.map(id => id.toString())
-							).to.include(bookId);
-						});
-					await mongoose.connection
-						.collection('authors')
-						.findOne(authorId)
-						.then(result => {
-							expect(
-								result.books.map(id => id.toString())
-							).to.include(bookId);
-						});
-					await mongoose.connection
-						.collection('compilers')
-						.findOne(compilerId)
-						.then(result => {
-							expect(
-								result.books.map(id => id.toString())
-							).to.include(bookId);
-						});
-					await mongoose.connection
-						.collection('translators')
-						.findOne(translatorId)
-						.then(result => {
-							expect(
-								result.books.map(id => id.toString())
-							).to.include(bookId);
-						});
-					await mongoose.connection
-						.collection('illustrators')
-						.findOne(illustratorId)
-						.then(result => {
-							expect(
-								result.books.map(id => id.toString())
-							).to.include(bookId);
-						});
-					await mongoose.connection
-						.collection('editors')
-						.findOne(editorId)
-						.then(result => {
-							expect(
-								result.books.map(id => id.toString())
-							).to.include(bookId);
-						});
-					await mongoose.connection
-						.collection('bookseries')
-						.findOne(bookSeriesId)
-						.then(result => {
-							expect(
-								result.books.map(id => id.toString())
-							).to.include(bookId);
-						});
-
-					//#endregion
-
-					expect(response.body).to.include.keys(...expectedFields);
-				});
-		});
-	});
-
-	describe(' "/book/" GET request ', () => {
-		it(' should return an array of books ', async () => {
-			await request(app)
-				.get('/book/')
+				.get('/product/')
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
@@ -333,138 +217,126 @@ describe(' boook system ', () => {
 						'application/json'
 					);
 
-					expect(response.body.result).to.be.an('array');
+					expect(response.body.result).to.be.an('array').and.not
+						.empty;
 				});
 		});
 	});
 
-	describe(' "/book/:id" GET request', () => {
-		it(' should return book object ', async () => {
+	describe(' "/product/:id" GET request ', () => {
+		it(' should return product object ', async () => {
 			const expectedFields = [
-				'product',
+				'_id',
+				'name',
+				'key',
+				'price',
+				'quantity',
 				'type',
-				'publisher',
-				'languages',
-				'publishedIn',
-				'authors',
-				'compilers',
-				'translators',
-				'illustrators',
-				'editors',
-				'series',
-				'copies',
-				'isbns',
-				'firstPublishedIn',
-				'originalName',
-				'font',
-				'format',
-				'pages',
-				'weight',
-				'bindingType',
-				'paperType',
-				'illustrationsType',
-				'literaturePeriod',
-				'literatureCountry',
-				'foreignLiterature',
-				'timePeriod',
-				'suitableAge',
-				'packaging',
-				'occasion',
-				'style',
-				'suitableFor'
+				'model',
+				'sections',
+				'description',
+				'reviews',
+				'images',
+				'createdAt',
+				'updatedAt',
+				'code',
+				'specificProduct'
 			];
 
 			await request(app)
-				.get(`/book/${bookId}`)
+				.get(`/product/${productId}`)
 				.set('Authorization', userToken)
 				.then(response => {
 					expect(response.status).to.equal(200);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
-
 					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});
 
-	describe(' "/book/:id" PATCH request ', () => {
-		it(' correct values are sent; the changed book object is returned ', async () => {
-			const updatedBookData = {
-				publishedIn: '1982'
+	describe(' "/product/:id" PATCH request ', () => {
+		it(' should return updated product ', async () => {
+			const updatedProductData = {
+				price: 1000,
+				quantity: 3
 			};
 
 			await request(app)
-				.patch(`/book/${bookId}`)
+				.patch(`/product/${productId}`)
 				.set('Authorization', userToken)
-				.send(updatedBookData)
+				.send(updatedProductData)
 				.then(response => {
 					expect(response.status).to.equal(200);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
-					expect(response.body.publishedIn).to.equal(1982);
+
+					expect(response.body.price).to.equal(
+						updatedProductData.price
+					);
+					expect(response.body.quantity).to.equal(
+						updatedProductData.quantity
+					);
 				});
 		});
 	});
 
-	describe(' "/book/:id" DELETE request ', () => {
-		it(' should set the "deletedAt" field for book and product. the object cannot be obtained using a request, but it is in the database ', async () => {
+	describe(' "/prodcut/:id" DELETE request ', () => {
+		it(' should set field "deletedAt" for product and book objects ', async () => {
 			await request(app)
-				.delete(`/book/${bookId}`)
+				.delete(`/product/${productId}`)
 				.set('Authorization', userToken)
 				.then(async response => {
 					expect(response.status).to.be.equal(204);
-
-					const books = (
-						await request(app)
-							.get('/book/')
-							.set('Authorization', userToken)
-					).body;
-
-					const bookObject = await mongoose.connection
-						.collection('books')
-						.findOne(new ObjectId(bookId));
-
-					expect(books.result).to.be.empty;
-					expect(bookObject.deletedAt).to.not.be.null;
-
-					//#region checking all dependencies
-
-					const author = await mongoose.connection
-						.collection('authors')
-						.findOne();
-					expect(author.books).to.be.empty;
-
-					const compiler = await mongoose.connection
-						.collection('compilers')
-						.findOne();
-					expect(compiler.books).to.be.empty;
-
-					const editor = await mongoose.connection
-						.collection('editors')
-						.findOne();
-					expect(editor.books).to.be.empty;
-
-					const illustrator = await mongoose.connection
-						.collection('illustrators')
-						.findOne();
-					expect(illustrator.books).to.be.empty;
-
-					const translator = await mongoose.connection
-						.collection('translators')
-						.findOne();
-					expect(translator.books).to.be.empty;
 
 					const product = await mongoose.connection
 						.collection('products')
 						.findOne();
 					expect(product.deletedAt).to.not.be.null;
 
+					const book = await mongoose.connection
+						.collection('books')
+						.findOne(product.specificProduct);
+					expect(book.deletedAt).to.not.be.null;
+
+					//#region checking all dependencies
+
 					const section = await mongoose.connection
 						.collection('sections')
-						.findOne();
+						.findOne(product.sections[0]);
 					expect(section.products).to.be.empty;
+
+					const author = await mongoose.connection
+						.collection('authors')
+						.findOne(book.authors[0]);
+					expect(author.books).to.be.empty;
+
+					const compiler = await mongoose.connection
+						.collection('compilers')
+						.findOne(book.compilers[0]);
+					expect(compiler.books).to.be.empty;
+
+					const translator = await mongoose.connection
+						.collection('translators')
+						.findOne(book.translators[0]);
+					expect(translator.books).to.be.empty;
+
+					const illustrator = await mongoose.connection
+						.collection('illustrators')
+						.findOne(book.illustrators[0]);
+					expect(illustrator.books).to.be.empty;
+
+					const editor = await mongoose.connection
+						.collection('editors')
+						.findOne(book.editors[0]);
+					expect(editor.books).to.be.empty;
+
+					const series = await mongoose.connection
+						.collection('bookseries')
+						.findOne(book.series);
+					expect(series.books).to.be.empty;
 
 					//#endregion
 				});

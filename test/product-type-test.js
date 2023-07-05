@@ -1,15 +1,13 @@
+import { ObjectId } from 'bson';
 import { expect, use } from 'chai';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' product-type system ', () => {
-	let userToken = 'Bearer ';
-	let productTypeId;
-
 	before(async () => {
 		await mongoose
-			.connect(process.env.TEST_CONNECTIONG_STRING)
+			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
@@ -33,6 +31,9 @@ describe(' product-type system ', () => {
 	afterEach(() => {
 		userToken = 'Bearer ';
 	});
+
+	let userToken = 'Bearer ';
+	let productTypeId;
 
 	describe(' "/product-type/" POST request ', () => {
 		it(' the product-type data is correct; the new product type object is returnd ', async () => {
@@ -125,6 +126,23 @@ describe(' product-type system ', () => {
 						'application/json'
 					);
 					expect(response.body).to.include.keys(...expectedFields);
+				});
+		});
+	});
+
+	describe(' "/prodcut-type/:id" DELETE request ', () => {
+		it(' should set the "deletedAt" field. the object must be removed from the database ', async () => {
+			await request(app)
+				.delete(`/product-type/${productTypeId}`)
+				.set('Authorization', userToken)
+				.then(async response => {
+					// get section object from db
+					const productTypeObject = await mongoose.connection
+						.collection('producttypes')
+						.findOne();
+
+					expect(response.status).to.be.equal(204);
+					expect(productTypeObject).to.be.null;
 				});
 		});
 	});
