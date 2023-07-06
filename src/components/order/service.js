@@ -195,10 +195,14 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip } = queryParams;
+	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
-		return await Order.find().limit(limit).skip(skip).lean();
+		return await Order.find()
+			.limit(limit)
+			.skip(skip)
+			.sort({ [orderBy ?? 'createdAt']: order ?? 'asc' })
+			.lean();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
