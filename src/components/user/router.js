@@ -34,7 +34,9 @@ userRouter
 	.route('/history')
 	.post(validator.validateProductEntry, controller.addToHistory);
 
-userRouter.route('/orders').get(controller.getOrders);
+userRouter
+	.route('/orders')
+	.get(validateQueryParams, controller.getOrders);
 
 userRouter
 	.route('/:id')

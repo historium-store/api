@@ -152,7 +152,13 @@ const getOrders = async (req, res, next) => {
 	const { id: user } = req.user;
 
 	try {
-		res.json(await service.getOrders(user));
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const queryParams = matchedData(req);
+
+		res.json(await service.getOrders(queryParams, user));
 	} catch (err) {
 		next(createError(err));
 	}
