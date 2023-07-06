@@ -50,9 +50,8 @@ const updateOne = async (req, res, next) => {
 
 		const isAdmin = req.user.role === 'admin';
 		const isSameUser = req.user.id === req.params.id;
-		const canChangeRole = changes.role && isAdmin;
 
-		if ((!isAdmin && !isSameUser) || !canChangeRole) {
+		if ((!isAdmin && !isSameUser) || (changes.role && !isAdmin)) {
 			throw {
 				status: 403,
 				message: 'Forbidden'

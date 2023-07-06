@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import { MAX_HISTORY_SIZE, hashPassword } from '../../utils.js';
+import CartItem from '../cart-item/model.js';
 import Cart from '../cart/model.js';
-import cartService from '../cart/service.js';
 import Order from '../order/model.js';
 import Product from '../product/model.js';
 import User from './model.js';
@@ -13,7 +13,9 @@ const createOne = async userData => {
 		const existingUser = await User.where('deletedAt')
 			.exists(false)
 			.or([{ phoneNumber }, { email }])
-			.findOne();
+			.select('-_id phoneNumber')
+			.findOne()
+			.lean();
 
 		if (existingUser) {
 			throw {
@@ -42,11 +44,7 @@ const createOne = async userData => {
 		const { id: cart } = await Cart.create({ user: newUser.id });
 		await newUser.updateOne({ $set: { cart } });
 
-		return {
-			...newUser.toObject(),
-			password: undefined,
-			salt: undefined
-		};
+		return newUser.set('password').set('salt');
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -62,7 +60,8 @@ const getOne = async id => {
 			.where('deletedAt')
 			.exists(false)
 			.select('-password -salt')
-			.findOne();
+			.findOne()
+			.lean();
 
 		if (!foundUser) {
 			throw {
@@ -89,7 +88,8 @@ const getAll = async queryParams => {
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order })
-			.select('-password -salt');
+			.select('-password -salt')
+			.lean();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -119,7 +119,9 @@ const updateOne = async (id, changes) => {
 			const existingUser = await User.where('deletedAt')
 				.exists(false)
 				.or([{ phoneNumber }, { email }])
-				.findOne();
+				.select('-_id phoneNumber')
+				.findOne()
+				.lean();
 
 			if (existingUser) {
 				throw {
@@ -157,11 +159,7 @@ const updateOne = async (id, changes) => {
 
 		await userToUpdate.save();
 
-		return {
-			...userToUpdate.toObject(),
-			password: undefined,
-			salt: undefined
-		};
+		return userToUpdate.set('password').set('salt');
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -175,6 +173,7 @@ const deleteOne = async id => {
 		const userToDelete = await User.where('_id')
 			.equals(id)
 			.where('deletedAt')
+			.select('cart')
 			.exists(false)
 			.findOne();
 
@@ -185,8 +184,8 @@ const deleteOne = async id => {
 			};
 		}
 
-		await cartService.clearItems(userToDelete.cart);
-		await Cart.deleteOne({ user: id });
+		await CartItem.deleteMany({ cart: userToDelete.cart });
+		await Cart.deleteOne({ user: userToDelete.id });
 
 		await userToDelete.deleteOne();
 	} catch (err) {
@@ -202,6 +201,7 @@ const addToWishlist = async (user, product) => {
 		const userToUpdate = await User.where('_id')
 			.equals(user)
 			.where('deletedAt')
+			.select('_id')
 			.exists(false)
 			.findOne();
 
@@ -216,7 +216,9 @@ const addToWishlist = async (user, product) => {
 			.equals(product)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('_id')
+			.findOne()
+			.lean();
 
 		if (!existingProduct) {
 			throw {
@@ -239,6 +241,7 @@ const removeFromWishlist = async (user, product) => {
 		const userToUpdate = await User.where('_id')
 			.equals(user)
 			.where('deletedAt')
+			.select('_id')
 			.exists(false)
 			.findOne();
 
@@ -253,7 +256,9 @@ const removeFromWishlist = async (user, product) => {
 			.equals(product)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('_id')
+			.findOne()
+			.lean();
 
 		if (!existingProduct) {
 			throw {
@@ -277,6 +282,7 @@ const addToHistory = async (user, product) => {
 			.equals(user)
 			.where('deletedAt')
 			.exists(false)
+			.select('history')
 			.findOne();
 
 		if (!userToUpdate) {
@@ -290,7 +296,9 @@ const addToHistory = async (user, product) => {
 			.equals(product)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('_id')
+			.findOne()
+			.lean();
 
 		if (!existingProduct) {
 			throw {

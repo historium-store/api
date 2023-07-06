@@ -110,7 +110,16 @@ const authenticate = async authHeader => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('-password -salt')
+			.findOne()
+			.transform(user => {
+				if (user) {
+					user.id = user._id.toHexString();
+				}
+
+				return user;
+			})
+			.lean();
 
 		if (!foundUser) {
 			throw {
