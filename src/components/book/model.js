@@ -34,45 +34,55 @@ const bookSchema = new Schema(
 			required: true
 		},
 
-		authors: [
-			{
-				type: ObjectId,
-				ref: 'Author',
-				required: false
-			}
-		],
+		authors: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Author',
+					required: false
+				}
+			]
+		},
 
-		compilers: [
-			{
-				type: ObjectId,
-				ref: 'Compiler',
-				required: false
-			}
-		],
+		compilers: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Compiler',
+					required: false
+				}
+			]
+		},
 
-		translators: [
-			{
-				type: ObjectId,
-				ref: 'Translator',
-				required: false
-			}
-		],
+		translators: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Translator',
+					required: false
+				}
+			]
+		},
 
-		illustrators: [
-			{
-				type: ObjectId,
-				ref: 'Illustrator',
-				required: false
-			}
-		],
+		illustrators: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Illustrator',
+					required: false
+				}
+			]
+		},
 
-		editors: [
-			{
-				type: ObjectId,
-				ref: 'Editor',
-				required: false
-			}
-		],
+		editors: {
+			type: [
+				{
+					type: ObjectId,
+					ref: 'Editor',
+					required: false
+				}
+			]
+		},
 
 		series: {
 			type: ObjectId,
@@ -85,12 +95,14 @@ const bookSchema = new Schema(
 			required: false
 		},
 
-		isbns: [
-			{
-				type: String,
-				required: false
-			}
-		],
+		isbns: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			]
+		},
 
 		firstPublishedIn: {
 			type: Number,
@@ -132,69 +144,83 @@ const bookSchema = new Schema(
 			required: false
 		},
 
-		illustrationsType: [
-			{
-				type: String,
-				required: false
-			}
-		],
+		illustrationsType: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			]
+		},
 
-		literaturePeriod: [
-			{
-				type: String,
-				required: false
-			}
-		],
+		literaturePeriod: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			]
+		},
 
-		literatureCountry: [
-			{
-				type: String,
-				required: false
-			}
-		],
+		literatureCountry: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			]
+		},
 
 		foreignLiterature: {
 			type: Boolean,
 			required: false
 		},
 
-		timePeriod: [
-			{
-				type: String,
-				required: false
-			}
-		],
+		timePeriod: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			]
+		},
 
 		grade: {
 			type: String,
 			required: false
 		},
 
-		suitableAge: [
-			{
-				type: String,
-				reqired: false
-			}
-		],
+		suitableAge: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			]
+		},
 
 		packaging: {
 			type: String,
 			required: false
 		},
 
-		occasion: [
-			{
-				type: String,
-				required: false
-			}
-		],
+		occasion: {
+			tupe: [
+				{
+					type: String,
+					required: false
+				}
+			]
+		},
 
-		style: [
-			{
-				type: String,
-				reqired: false
-			}
-		],
+		style: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			]
+		},
 
 		excerpts: {
 			type: [
@@ -202,16 +228,17 @@ const bookSchema = new Schema(
 					type: String,
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
-		suitableFor: [
-			{
-				type: String,
-				required: false
-			}
-		],
+		suitableFor: {
+			type: [
+				{
+					type: String,
+					required: false
+				}
+			]
+		},
 
 		createdAt: {
 			type: Number

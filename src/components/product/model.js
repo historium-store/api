@@ -22,14 +22,17 @@ const productSchema = new Schema(
 
 		code: {
 			type: String,
-			required: false,
-			unique: true
+			required: false
+		},
+
+		url: {
+			type: String,
+			required: true
 		},
 
 		key: {
 			type: String,
-			required: true,
-			unique: true
+			required: true
 		},
 
 		price: {
@@ -52,7 +55,7 @@ const productSchema = new Schema(
 
 		model: {
 			type: String,
-			required: true
+			required: false
 		},
 
 		sections: [
@@ -82,6 +85,16 @@ const productSchema = new Schema(
 				required: true
 			}
 		],
+
+		creators: {
+			type: [
+				{
+					type: String,
+					required: true
+				}
+			],
+			required: false
+		},
 
 		requiresDelivery: {
 			type: Boolean,

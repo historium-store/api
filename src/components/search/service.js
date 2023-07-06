@@ -11,7 +11,8 @@ const findProducts = async valueToFind => {
 			.populate({
 				path: 'type',
 				select: '-_id name key'
-			});
+			})
+			.lean();
 
 		await Promise.all(
 			foundProducts.map(

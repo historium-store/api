@@ -15,7 +15,8 @@ const getOne = async id => {
 	try {
 		const foundBanner = await Banner.where('_id')
 			.equals(id)
-			.findOne();
+			.findOne()
+			.lean();
 
 		if (!foundBanner) {
 			throw {
@@ -35,7 +36,7 @@ const getOne = async id => {
 
 const getAll = async () => {
 	try {
-		return await Banner.find();
+		return await Banner.find().lean();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -48,6 +49,7 @@ const updateOne = async (id, changes) => {
 	try {
 		const bannerToUpdate = await Banner.where('id')
 			.equals(id)
+			.select('_id')
 			.findOne();
 
 		if (!bannerToUpdate) {
@@ -74,6 +76,7 @@ const deleteOne = async id => {
 	try {
 		const bannerToDelete = await Banner.where('_id')
 			.equals(id)
+			.select('_id')
 			.findOne();
 
 		if (!bannerToDelete) {
