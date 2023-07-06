@@ -21,20 +21,17 @@ const getByIdFromToken = async id => {
 
 		await Promise.all(
 			foundCart.items.map(async i => {
-				const product = await Product.findById(i.product)
-					.populate([
-						{ path: 'type', select: '-_id name key' },
-						{
-							path: 'specificProduct',
-							model: i.product.model,
-							populate: { path: 'authors', select: '-_id fullName' },
-							select: '-_id authors'
-						}
-					])
-					.select(
-						'name key price quantity images createdAt code requiresDelivery'
-					)
-					.lean();
+				const product = await Product.findById(i.product).populate({
+					path: 'type',
+					select: '-_id name key'
+				});
+
+				await product.populate({
+					path: 'specificProduct',
+					model: product.model,
+					populate: { path: 'authors', select: '-_id fullName' },
+					select: '-_id authors'
+				});
 
 				i.product = {
 					_id: product._id,
