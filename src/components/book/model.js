@@ -41,8 +41,7 @@ const bookSchema = new Schema(
 					ref: 'Author',
 					required: false
 				}
-			],
-			requried: false
+			]
 		},
 
 		compilers: {
@@ -52,8 +51,7 @@ const bookSchema = new Schema(
 					ref: 'Compiler',
 					required: false
 				}
-			],
-			requried: false
+			]
 		},
 
 		translators: {
@@ -63,8 +61,7 @@ const bookSchema = new Schema(
 					ref: 'Translator',
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		illustrators: {
@@ -74,8 +71,7 @@ const bookSchema = new Schema(
 					ref: 'Illustrator',
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		editors: {
@@ -85,8 +81,7 @@ const bookSchema = new Schema(
 					ref: 'Editor',
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		series: {
@@ -106,8 +101,7 @@ const bookSchema = new Schema(
 					type: String,
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		firstPublishedIn: {
@@ -156,8 +150,7 @@ const bookSchema = new Schema(
 					type: String,
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		literaturePeriod: {
@@ -166,8 +159,7 @@ const bookSchema = new Schema(
 					type: String,
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		literatureCountry: {
@@ -176,8 +168,7 @@ const bookSchema = new Schema(
 					type: String,
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		foreignLiterature: {
@@ -191,8 +182,7 @@ const bookSchema = new Schema(
 					type: String,
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		grade: {
@@ -204,10 +194,9 @@ const bookSchema = new Schema(
 			type: [
 				{
 					type: String,
-					reqired: false
+					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		packaging: {
@@ -221,18 +210,16 @@ const bookSchema = new Schema(
 					type: String,
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		style: {
 			type: [
 				{
 					type: String,
-					reqired: false
+					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		excerpts: {
@@ -241,8 +228,7 @@ const bookSchema = new Schema(
 					type: String,
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		suitableFor: {
@@ -251,8 +237,7 @@ const bookSchema = new Schema(
 					type: String,
 					required: false
 				}
-			],
-			required: false
+			]
 		},
 
 		createdAt: {

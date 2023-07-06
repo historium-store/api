@@ -31,8 +31,7 @@ const authorSchema = new Schema(
 				{
 					type: String
 				}
-			],
-			required: false
+			]
 		},
 
 		createdAt: {
