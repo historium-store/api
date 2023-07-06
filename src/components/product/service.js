@@ -6,9 +6,6 @@ import Section from '../section/model.js';
 import User from '../user/model.js';
 import Product from './model.js';
 
-const typeNameToModel = new Map();
-typeNameToModel.set('Книга', 'Book');
-
 const createOne = async productData => {
 	let { name, key, type, sections, seller } = productData;
 
@@ -17,7 +14,9 @@ const createOne = async productData => {
 			.equals(type)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('_id')
+			.findOne()
+			.lean();
 
 		if (!existingProductType) {
 			throw {
@@ -26,17 +25,15 @@ const createOne = async productData => {
 			};
 		}
 
-		const typeName = existingProductType.name;
-
-		productData.model = typeNameToModel.get(typeName);
-
 		await Promise.all(
 			sections.map(async id => {
 				const existingSection = await Section.where('_id')
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
-					.findOne();
+					.select('_id')
+					.findOne()
+					.lean();
 
 				if (!existingSection) {
 					throw {
@@ -65,12 +62,12 @@ const createOne = async productData => {
 
 		await Section.updateMany(
 			{ _id: sections },
-			{ $push: { products: newProduct } }
+			{ $push: { products: newProduct.id } }
 		);
 
 		await User.updateOne(
 			{ _id: seller },
-			{ $push: { products: newProduct } }
+			{ $push: { products: newProduct.id } }
 		);
 
 		return newProduct;
@@ -92,8 +89,31 @@ const getOne = async (id, preview) => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.populate({ path: 'type', select: 'name key' })
+			.transform(product => {
+				if (preview) {
+					return {
+						_id: product._id,
+						name: product.name,
+						key: product.key,
+						price: product.price,
+						quantity: product.quantity,
+						type: {
+							name: product.type.name,
+							key: product.type.key
+						},
+						createdAt: product.createdAt,
+						code: product.code,
+						image: product.image ?? product.images[0],
+						creators: product.creators,
+						requiresDelivery: product.requiresDelivery
+					};
+				}
+
+				return product;
+			})
 			.findOne()
-			.populate({ path: 'type', select: 'name key' });
+			.lean();
 
 		if (!foundProduct) {
 			throw {
@@ -103,51 +123,6 @@ const getOne = async (id, preview) => {
 				} '${id}' not found`
 			};
 		}
-
-		if (preview) {
-			await foundProduct.populate({
-				path: 'specificProduct',
-				model: foundProduct.model,
-				populate: {
-					path: 'authors',
-					select: 'fullName'
-				},
-				select: 'authors'
-			});
-
-			return {
-				_id: foundProduct.id,
-				name: foundProduct.name,
-				key: foundProduct.key,
-				price: foundProduct.price,
-				quantity: foundProduct.quantity,
-				type: foundProduct.type,
-				createdAt: foundProduct.createdAt,
-				code: foundProduct.code,
-				image: foundProduct.images[0],
-				authors: foundProduct.specificProduct.authors?.map(
-					a => a.fullName
-				)
-			};
-		}
-
-		await foundProduct.populate({
-			path: 'specificProduct',
-			model: foundProduct.model,
-			populate: [
-				{ path: 'publisher', select: 'name' },
-				{
-					path: 'authors',
-					select: 'fullName pictures biography'
-				},
-				{ path: 'compilers', select: 'fullName' },
-				{ path: 'translators', select: 'fullName' },
-				{ path: 'illustrators', select: 'fullName' },
-				{ path: 'editors', select: 'fullName' },
-				{ path: 'series', select: 'name' }
-			],
-			select: '-product'
-		});
 
 		return foundProduct;
 	} catch (err) {
@@ -167,36 +142,30 @@ const getAll = async queryParams => {
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order })
-			.populate({ path: 'type', select: 'name key' });
-
-		await Promise.all(
-			foundProducts.map(
-				async p =>
-					await p.populate({
-						path: 'specificProduct',
-						model: p.model,
-						populate: {
-							path: 'authors',
-							select: 'fullName'
-						},
-						select: 'authors'
-					})
+			.populate({ path: 'type', select: 'name key' })
+			.select('-description -updatedAt -url')
+			.transform(result =>
+				result.map(product => ({
+					_id: product._id,
+					name: product.name,
+					key: product.key,
+					price: product.price,
+					quantity: product.quantity,
+					type: {
+						name: product.type.name,
+						key: product.type.key
+					},
+					createdAt: product.createdAt,
+					code: product.code,
+					image: product.images[0],
+					creators: product.creators,
+					requiresDelivery: product.requiresDelivery
+				}))
 			)
-		);
+			.lean();
 
 		return {
-			result: foundProducts.map(p => ({
-				_id: p.id,
-				name: p.name,
-				key: p.key,
-				price: p.price,
-				quantity: p.quantity,
-				type: p.type,
-				createdAt: p.createdAt,
-				code: p.code,
-				image: p.images[0],
-				authors: p.specificProduct.authors?.map(a => a.fullName)
-			})),
+			result: foundProducts,
 			total: await Product.countDocuments()
 		};
 	} catch (err) {
