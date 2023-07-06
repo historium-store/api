@@ -3,9 +3,7 @@ import Country from './model.js';
 
 const getAll = async () => {
 	try {
-		return await Country.find()
-			.lean()
-			.map(c => c.name);
+		return await Country.find().select('-_id name cities').lean();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
