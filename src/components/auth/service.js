@@ -33,7 +33,16 @@ const login = async loginData => {
 		const foundUser = await User.where('deletedAt')
 			.exists(false)
 			.or([{ phoneNumber }, { email }])
-			.findOne();
+			.select('password salt temporaryPassword')
+			.findOne()
+			.transform(user => {
+				if (user) {
+					user.id = user._id.toHexString();
+				}
+
+				return user;
+			})
+			.lean();
 
 		if (!foundUser) {
 			throw {
@@ -110,7 +119,16 @@ const authenticate = async authHeader => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('-password -salt')
+			.findOne()
+			.transform(user => {
+				if (user) {
+					user.id = user._id.toHexString();
+				}
+
+				return user;
+			})
+			.lean();
 
 		if (!foundUser) {
 			throw {
@@ -150,12 +168,13 @@ const restorePassword = async loginData => {
 			phoneNumber = normalizePhoneNumber(phoneNumber);
 		}
 
-		const foundUser = await User.where('deletedAt')
+		const userToUpdate = await User.where('deletedAt')
 			.exists(false)
 			.or([{ phoneNumber }, { email }])
+			.select('email')
 			.findOne();
 
-		if (!foundUser) {
+		if (!userToUpdate) {
 			throw {
 				status: 404,
 				message:
@@ -172,7 +191,7 @@ const restorePassword = async loginData => {
 		if (email) {
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
-				to: foundUser.email,
+				to: userToUpdate.email,
 				subject: 'Відновлення паролю',
 				html: `Тимчасовий пароль: <b>${temporaryPassword}</b>`
 			};
@@ -186,7 +205,7 @@ const restorePassword = async loginData => {
 			await vonage.sms.send({ to, from, text });
 		}
 
-		await foundUser.updateOne({ $set: { temporaryPassword } });
+		await userToUpdate.updateOne({ $set: { temporaryPassword } });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
