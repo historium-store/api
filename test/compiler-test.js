@@ -1,15 +1,13 @@
+import { ObjectId } from 'bson';
 import { expect } from 'chai';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' compiler system ', () => {
-	let userToken = 'Bearer ';
-	let compilerId;
-
 	before(async () => {
 		await mongoose
-			.connect(process.env.TEST_CONNECTIONG_STRING)
+			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
@@ -33,6 +31,9 @@ describe(' compiler system ', () => {
 	afterEach(() => {
 		userToken = 'Bearer ';
 	});
+
+	let userToken = 'Bearer ';
+	let compilerId;
 
 	describe(' "/compiler/" POST request ', () => {
 		it(' the compiler data is correct; the new compiler object is returned ', async () => {
@@ -126,6 +127,31 @@ describe(' compiler system ', () => {
 						'application/json'
 					);
 					expect(response.body).to.include.keys(...expectedFields);
+				});
+		});
+	});
+
+	describe(' "/compiler/:id" DELETE request ', () => {
+		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+			await request(app)
+				.delete(`/compiler/${compilerId}`)
+				.set('Authorization', userToken)
+				.then(async response => {
+					// get arr of compilers from request
+					const compilers = (
+						await request(app)
+							.get('/compiler/')
+							.set('Authorization', userToken)
+					).body;
+
+					// get compiler object from db
+					const compilerObject = await mongoose.connection
+						.collection('compilers')
+						.findOne(new ObjectId(compilerId));
+
+					expect(response.status).to.be.equal(204);
+					expect(compilers).to.be.empty;
+					expect(compilerObject.deletedAt).to.not.be.null;
 				});
 		});
 	});

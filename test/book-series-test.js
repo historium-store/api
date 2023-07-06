@@ -1,15 +1,16 @@
+import { ObjectId } from 'bson';
 import { expect } from 'chai';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
-describe(' author system ', () => {
+describe(' book-series system ', () => {
 	let userToken = 'Bearer ';
 	let bookSeriesId;
 
 	before(async () => {
 		await mongoose
-			.connect(process.env.TEST_CONNECTIONG_STRING)
+			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
@@ -141,6 +142,31 @@ describe(' author system ', () => {
 					expect(response.body.name).to.equal(
 						'Українська класика *updated'
 					);
+				});
+		});
+	});
+
+	describe(' "/book-series/:id" DELETE request ', () => {
+		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+			await request(app)
+				.delete(`/book-series/${bookSeriesId}`)
+				.set('Authorization', userToken)
+				.then(async response => {
+					// get arr of book series from request
+					const bookSeries = (
+						await request(app)
+							.get('/book-series/')
+							.set('Authorization', userToken)
+					).body;
+
+					// get book series object from db
+					const bookSeriesObject = await mongoose.connection
+						.collection('bookseries')
+						.findOne(new ObjectId(bookSeriesId));
+
+					expect(response.status).to.be.equal(204);
+					expect(bookSeries).to.be.empty;
+					expect(bookSeriesObject.deletedAt).to.not.be.null;
 				});
 		});
 	});

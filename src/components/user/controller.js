@@ -149,6 +149,16 @@ const addToHistory = async (req, res, next) => {
 	}
 };
 
+const getOrders = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		res.json(await service.getOrders(user));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	getOne,
 	getAll,
@@ -157,5 +167,6 @@ export default {
 	getAccount,
 	addToWishlist,
 	removeFromWishlist,
-	addToHistory
+	addToHistory,
+	getOrders
 };

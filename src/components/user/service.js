@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto';
 import { MAX_HISTORY_SIZE, hashPassword } from '../../utils.js';
 import Cart from '../cart/model.js';
 import cartService from '../cart/service.js';
+import Order from '../order/model.js';
 import Product from '../product/model.js';
 import User from './model.js';
 
@@ -323,6 +324,10 @@ const addToHistory = async (user, product) => {
 	}
 };
 
+const getOrders = async user => {
+	return await Order.where('user').equals(user);
+};
+
 export default {
 	createOne,
 	getOne,
@@ -331,5 +336,6 @@ export default {
 	deleteOne,
 	addToWishlist,
 	removeFromWishlist,
-	addToHistory
+	addToHistory,
+	getOrders
 };

@@ -1,15 +1,13 @@
+import { ObjectId } from 'bson';
 import { expect } from 'chai';
 import mongoose, { mongo } from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' publisher system ', () => {
-	let userToken = 'Bearer ';
-	let publisherId;
-
 	before(async () => {
 		await mongoose
-			.connect(process.env.TEST_CONNECTIONG_STRING)
+			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
@@ -33,6 +31,9 @@ describe(' publisher system ', () => {
 	afterEach(() => {
 		userToken = 'Bearer ';
 	});
+
+	let userToken = 'Bearer ';
+	let publisherId;
 
 	describe(' "/publisher/" post request ', () => {
 		it(' the publisher data is correct; the new publisher object is returned ', async () => {
@@ -138,6 +139,31 @@ describe(' publisher system ', () => {
 						'application/json'
 					);
 					expect(response.body).to.include.keys(...expectedFields);
+				});
+		});
+	});
+
+	describe(' "/publisher/:id" DELETE request ', () => {
+		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+			await request(app)
+				.delete(`/publisher/${publisherId}`)
+				.set('Authorization', userToken)
+				.then(async response => {
+					// get arr of publisherы from request
+					const publishers = (
+						await request(app)
+							.get('/publisher/')
+							.set('Authorization', userToken)
+					).body;
+
+					// get publisher object from db
+					const publisherObject = await mongoose.connection
+						.collection('publishers')
+						.findOne(new ObjectId(publisherId));
+
+					expect(response.status).to.be.equal(204);
+					expect(publishers).to.be.empty;
+					expect(publisherObject.deletedAt).to.not.be.null;
 				});
 		});
 	});

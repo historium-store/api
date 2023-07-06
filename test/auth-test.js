@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { body } from 'express-validator';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
@@ -6,7 +7,7 @@ import app from '../src/app.js';
 describe('auth system', () => {
 	before(async () => {
 		await mongoose
-			.connect(process.env.TEST_CONNECTIONG_STRING)
+			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
@@ -21,10 +22,9 @@ describe('auth system', () => {
 			const newUser = {
 				firstName: 'Artem',
 				lastName: 'Zhelikovskij',
-				phoneNumber: '380997846872',
+				phoneNumber: '+380997846872',
 				email: 'dobriy.edu@gmail.com',
-				password: '41424344',
-				role: 'admin'
+				password: '41424344'
 			};
 
 			const expectedFields = [
@@ -44,7 +44,7 @@ describe('auth system', () => {
 			await request(app)
 				.post('/signup')
 				.send(newUser)
-				.then(response => {
+				.then(async response => {
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
 						'application/json'
