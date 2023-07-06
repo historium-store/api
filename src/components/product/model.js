@@ -52,7 +52,7 @@ const productSchema = new Schema(
 
 		model: {
 			type: String,
-			required: true
+			required: false
 		},
 
 		sections: [
