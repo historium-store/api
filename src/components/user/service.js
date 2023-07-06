@@ -332,8 +332,19 @@ const addToHistory = async (user, product) => {
 	}
 };
 
-const getOrders = async user => {
-	return await Order.where('user').equals(user);
+const getOrders = async (queryParams, user) => {
+	const { orderBy, order } = queryParams;
+
+	try {
+		return await Order.where('user')
+			.equals(user)
+			.sort({ [orderBy]: order });
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
 };
 
 export default {

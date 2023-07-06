@@ -152,6 +152,10 @@ const getOrders = async (req, res, next) => {
 	const { id: user } = req.user;
 
 	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
 		res.json(await service.getOrders(user));
 	} catch (err) {
 		next(createError(err));
