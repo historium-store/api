@@ -201,7 +201,7 @@ const getAll = async queryParams => {
 		return await Order.find()
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order })
+			.sort({ [orderBy ?? 'createdAt']: order ?? 'asc' })
 			.lean();
 	} catch (err) {
 		throw {

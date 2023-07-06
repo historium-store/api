@@ -338,7 +338,7 @@ const getOrders = async (queryParams, user) => {
 	try {
 		return await Order.where('user')
 			.equals(user)
-			.sort({ [orderBy]: order });
+			.sort({ [orderBy ?? 'createdAt']: order ?? 'asc' });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
