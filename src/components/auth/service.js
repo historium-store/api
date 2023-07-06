@@ -33,7 +33,16 @@ const login = async loginData => {
 		const foundUser = await User.where('deletedAt')
 			.exists(false)
 			.or([{ phoneNumber }, { email }])
-			.findOne();
+			.select('password salt temporaryPassword')
+			.findOne()
+			.transform(user => {
+				if (user) {
+					user.id = user._id.toHexString();
+				}
+
+				return user;
+			})
+			.lean();
 
 		if (!foundUser) {
 			throw {
@@ -162,7 +171,9 @@ const restorePassword = async loginData => {
 		const foundUser = await User.where('deletedAt')
 			.exists(false)
 			.or([{ phoneNumber }, { email }])
-			.findOne();
+			.select('email')
+			.findOne()
+			.lean();
 
 		if (!foundUser) {
 			throw {
