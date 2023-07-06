@@ -43,6 +43,11 @@ const deliveryTypeSchema = new Schema(
 			required: true
 		},
 
+		key: {
+			type: String,
+			required: true
+		},
+
 		fullAddressRequired: {
 			type: Boolean,
 			required: true
