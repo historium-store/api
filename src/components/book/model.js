@@ -38,221 +38,206 @@ const bookSchema = new Schema(
 			type: [
 				{
 					type: ObjectId,
-					ref: 'Author'
-					// required: false
+					ref: 'Author',
+					required: false
 				}
-			],
-			requried: false
+			]
 		},
 
 		compilers: {
 			type: [
 				{
 					type: ObjectId,
-					ref: 'Compiler'
-					// required: false
+					ref: 'Compiler',
+					required: false
 				}
-			],
-			requried: false
+			]
 		},
 
 		translators: {
 			type: [
 				{
 					type: ObjectId,
-					ref: 'Translator'
-					// required: false
+					ref: 'Translator',
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		illustrators: {
 			type: [
 				{
 					type: ObjectId,
-					ref: 'Illustrator'
-					// required: false
+					ref: 'Illustrator',
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		editors: {
 			type: [
 				{
 					type: ObjectId,
-					ref: 'Editor'
-					// required: false
+					ref: 'Editor',
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		series: {
 			type: ObjectId,
-			ref: 'BookSeries'
-			// required: false
+			ref: 'BookSeries',
+			required: false
 		},
 
 		copies: {
-			type: Number
-			// required: false
+			type: Number,
+			required: false
 		},
 
 		isbns: {
 			type: [
 				{
-					type: String
-					// required: false
+					type: String,
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		firstPublishedIn: {
-			type: Number
-			// required: false
+			type: Number,
+			required: false
 		},
 
 		originalName: {
-			type: String
-			// required: false
+			type: String,
+			required: false
 		},
 
 		font: {
-			type: String
-			// required: false
+			type: String,
+			required: false
 		},
 
 		format: {
-			type: String
-			// required: false
+			type: String,
+			required: false
 		},
 
 		pages: {
-			type: Number
-			// required: false
+			type: Number,
+			required: false
 		},
 
 		weight: {
-			type: Number
-			// required: false
+			type: Number,
+			required: false
 		},
 
 		paperType: {
-			type: String
-			// required: false
+			type: String,
+			required: false
 		},
 
 		bindingType: {
-			type: String
-			// required: false
+			type: String,
+			required: false
 		},
 
 		illustrationsType: {
 			type: [
 				{
-					type: String
-					// required: false
+					type: String,
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		literaturePeriod: {
 			type: [
 				{
-					type: String
-					// required: false
+					type: String,
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		literatureCountry: {
 			type: [
 				{
-					type: String
-					// required: false
+					type: String,
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		foreignLiterature: {
-			type: Boolean
-			// required: false
+			type: Boolean,
+			required: false
 		},
 
 		timePeriod: {
 			type: [
 				{
-					type: String
-					// required: false
+					type: String,
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		grade: {
-			type: String
-			// required: false
+			type: String,
+			required: false
 		},
 
 		suitableAge: {
 			type: [
 				{
 					type: String,
-					reqired: false
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		packaging: {
-			type: String
-			// required: false
+			type: String,
+			required: false
 		},
 
 		occasion: {
 			tupe: [
 				{
-					type: String
-					// required: false
+					type: String,
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		style: {
 			type: [
 				{
 					type: String,
-					reqired: false
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		excerpts: {
 			type: [
 				{
-					type: String
-					// required: false
+					type: String,
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		suitableFor: {
 			type: [
 				{
-					type: String
-					// required: false
+					type: String,
+					required: false
 				}
 			]
-			// required: false
 		},
 
 		createdAt: {
@@ -264,8 +249,8 @@ const bookSchema = new Schema(
 		},
 
 		deletedAt: {
-			type: Number
-			// required: false
+			type: Number,
+			required: false
 		}
 	},
 	{
