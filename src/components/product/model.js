@@ -83,6 +83,16 @@ const productSchema = new Schema(
 			}
 		],
 
+		creators: {
+			type: [
+				{
+					type: String,
+					required: true
+				}
+			],
+			required: false
+		},
+
 		requiresDelivery: {
 			type: Boolean,
 			default: true
