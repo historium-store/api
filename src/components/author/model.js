@@ -26,12 +26,14 @@ const authorSchema = new Schema(
 			default: []
 		},
 
-		pictures: [
-			{
-				type: String,
-				required: false
-			}
-		],
+		pictures: {
+			type: [
+				{
+					type: String
+				}
+			],
+			required: false
+		},
 
 		createdAt: {
 			type: Number
