@@ -22,8 +22,7 @@ const productSchema = new Schema(
 
 		code: {
 			type: String,
-			required: false,
-			unique: true
+			required: false
 		},
 
 		url: {
@@ -33,8 +32,7 @@ const productSchema = new Schema(
 
 		key: {
 			type: String,
-			required: true,
-			unique: true
+			required: true
 		},
 
 		price: {
