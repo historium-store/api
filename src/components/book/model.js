@@ -205,7 +205,7 @@ const bookSchema = new Schema(
 		},
 
 		occasion: {
-			tupe: [
+			type: [
 				{
 					type: String,
 					required: false

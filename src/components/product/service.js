@@ -157,7 +157,9 @@ const getAll = async queryParams => {
 
 		return {
 			result: foundProducts,
-			total: await Product.countDocuments()
+			total: await Product.where('deletedAt')
+				.exists(false)
+				.countDocuments()
 		};
 	} catch (err) {
 		throw {
