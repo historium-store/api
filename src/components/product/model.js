@@ -25,11 +25,6 @@ const productSchema = new Schema(
 			required: false
 		},
 
-		url: {
-			type: String,
-			required: true
-		},
-
 		key: {
 			type: String,
 			required: true
@@ -99,6 +94,11 @@ const productSchema = new Schema(
 		requiresDelivery: {
 			type: Boolean,
 			default: true
+		},
+
+		deliveryPrice: {
+			type: Number,
+			required: true
 		},
 
 		createdAt: {

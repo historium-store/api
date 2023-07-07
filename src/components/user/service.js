@@ -307,18 +307,18 @@ const addToHistory = async (user, product) => {
 			};
 		}
 
-		const productInHistory = userToUpdate.history.some(
+		const existingProductIndex = userToUpdate.history.findIndex(
 			p => p.toHexString() === product
 		);
 
-		if (productInHistory) {
-			return;
-		}
+		if (existingProductIndex > -1) {
+			userToUpdate.history.splice(existingProductIndex, 1);
+		} else {
+			const historySize = userToUpdate.history.length;
 
-		const historySize = userToUpdate.history.length;
-
-		if (historySize === MAX_HISTORY_SIZE) {
-			userToUpdate.history.pop();
+			if (historySize === MAX_HISTORY_SIZE) {
+				userToUpdate.history.pop();
+			}
 		}
 
 		userToUpdate.history.unshift(product);
