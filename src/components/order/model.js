@@ -128,6 +128,10 @@ const orderSchema = new Schema(
 		items: [
 			{
 				product: {
+					_id: {
+						type: String,
+						required: true
+					},
 					name: {
 						type: String,
 						required: true
