@@ -6,6 +6,10 @@ const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Product name is required'),
+	body('creators')
+		.optional()
+		.isArray()
+		.withMessage('Product creators must be an array of strings'),
 	body('key')
 		.optional()
 		.trim()
@@ -52,6 +56,10 @@ const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Product name can't be empty"),
+	body('creators')
+		.optional()
+		.isArray()
+		.withMessage('Product creators must be an array'),
 	body('key')
 		.optional()
 		.trim()

@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import importData from './db-init.js';
 import app from './src/app.js';
+import Product from './src/components/product/model.js';
+import User from './src/components/user/model.js';
 // import Product from './src/components/product/model.js';
 
 importData().then(() => {
@@ -20,14 +22,12 @@ importData().then(() => {
 		// 		product.creators = product.specificProduct.authors.map(
 		// 			a => a.fullName
 		// 		);
-		// 		product.url = `/book/${product.specificProduct._id}`;
 
 		// 		product.set('specificProduct');
 		// 		product.set('model');
 
 		// 		await product.save();
 		// 	}
-
 		// })
 		.then(() =>
 			app.listen(PORT, () =>
