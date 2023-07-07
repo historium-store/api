@@ -96,6 +96,11 @@ const productSchema = new Schema(
 			default: true
 		},
 
+		deliveryPrice: {
+			type: Number,
+			required: true
+		},
+
 		createdAt: {
 			type: Number
 		},
