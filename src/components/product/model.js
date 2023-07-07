@@ -25,11 +25,6 @@ const productSchema = new Schema(
 			required: false
 		},
 
-		url: {
-			type: String,
-			required: true
-		},
-
 		key: {
 			type: String,
 			required: true
