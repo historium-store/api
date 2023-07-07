@@ -87,18 +87,12 @@ const productSchema = new Schema(
 					type: String,
 					required: true
 				}
-			],
-			required: false
+			]
 		},
 
 		requiresDelivery: {
 			type: Boolean,
 			default: true
-		},
-
-		deliveryPrice: {
-			type: Number,
-			required: true
 		},
 
 		createdAt: {
