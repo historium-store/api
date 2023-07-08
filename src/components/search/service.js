@@ -12,32 +12,20 @@ const findProducts = async valueToFind => {
 				path: 'type',
 				select: '-_id name key'
 			})
+			.select(
+				'name creators key price quantity createdAt code images requiresDelivery'
+			)
+			.transform(result =>
+				result.map(product => ({
+					...product,
+					image: product.images[0],
+					images: undefined
+				}))
+			)
 			.lean();
 
-		await Promise.all(
-			foundProducts.map(
-				async p =>
-					await p.populate({
-						path: 'specificProduct',
-						model: p.model,
-						populate: 'authors'
-					})
-			)
-		);
-
 		return {
-			result: foundProducts.map(p => ({
-				_id: p.id,
-				name: p.name,
-				key: p.key,
-				price: p.price,
-				quantity: p.quantity,
-				type: p.type,
-				createdAt: p.createdAt,
-				code: p.code,
-				image: p.images[0],
-				authors: p.specificProduct.authors?.map(a => a.fullName)
-			})),
+			result: foundProducts,
 			total: foundProducts.length
 		};
 	} catch (err) {

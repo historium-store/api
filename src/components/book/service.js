@@ -347,20 +347,9 @@ const getAll = async queryParams => {
 					select:
 						'name creators key price quantity createdAt code images requiresDelivery',
 					transform: product => ({
-						_id: product._id,
-						name: product.name,
-						creators: product.creators,
-						key: product.key,
-						price: product.price,
-						quantity: product.quantity,
-						type: {
-							name: product.type.name,
-							key: product.type.key
-						},
-						createdAt: product.createdAt,
-						code: product.code,
-						image: product.images[0],
-						requiresDelivery: product.requiresDelivery
+						...product,
+						image: product.image ?? product.images[0],
+						images: undefined
 					})
 				},
 				{
