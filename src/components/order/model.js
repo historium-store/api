@@ -201,6 +201,11 @@ const orderSchema = new Schema(
 			required: true
 		},
 
+		deliveryPrice: {
+			type: Number,
+			required: true
+		},
+
 		number: {
 			type: String,
 			required: false

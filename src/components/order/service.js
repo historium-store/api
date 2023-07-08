@@ -135,7 +135,8 @@ const createOne = async orderData => {
 			.equals(orderData.deliveryInfo.type)
 			.findOne();
 
-		let deliveryPrice = deliveryType.price;
+		let deliveryPrice = (orderData.deliveryPrice =
+			deliveryType.price);
 		const deliveryCanBeFree = deliveryType.freeDeliveryFrom;
 		const suitableItemsPrice =
 			itemsTotalPrice >= deliveryType.freeDeliveryFrom;
