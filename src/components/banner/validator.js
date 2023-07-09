@@ -20,17 +20,17 @@ const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Banner property 'leadsTo' is required"),
+		.withMessage("Banner property 'leadsTo' can't be empty"),
 	body('imageRect')
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Banner property 'imageRect' is required"),
+		.withMessage("Banner property 'imageRect' can't be empty"),
 	body('imageSquare')
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage("Banner property 'imageSquare' is required")
+		.withMessage("Banner property 'imageSquare' can't be empty")
 ];
 
 export default {

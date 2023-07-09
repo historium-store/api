@@ -1,13 +1,13 @@
 import validator from 'validator';
 import { transliterateToKey } from '../../utils.js';
 import Book from '../book/model.js';
+import bookService from '../book/service.js';
 import ProductType from '../product-type/model.js';
 import Section from '../section/model.js';
-import User from '../user/model.js';
 import Product from './model.js';
 
 const createOne = async productData => {
-	let { name, key, type, sections, seller } = productData;
+	let { name, key, type, sections } = productData;
 
 	try {
 		const existingProductType = await ProductType.where('_id')
@@ -62,11 +62,6 @@ const createOne = async productData => {
 
 		await Section.updateMany(
 			{ _id: sections },
-			{ $push: { products: newProduct.id } }
-		);
-
-		await User.updateOne(
-			{ _id: seller },
 			{ $push: { products: newProduct.id } }
 		);
 
@@ -169,7 +164,7 @@ const getAll = async queryParams => {
 	}
 };
 
-const updateOne = async (id, changes, seller) => {
+const updateOne = async (id, changes) => {
 	const { key, type, sections } = changes;
 
 	try {
@@ -189,25 +184,6 @@ const updateOne = async (id, changes, seller) => {
 				message: `Product with ${
 					isMongoId ? 'id' : 'key'
 				} '${id}' not found`
-			};
-		}
-
-		const foundSeller = await User.where('_id')
-			.equals(seller)
-			.where('deletedAt')
-			.exists(false)
-			.select('-_id role products')
-			.findOne()
-			.lean();
-		const isAdmin = foundSeller.role === 'admin';
-		const productOwner = foundSeller.products
-			.map(p => p.toHexString())
-			.includes(productToUpdate.id.toString('hex'));
-
-		if (!isAdmin && !productOwner) {
-			throw {
-				status: 403,
-				message: "Can't update product from other seller"
 			};
 		}
 
@@ -294,7 +270,7 @@ const updateOne = async (id, changes, seller) => {
 	}
 };
 
-const deleteOne = async (id, seller) => {
+const deleteOne = async id => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
@@ -315,33 +291,7 @@ const deleteOne = async (id, seller) => {
 			};
 		}
 
-		const foundSeller = await User.where('_id')
-			.equals(seller)
-			.where('deletedAt')
-			.exists(false)
-			.select('-_id role products')
-			.findOne()
-			.lean();
-		const isAdmin = foundSeller.role === 'admin';
-		const productOwner = foundSeller.products
-			.map(p => p.toHexString())
-			.includes(productToDelete.id.toString('hex'));
-
-		if (!isAdmin && !productOwner) {
-			throw {
-				status: 403,
-				message: "Can't update product from other seller"
-			};
-		}
-
-		await Section.updateMany(
-			{ _id: productToDelete.sections },
-			{ $pull: { products: productToDelete.id } }
-		);
-
-		await Book.deleteOne({ product: productToDelete.id });
-
-		await productToDelete.deleteOne();
+		await bookService.deleteOne(productToDelete.id.toString('hex'));
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

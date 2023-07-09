@@ -27,6 +27,7 @@ const createOne = async orderData => {
 			const userExists = await User.where('deletedAt')
 				.exists(false)
 				.or([{ phoneNumber }, { email }])
+				.select('_id')
 				.findOne()
 				.lean();
 

@@ -29,38 +29,40 @@ const createOne = async bookData => {
 	editors = editors ?? [];
 
 	try {
-		const existingProduct = await Product.where('_id')
-			.equals(product)
-			.where('deletedAt')
-			.exists(false)
-			.select('_id')
-			.findOne()
-			.lean();
+		await Promise.all([
+			async () => {
+				const existingProduct = await Product.where('_id')
+					.equals(product)
+					.where('deletedAt')
+					.exists(false)
+					.select('_id')
+					.findOne()
+					.lean();
 
-		if (!existingProduct) {
-			throw {
-				status: 404,
-				message: `Product with id '${product}' not found`
-			};
-		}
+				if (!existingProduct) {
+					throw {
+						status: 404,
+						message: `Product with id '${product}' not found`
+					};
+				}
+			},
+			async () => {
+				const existingPublisher = await Publisher.where('_id')
+					.equals(publisher)
+					.where('deletedAt')
+					.exists(false)
+					.select('_id')
+					.findOne()
+					.lean();
 
-		const existingPublisher = await Publisher.where('_id')
-			.equals(publisher)
-			.where('deletedAt')
-			.exists(false)
-			.select('_id')
-			.findOne()
-			.lean();
-
-		if (!existingPublisher) {
-			throw {
-				status: 404,
-				message: `Publisher with id '${publisher}' not found`
-			};
-		}
-
-		await Promise.all(
-			authors.map(async id => {
+				if (!existingPublisher) {
+					throw {
+						status: 404,
+						message: `Publisher with id '${publisher}' not found`
+					};
+				}
+			},
+			...authors.map(async id => {
 				const existingAuthor = await Author.where('_id')
 					.equals(id)
 					.where('deletedAt')
@@ -75,11 +77,8 @@ const createOne = async bookData => {
 						message: `Author with id '${id}' not found`
 					};
 				}
-			})
-		);
-
-		await Promise.all(
-			compilers.map(async id => {
+			}),
+			...compilers.map(async id => {
 				const existingCompiler = await Compiler.where('_id')
 					.equals(id)
 					.where('deletedAt')
@@ -94,11 +93,8 @@ const createOne = async bookData => {
 						message: `Compiler with id '${id}' not found`
 					};
 				}
-			})
-		);
-
-		await Promise.all(
-			translators.map(async id => {
+			}),
+			...translators.map(async id => {
 				const existingTranslator = await Translator.where('_id')
 					.equals(id)
 					.where('deletedAt')
@@ -113,11 +109,8 @@ const createOne = async bookData => {
 						message: `Translator with id '${id}' not found`
 					};
 				}
-			})
-		);
-
-		await Promise.all(
-			illustrators.map(async id => {
+			}),
+			...illustrators.map(async id => {
 				const existingIllustrator = await Illustrator.where('_id')
 					.equals(id)
 					.where('deletedAt')
@@ -132,11 +125,8 @@ const createOne = async bookData => {
 						message: `Illustrator with id '${id}' not found`
 					};
 				}
-			})
-		);
-
-		await Promise.all(
-			editors.map(async id => {
+			}),
+			...editors.map(async id => {
 				const existingEditor = await Editor.where('_id')
 					.equals(id)
 					.where('deletedAt')
@@ -151,25 +141,26 @@ const createOne = async bookData => {
 						message: `Editor with id '${id}' not found`
 					};
 				}
-			})
-		);
+			}),
+			async () => {
+				if (series) {
+					const existingBookSeries = await BookSeries.where('_id')
+						.equals(series)
+						.where('deletedAt')
+						.exists(false)
+						.select('_id')
+						.findOne()
+						.lean();
 
-		if (series) {
-			const existingBookSeries = await BookSeries.where('_id')
-				.equals(series)
-				.where('deletedAt')
-				.exists(false)
-				.select('_id')
-				.findOne()
-				.lean();
-
-			if (!existingBookSeries) {
-				throw {
-					status: 404,
-					message: `Book series with id '${series}' not found`
-				};
+					if (!existingBookSeries) {
+						throw {
+							status: 404,
+							message: `Book series with id '${series}' not found`
+						};
+					}
+				}
 			}
-		}
+		]);
 
 		const newBook = await Book.create(bookData);
 
@@ -211,7 +202,7 @@ const createOne = async bookData => {
 		if (series) {
 			await BookSeries.updateOne(
 				{ _id: series },
-				{ $push: { books: newBook } }
+				{ $push: { books: newBook.id } }
 			);
 		}
 
@@ -375,7 +366,7 @@ const getAll = async queryParams => {
 	}
 };
 
-const updateOne = async (id, changes, seller) => {
+const updateOne = async (id, changes) => {
 	const {
 		publisher,
 		authors,
@@ -414,25 +405,6 @@ const updateOne = async (id, changes, seller) => {
 				message: `Book with ${
 					isMongoId ? 'id' : 'key'
 				} '${id}' not found`
-			};
-		}
-
-		const foundSeller = await User.where('_id')
-			.equals(seller)
-			.where('deletedAt')
-			.exists(false)
-			.select('-_id role products')
-			.findOne()
-			.lean();
-		const isAdmin = foundSeller.role === 'admin';
-		const productOwner = foundSeller.products
-			.map(p => p.toHexString())
-			.includes(productToUpdate.id.toString('hex'));
-
-		if (!isAdmin && !productOwner) {
-			throw {
-				status: 403,
-				message: "Can't update product from other seller"
 			};
 		}
 
@@ -726,7 +698,7 @@ const updateOne = async (id, changes, seller) => {
 	}
 };
 
-const deleteOne = async (id, seller) => {
+const deleteOne = async id => {
 	try {
 		const query = Book.where('deletedAt').exists(false);
 
@@ -755,25 +727,6 @@ const deleteOne = async (id, seller) => {
 				message: `Book with ${
 					isMongoId ? 'id' : 'key'
 				} '${id}' not found`
-			};
-		}
-
-		const foundSeller = await User.where('_id')
-			.equals(seller)
-			.where('deletedAt')
-			.exists(false)
-			.select('-_id role products')
-			.findOne()
-			.lean();
-		const isAdmin = foundSeller.role === 'admin';
-		const productOwner = foundSeller.products
-			.map(p => p.toHexString())
-			.includes(bookToDelete.id.toString('hex'));
-
-		if (!isAdmin && !productOwner) {
-			throw {
-				status: 403,
-				message: "Can't update product from other seller"
 			};
 		}
 

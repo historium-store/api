@@ -7,41 +7,47 @@ const createOne = async bookSeriesData => {
 	books = books ?? [];
 
 	try {
-		const foundPublisher = await Publisher.where('_id')
+		const publisherToUpdate = await Publisher.where('_id')
 			.equals(publisher)
 			.where('deletedAt')
 			.exists(false)
+			.select('_id name')
 			.findOne();
 
-		if (!foundPublisher) {
+		if (!publisherToUpdate) {
 			throw {
 				status: 404,
 				message: `Publisher with id '${publisher}' not found`
 			};
 		}
 
-		const existingBookSeries = await BookSeries.where('publisher')
-			.equals(publisher)
-			.where('name')
-			.equals(name)
-			.where('deletedAt')
-			.exists(false)
-			.findOne();
+		await Promise.all([
+			async () => {
+				const existingBookSeries = await BookSeries.where('publisher')
+					.equals(publisherToUpdate.id)
+					.where('name')
+					.equals(name)
+					.where('deletedAt')
+					.exists(false)
+					.select('_id')
+					.findOne()
+					.lean();
 
-		if (existingBookSeries) {
-			throw {
-				status: 409,
-				message: `Publisher '${publisher.name}' already has book series named '${name}'`
-			};
-		}
-
-		await Promise.all(
-			books.map(async id => {
+				if (existingBookSeries) {
+					throw {
+						status: 409,
+						message: `Publisher '${publisherToUpdate.name}' already has book series named '${name}'`
+					};
+				}
+			},
+			...books.map(async id => {
 				const existingBook = await Book.where('_id')
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
-					.findOne();
+					.select('_id')
+					.findOne()
+					.lean();
 
 				if (!existingBook) {
 					throw {
@@ -50,14 +56,13 @@ const createOne = async bookSeriesData => {
 					};
 				}
 			})
-		);
+		]);
 
 		const newBookSeries = await BookSeries.create(bookSeriesData);
 
-		await Publisher.updateOne(
-			{ _id: publisher },
-			{ $push: { bookSeries: newBookSeries } }
-		);
+		await publisherToUpdate.updateOne({
+			$push: { bookSeries: newBookSeries }
+		});
 
 		await Book.updateMany(
 			{ _id: books },
@@ -79,7 +84,8 @@ const getOne = async id => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.findOne()
+			.lean();
 
 		if (!foundBookSeries) {
 			throw {
@@ -105,7 +111,8 @@ const getAll = async queryParams => {
 			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order });
+			.sort({ [orderBy]: order })
+			.lean();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -115,13 +122,14 @@ const getAll = async queryParams => {
 };
 
 const updateOne = async (id, changes) => {
-	const { name, books } = changes;
+	const { name, publisher, books } = changes;
 
 	try {
 		const bookSeriesToUpdate = await BookSeries.where('_id')
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.select('publisher books')
 			.findOne();
 
 		if (!bookSeriesToUpdate) {
@@ -131,7 +139,7 @@ const updateOne = async (id, changes) => {
 			};
 		}
 
-		if (name) {
+		if (name && !publisher) {
 			await bookSeriesToUpdate.populate('publisher');
 
 			const existingBookSeries = await BookSeries.where('publisher')
@@ -148,6 +156,37 @@ const updateOne = async (id, changes) => {
 					message: `Publisher '${bookSeriesToUpdate.publisher.name}' already has book series named '${name}'`
 				};
 			}
+		} else if (publisher) {
+			const publisherToUpdate = await Publisher.where('_id')
+				.equals(publisher)
+				.where('deletedAt')
+				.exists(false)
+				.select('_id')
+				.findOne();
+
+			const existingBookSeries = await BookSeries.where('publisher')
+				.equals(publisherToUpdate.id)
+				.where('name')
+				.equals(name ?? bookSeriesToUpdate.name)
+				.where('deletedAt')
+				.exists(false)
+				.findOne();
+
+			if (existingBookSeries) {
+				throw {
+					status: 409,
+					message: `Publisher '${publisherToUpdate.name}' already has book series named '${name}'`
+				};
+			}
+
+			await Publisher.updateOne(
+				{ _id: bookSeriesToUpdate.publisher },
+				{ $pull: { bookSeries: bookSeriesToUpdate.id } }
+			);
+
+			await publisherToUpdate.updateOne({
+				$push: { bookSeries: bookSeriesToUpdate.id }
+			});
 		}
 
 		if (books) {
@@ -157,7 +196,9 @@ const updateOne = async (id, changes) => {
 						.equals(id)
 						.where('deletedAt')
 						.exists(false)
-						.findOne();
+						.select('_id')
+						.findOne()
+						.lean();
 
 					if (!existingBook) {
 						throw {
@@ -205,6 +246,7 @@ const deleteOne = async id => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.select('publisher books')
 			.findOne();
 
 		if (!bookSeriesToDelete) {

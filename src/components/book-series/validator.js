@@ -23,6 +23,10 @@ const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Book series name can't be empty"),
+	body('publisher')
+		.optional()
+		.isMongoId()
+		.withMessage('Publisher id must be a valid mongo id'),
 	body('books')
 		.optional()
 		.custom(isArrayOfMongoIds('Book series', 'books'))

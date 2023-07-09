@@ -7,13 +7,15 @@ const createOne = async sectionData => {
 	sections = sections ?? [];
 
 	try {
-		const sectionExists = await Section.where('name')
+		const existingSection = await Section.where('name')
 			.equals(name)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('_id')
+			.findOne()
+			.lean();
 
-		if (sectionExists) {
+		if (existingSection) {
 			throw {
 				status: 409,
 				message: `Section with name '${name}' already exists`
@@ -26,7 +28,9 @@ const createOne = async sectionData => {
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
-					.findOne();
+					.select('_id')
+					.findOne()
+					.lean();
 
 				if (!existingSection) {
 					throw {
@@ -78,20 +82,13 @@ const populateNestedProducts = async section => {
 	await section.populate({
 		path: 'products',
 		populate: { path: 'type', select: '-_id name key' },
-		transform: p => {
-			return {
-				_id: p.id,
-				name: p.name,
-				key: p.key,
-				price: p.price,
-				quantity: p.quantity,
-				type: p.type,
-				createdAt: p.createdAt,
-				code: p.code,
-				image: p.images[0],
-				authors: p.specificProduct.authors?.map(a => a.fullName)
-			};
-		}
+		select:
+			'name creators key price quantity createdAt code images requiresDelivery',
+		transform: product => ({
+			...product,
+			image: product.image ?? product.images[0],
+			images: undefined
+		})
 	});
 
 	if (section.sections.length) {
@@ -192,6 +189,7 @@ const updateOne = async (id, changes) => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.select('_id')
 			.findOne();
 
 		if (!sectionToUpdate) {
@@ -204,13 +202,15 @@ const updateOne = async (id, changes) => {
 		}
 
 		if (name) {
-			const sectionExists = await Section.where('name')
+			const existingSection = await Section.where('name')
 				.equals(name)
 				.where('deletedAt')
 				.exists(false)
-				.findOne();
+				.select('_id')
+				.findOne()
+				.lean();
 
-			if (sectionExists) {
+			if (existingSection) {
 				throw {
 					status: 409,
 					message: `Section with name '${name}' already exists`
@@ -225,7 +225,9 @@ const updateOne = async (id, changes) => {
 						.equals(id)
 						.where('deletedAt')
 						.exists(false)
-						.findOne();
+						.select('_id')
+						.findOne()
+						.lean();
 
 					if (!existingSection) {
 						throw {
@@ -260,6 +262,7 @@ const deleteOne = async id => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.select('products')
 			.findOne();
 
 		if (!sectionToDelete) {
@@ -310,9 +313,9 @@ const getProducts = async (id, queryParams) => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
-			.findOne()
 			.populate('sections')
-			.select('sections');
+			.select('sections')
+			.findOne();
 
 		if (!foundSection) {
 			throw {
@@ -334,46 +337,28 @@ const getProducts = async (id, queryParams) => {
 			)
 		];
 
-		const products = await Product.find({
-			sections: { $in: sectionIds },
-			deletedAt: { $exists: false }
-		})
+		const products = await Product.where('sections')
+			.in(sectionIds)
+			.where('deletedAt')
+			.exists(false)
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order })
-			.populate({ path: 'type', select: '-_id name key' });
-
-		await Promise.all(
-			products.map(
-				async p =>
-					await p.populate({
-						path: 'specificProduct',
-						model: p.model,
-						populate: {
-							path: 'authors',
-							select: 'fullName'
-						},
-						select: 'authors'
-					})
+			.populate({ path: 'type', select: '-_id name key' })
+			.select(
+				'name creators key price quantity createdAt code images requiresDelivery'
 			)
-		);
-
-		const productPreviews = products.map(p => ({
-			_id: p.id,
-			name: p.name,
-			key: p.key,
-			price: p.price,
-			quantity: p.quantity,
-			type: p.type,
-			createdAt: p.createdAt,
-			code: p.code,
-			image: p.images[0],
-			authors: p.specificProduct.authors?.map(a => a.fullName)
-		}));
+			.transform(result =>
+				result.map(product => ({
+					...product.toObject(),
+					image: product.images[0],
+					images: undefined
+				}))
+			);
 
 		return {
-			result: productPreviews,
-			total: productPreviews.length
+			result: products,
+			total: products.length
 		};
 	} catch (err) {
 		throw {
