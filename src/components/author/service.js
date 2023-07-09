@@ -9,7 +9,9 @@ const createOne = async authorData => {
 			.equals(fullName)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('_id')
+			.findOne()
+			.lean();
 
 		if (existingAuthor) {
 			throw {
@@ -33,7 +35,9 @@ const getOne = async id => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('_id')
+			.findOne()
+			.lean();
 
 		if (!foundAuthor) {
 			throw {
@@ -59,7 +63,8 @@ const getAll = async queryParams => {
 			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order });
+			.sort({ [orderBy]: order })
+			.lean();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -76,6 +81,7 @@ const updateOne = async (id, changes) => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.select('_id')
 			.findOne();
 
 		if (!authorToUpdate) {
@@ -90,7 +96,9 @@ const updateOne = async (id, changes) => {
 				.equals(fullName)
 				.where('deletedAt')
 				.exists(false)
-				.findOne();
+				.select('_id')
+				.findOne()
+				.lean();
 
 			if (existingAuthor) {
 				throw {
@@ -119,6 +127,7 @@ const deleteOne = async id => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.select('books')
 			.findOne();
 
 		if (!authorToDelete) {

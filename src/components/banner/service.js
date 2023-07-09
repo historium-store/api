@@ -13,10 +13,7 @@ const createOne = async bannerData => {
 
 const getOne = async id => {
 	try {
-		const foundBanner = await Banner.where('_id')
-			.equals(id)
-			.findOne()
-			.lean();
+		const foundBanner = await Banner.findById(id).lean();
 
 		if (!foundBanner) {
 			throw {
@@ -47,10 +44,7 @@ const getAll = async () => {
 
 const updateOne = async (id, changes) => {
 	try {
-		const bannerToUpdate = await Banner.where('id')
-			.equals(id)
-			.select('_id')
-			.findOne();
+		const bannerToUpdate = await Banner.findById(id).select('_id');
 
 		if (!bannerToUpdate) {
 			throw {
@@ -74,10 +68,7 @@ const updateOne = async (id, changes) => {
 
 const deleteOne = async id => {
 	try {
-		const bannerToDelete = await Banner.where('_id')
-			.equals(id)
-			.select('_id')
-			.findOne();
+		const bannerToDelete = await Banner.findById(id).select('_id');
 
 		if (!bannerToDelete) {
 			throw {

@@ -1,23 +1,22 @@
 import validator from 'validator';
 import { transliterateToKey } from '../../utils.js';
+import Book from '../book/model.js';
 import bookService from '../book/service.js';
 import ProductType from '../product-type/model.js';
 import Section from '../section/model.js';
-import User from '../user/model.js';
 import Product from './model.js';
 
-const typeNameToModel = new Map();
-typeNameToModel.set('Книга', 'Book');
-
 const createOne = async productData => {
-	let { name, key, type, sections, seller } = productData;
+	let { name, key, type, sections } = productData;
 
 	try {
 		const existingProductType = await ProductType.where('_id')
 			.equals(type)
 			.where('deletedAt')
 			.exists(false)
-			.findOne();
+			.select('_id')
+			.findOne()
+			.lean();
 
 		if (!existingProductType) {
 			throw {
@@ -26,17 +25,15 @@ const createOne = async productData => {
 			};
 		}
 
-		const typeName = existingProductType.name;
-
-		productData.model = typeNameToModel.get(typeName);
-
 		await Promise.all(
 			sections.map(async id => {
 				const existingSection = await Section.where('_id')
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
-					.findOne();
+					.select('_id')
+					.findOne()
+					.lean();
 
 				if (!existingSection) {
 					throw {
@@ -65,12 +62,7 @@ const createOne = async productData => {
 
 		await Section.updateMany(
 			{ _id: sections },
-			{ $push: { products: newProduct } }
-		);
-
-		await User.updateOne(
-			{ _id: seller },
-			{ $push: { products: newProduct } }
+			{ $push: { products: newProduct.id } }
 		);
 
 		return newProduct;
@@ -92,8 +84,31 @@ const getOne = async (id, preview) => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.populate({ path: 'type', select: '-_id name key' })
+			.transform(product => {
+				if (preview) {
+					return {
+						_id: product._id,
+						name: product.name,
+						creators: product.creators,
+						key: product.key,
+						price: product.price,
+						quantity: product.quantity,
+						type: {
+							name: product.type.name,
+							key: product.type.key
+						},
+						createdAt: product.createdAt,
+						code: product.code,
+						image: product.image ?? product.images[0],
+						requiresDelivery: product.requiresDelivery
+					};
+				}
+
+				return product;
+			})
 			.findOne()
-			.populate({ path: 'type', select: 'name key' });
+			.lean();
 
 		if (!foundProduct) {
 			throw {
@@ -103,51 +118,6 @@ const getOne = async (id, preview) => {
 				} '${id}' not found`
 			};
 		}
-
-		if (preview) {
-			await foundProduct.populate({
-				path: 'specificProduct',
-				model: foundProduct.model,
-				populate: {
-					path: 'authors',
-					select: 'fullName'
-				},
-				select: 'authors'
-			});
-
-			return {
-				_id: foundProduct.id,
-				name: foundProduct.name,
-				key: foundProduct.key,
-				price: foundProduct.price,
-				quantity: foundProduct.quantity,
-				type: foundProduct.type,
-				createdAt: foundProduct.createdAt,
-				code: foundProduct.code,
-				image: foundProduct.images[0],
-				authors: foundProduct.specificProduct.authors?.map(
-					a => a.fullName
-				)
-			};
-		}
-
-		await foundProduct.populate({
-			path: 'specificProduct',
-			model: foundProduct.model,
-			populate: [
-				{ path: 'publisher', select: 'name' },
-				{
-					path: 'authors',
-					select: 'fullName pictures biography'
-				},
-				{ path: 'compilers', select: 'fullName' },
-				{ path: 'translators', select: 'fullName' },
-				{ path: 'illustrators', select: 'fullName' },
-				{ path: 'editors', select: 'fullName' },
-				{ path: 'series', select: 'name' }
-			],
-			select: '-product'
-		});
 
 		return foundProduct;
 	} catch (err) {
@@ -167,37 +137,24 @@ const getAll = async queryParams => {
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order })
-			.populate({ path: 'type', select: 'name key' });
-
-		await Promise.all(
-			foundProducts.map(
-				async p =>
-					await p.populate({
-						path: 'specificProduct',
-						model: p.model,
-						populate: {
-							path: 'authors',
-							select: 'fullName'
-						},
-						select: 'authors'
-					})
+			.populate({ path: 'type', select: '-_id name key' })
+			.select(
+				'name creators key price quantity createdAt code images requiresDelivery'
 			)
-		);
+			.transform(result =>
+				result.map(product => ({
+					...product,
+					image: product.images[0],
+					images: undefined
+				}))
+			)
+			.lean();
 
 		return {
-			result: foundProducts.map(p => ({
-				_id: p.id,
-				name: p.name,
-				key: p.key,
-				price: p.price,
-				quantity: p.quantity,
-				type: p.type,
-				createdAt: p.createdAt,
-				code: p.code,
-				image: p.images[0],
-				authors: p.specificProduct.authors?.map(a => a.fullName)
-			})),
-			total: await Product.countDocuments()
+			result: foundProducts,
+			total: await Product.where('deletedAt')
+				.exists(false)
+				.countDocuments()
 		};
 	} catch (err) {
 		throw {
@@ -207,7 +164,7 @@ const getAll = async queryParams => {
 	}
 };
 
-const updateOne = async (id, changes, seller) => {
+const updateOne = async (id, changes) => {
 	const { key, type, sections } = changes;
 
 	try {
@@ -219,8 +176,7 @@ const updateOne = async (id, changes, seller) => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
-			.findOne()
-			.populate({ path: 'type', select: 'name key' });
+			.findOne();
 
 		if (!productToUpdate) {
 			throw {
@@ -228,21 +184,6 @@ const updateOne = async (id, changes, seller) => {
 				message: `Product with ${
 					isMongoId ? 'id' : 'key'
 				} '${id}' not found`
-			};
-		}
-
-		const foundSeller = await User.where('_id')
-			.equals(seller)
-			.findOne();
-		const isAdmin = foundSeller.role === 'admin';
-		const productOwner = foundSeller.products.includes(
-			productToUpdate.id
-		);
-
-		if (!isAdmin && !productOwner) {
-			throw {
-				status: 403,
-				message: "Can't update product from other seller"
 			};
 		}
 
@@ -260,10 +201,12 @@ const updateOne = async (id, changes, seller) => {
 
 		if (type) {
 			const existingProductType = await ProductType.where('_id')
-				.equals(id)
+				.equals(type)
 				.where('deletedAt')
 				.exists(false)
-				.findOne();
+				.select('_id')
+				.findOne()
+				.lean();
 
 			if (!existingProductType) {
 				throw {
@@ -271,11 +214,6 @@ const updateOne = async (id, changes, seller) => {
 					message: `Product type with id '${type}' not found`
 				};
 			}
-
-			const typeName = existingProductType.name;
-
-			changes.model =
-				typeName.charAt(0).toUpperCase() + typeName.slice(1);
 		}
 
 		if (sections) {
@@ -285,7 +223,9 @@ const updateOne = async (id, changes, seller) => {
 						.equals(id)
 						.where('deletedAt')
 						.exists(false)
-						.findOne();
+						.select('_id')
+						.findOne()
+						.lean();
 
 					if (!existingSection) {
 						throw {
@@ -330,7 +270,7 @@ const updateOne = async (id, changes, seller) => {
 	}
 };
 
-const deleteOne = async (id, seller) => {
+const deleteOne = async id => {
 	try {
 		const isMongoId = validator.isMongoId(id);
 
@@ -340,7 +280,6 @@ const deleteOne = async (id, seller) => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
-			.populate({ path: 'type', select: 'name key' })
 			.findOne();
 
 		if (!productToDelete) {
@@ -352,34 +291,7 @@ const deleteOne = async (id, seller) => {
 			};
 		}
 
-		const foundSeller = await User.where('_id')
-			.equals(seller)
-			.findOne();
-		const isAdmin = foundSeller.role === 'admin';
-		const productOwner = foundSeller.products.includes(
-			productToDelete.id
-		);
-
-		if (!isAdmin && !productOwner) {
-			throw {
-				status: 403,
-				message: "Can't delete product from other seller"
-			};
-		}
-
-		await Section.updateMany(
-			{ _id: productToDelete.sections },
-			{ $pull: { products: productToDelete.id } }
-		);
-
-		if (productToDelete.model === 'Book') {
-			await bookService.deleteOne(
-				productToDelete.specificProduct.toHexString(),
-				seller
-			);
-		}
-
-		await productToDelete.deleteOne();
+		await bookService.deleteOne(productToDelete.id.toString('hex'));
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

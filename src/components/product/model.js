@@ -15,11 +15,6 @@ const productSchema = new Schema(
 			required: true
 		},
 
-		specificProduct: {
-			type: ObjectId,
-			required: false
-		},
-
 		code: {
 			type: String,
 			required: false
@@ -46,11 +41,6 @@ const productSchema = new Schema(
 			type: ObjectId,
 			ref: 'ProductType',
 			required: true
-		},
-
-		model: {
-			type: String,
-			required: false
 		},
 
 		sections: [

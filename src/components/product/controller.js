@@ -3,16 +3,12 @@ import { createError } from '../../utils.js';
 import service from './service.js';
 
 const createOne = async (req, res, next) => {
-	const { id: seller } = req.user;
-
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
 		const productData = matchedData(req);
-
-		productData.seller = seller;
 
 		res.status(201).json(await service.createOne(productData));
 	} catch (err) {
@@ -52,7 +48,6 @@ const getAll = async (req, res, next) => {
 
 const updateOne = async (req, res, next) => {
 	const { id } = req.params;
-	const { id: seller } = req.user;
 
 	try {
 		validationResult(req)
@@ -61,7 +56,7 @@ const updateOne = async (req, res, next) => {
 
 		const { ...changes } = matchedData(req);
 
-		res.json(await service.updateOne(id, changes, seller));
+		res.json(await service.updateOne(id, changes));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -69,14 +64,13 @@ const updateOne = async (req, res, next) => {
 
 const deleteOne = async (req, res, next) => {
 	const { id } = req.params;
-	const { id: seller } = req.user;
 
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
-		await service.deleteOne(id, seller);
+		await service.deleteOne(id);
 
 		res.sendStatus(204);
 	} catch (err) {
