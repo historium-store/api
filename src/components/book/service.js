@@ -353,10 +353,11 @@ const getAll = async queryParams => {
 			.lean();
 
 		return {
-			result: foundBooks,
+			result: foundBooks.map(b => b.product),
 			total: await Book.where('deletedAt')
 				.exists(false)
-				.countDocuments()
+				.countDocuments(),
+			totalFound: foundBooks.length
 		};
 	} catch (err) {
 		throw {
