@@ -31,7 +31,7 @@ const boardGameSchema = new Schema(
 		},
 
 		playersCount: {
-			type: Number,
+			type: String,
 			required: true
 		},
 
@@ -52,7 +52,7 @@ const boardGameSchema = new Schema(
 			}
 		],
 
-		age: [
+		ages: [
 			{
 				type: String,
 				required: false

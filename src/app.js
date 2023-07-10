@@ -9,8 +9,10 @@ import { errorHandler, verifyApiKey } from './middleware.js';
 import authRouter from './components/auth/router.js';
 import authorRouter from './components/author/router.js';
 import bannerRouter from './components/banner/router.js';
+import boardGameRouter from './components/board-game/router.js';
 import bookSeriesRouter from './components/book-series/router.js';
 import bookRouter from './components/book/router.js';
+import brandRouter from './components/brand/router.js';
 import cartItemRouter from './components/cart-item/router.js';
 import cartRouter from './components/cart/router.js';
 import compilerRouter from './components/compiler/router.js';
@@ -61,6 +63,8 @@ app.use('/country', countryRouter);
 app.use('/delivery-type', deliveryTypeRouter);
 app.use('/order', orderRouter);
 app.use('/banner', bannerRouter);
+app.use('/brand', brandRouter);
+app.use('/board-game', boardGameRouter);
 
 app.use(
 	'/docs',
