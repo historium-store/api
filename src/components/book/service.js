@@ -29,39 +29,47 @@ const createOne = async bookData => {
 	editors = editors ?? [];
 
 	try {
-		const existingProduct = await Product.where('_id')
-			.equals(product)
-			.where('deletedAt')
-			.exists(false)
-			.findOne();
+		await Promise.all([
+			async () => {
+				const existingProduct = await Product.where('_id')
+					.equals(product)
+					.where('deletedAt')
+					.exists(false)
+					.select('_id')
+					.findOne()
+					.lean();
 
-		if (!existingProduct) {
-			throw {
-				status: 404,
-				message: `Product with id '${product}' not found`
-			};
-		}
+				if (!existingProduct) {
+					throw {
+						status: 404,
+						message: `Product with id '${product}' not found`
+					};
+				}
+			},
+			async () => {
+				const existingPublisher = await Publisher.where('_id')
+					.equals(publisher)
+					.where('deletedAt')
+					.exists(false)
+					.select('_id')
+					.findOne()
+					.lean();
 
-		const existingPublisher = await Publisher.where('_id')
-			.equals(publisher)
-			.where('deletedAt')
-			.exists(false)
-			.findOne();
-
-		if (!existingPublisher) {
-			throw {
-				status: 404,
-				message: `Publisher with id '${publisher}' not found`
-			};
-		}
-
-		await Promise.all(
-			authors.map(async id => {
+				if (!existingPublisher) {
+					throw {
+						status: 404,
+						message: `Publisher with id '${publisher}' not found`
+					};
+				}
+			},
+			...authors.map(async id => {
 				const existingAuthor = await Author.where('_id')
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
-					.findOne();
+					.select('_id')
+					.findOne()
+					.lean();
 
 				if (!existingAuthor) {
 					throw {
@@ -69,16 +77,15 @@ const createOne = async bookData => {
 						message: `Author with id '${id}' not found`
 					};
 				}
-			})
-		);
-
-		await Promise.all(
-			compilers.map(async id => {
+			}),
+			...compilers.map(async id => {
 				const existingCompiler = await Compiler.where('_id')
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
-					.findOne();
+					.select('_id')
+					.findOne()
+					.lean();
 
 				if (!existingCompiler) {
 					throw {
@@ -86,16 +93,15 @@ const createOne = async bookData => {
 						message: `Compiler with id '${id}' not found`
 					};
 				}
-			})
-		);
-
-		await Promise.all(
-			translators.map(async id => {
+			}),
+			...translators.map(async id => {
 				const existingTranslator = await Translator.where('_id')
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
-					.findOne();
+					.select('_id')
+					.findOne()
+					.lean();
 
 				if (!existingTranslator) {
 					throw {
@@ -103,16 +109,15 @@ const createOne = async bookData => {
 						message: `Translator with id '${id}' not found`
 					};
 				}
-			})
-		);
-
-		await Promise.all(
-			illustrators.map(async id => {
+			}),
+			...illustrators.map(async id => {
 				const existingIllustrator = await Illustrator.where('_id')
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
-					.findOne();
+					.select('_id')
+					.findOne()
+					.lean();
 
 				if (!existingIllustrator) {
 					throw {
@@ -120,16 +125,15 @@ const createOne = async bookData => {
 						message: `Illustrator with id '${id}' not found`
 					};
 				}
-			})
-		);
-
-		await Promise.all(
-			editors.map(async id => {
+			}),
+			...editors.map(async id => {
 				const existingEditor = await Editor.where('_id')
 					.equals(id)
 					.where('deletedAt')
 					.exists(false)
-					.findOne();
+					.select('_id')
+					.findOne()
+					.lean();
 
 				if (!existingEditor) {
 					throw {
@@ -137,64 +141,68 @@ const createOne = async bookData => {
 						message: `Editor with id '${id}' not found`
 					};
 				}
-			})
-		);
+			}),
+			async () => {
+				if (series) {
+					const existingBookSeries = await BookSeries.where('_id')
+						.equals(series)
+						.where('deletedAt')
+						.exists(false)
+						.select('_id')
+						.findOne()
+						.lean();
 
-		if (series) {
-			const existingBookSeries = await BookSeries.where('_id')
-				.equals(series)
-				.where('deletedAt')
-				.exists(false);
-
-			if (!existingBookSeries) {
-				throw {
-					status: 404,
-					message: `Book series with id '${series}' not found`
-				};
+					if (!existingBookSeries) {
+						throw {
+							status: 404,
+							message: `Book series with id '${series}' not found`
+						};
+					}
+				}
 			}
-		}
+		]);
 
 		const newBook = await Book.create(bookData);
 
 		await Product.updateOne(
 			{ _id: product },
-			{ $set: { specificProduct: newBook } }
+			{ $set: { creators: newBook.authors.map(a => a.fullName) } }
 		);
 
 		await Publisher.updateOne(
 			{ _id: publisher },
-			{ $push: { books: newBook } }
+			{ $push: { books: newBook.id } }
 		);
 
 		await Author.updateMany(
 			{ _id: authors },
-			{ $push: { books: newBook } }
+			{ $push: { books: newBook.id } }
 		);
 
 		await Compiler.updateMany(
 			{ _id: compilers },
-			{ $push: { books: newBook } }
+			{ $push: { books: newBook.id } }
 		);
 
 		await Translator.updateMany(
 			{ _id: translators },
-			{ $push: { books: newBook } }
+			{ $push: { books: newBook.id } }
 		);
 
 		await Illustrator.updateMany(
 			{ _id: illustrators },
-			{ $push: { books: newBook } }
+			{ $push: { books: newBook.id } }
 		);
 
 		await Editor.updateMany(
 			{ _id: editors },
-			{ $push: { books: newBook } }
+			{ $push: { books: newBook.id } }
 		);
 
 		if (series) {
 			await BookSeries.updateOne(
 				{ _id: series },
-				{ $push: { books: newBook } }
+				{ $push: { books: newBook.id } }
 			);
 		}
 
@@ -220,7 +228,10 @@ const getOne = async id => {
 				.equals(id)
 				.where('deletedAt')
 				.exists(false)
-				.findOne();
+				.select('_id')
+				.transform(product => ({ ...product, id: product._id }))
+				.findOne()
+				.lean();
 
 			query.where('product').equals(product?.id);
 		}
@@ -230,10 +241,9 @@ const getOne = async id => {
 				{
 					path: 'product',
 					populate: [
-						{ path: 'type', select: 'name key' },
+						{ path: 'type', select: '-_id name key' },
 						{ path: 'sections', select: 'name key' }
-					],
-					select: '-specificProduct -model'
+					]
 				},
 				{ path: 'publisher', select: 'name' },
 				{
@@ -246,7 +256,8 @@ const getOne = async id => {
 				{ path: 'editors', select: 'fullName' },
 				{ path: 'series', select: 'name' }
 			])
-			.findOne();
+			.findOne()
+			.lean();
 
 		if (!foundBook) {
 			throw {
@@ -279,43 +290,43 @@ const getAll = async queryParams => {
 		price
 	} = queryParams;
 
-	const query = Book.where('deletedAt').exists(false);
-
-	if (type) {
-		query.where('type').equals(type);
-	}
-
-	if (publisher) {
-		const foundPublishers = await Publisher.find({
-			name: publisher,
-			deletedAt: { $exists: false }
-		});
-
-		query.where('publisher').in(foundPublishers.map(p => p.id));
-	}
-
-	if (language) {
-		query.where('languages').in(language);
-	}
-
-	if (author) {
-		const foundAuthors = await Author.find({
-			fullName: author,
-			deletedAt: { $exists: false }
-		});
-
-		query.where('authors').in(foundAuthors.map(a => a.id));
-	}
-
-	if (price) {
-		const foundProducts = await Product.find({
-			price: { $gte: price[0], $lte: price[1] }
-		});
-
-		query.where('product').in(foundProducts.map(p => p.id));
-	}
-
 	try {
+		const query = Book.where('deletedAt').exists(false);
+
+		if (type) {
+			query.where('type').equals(type);
+		}
+
+		if (publisher) {
+			const foundPublishers = await Publisher.find({
+				name: publisher,
+				deletedAt: { $exists: false }
+			});
+
+			query.where('publisher').in(foundPublishers.map(p => p.id));
+		}
+
+		if (language) {
+			query.where('languages').in(language);
+		}
+
+		if (author) {
+			const foundAuthors = await Author.find({
+				fullName: author,
+				deletedAt: { $exists: false }
+			});
+
+			query.where('authors').in(foundAuthors.map(a => a.id));
+		}
+
+		if (price) {
+			const foundProducts = await Product.find({
+				price: { $gte: price[0], $lte: price[1] }
+			});
+
+			query.where('product').in(foundProducts.map(p => p.id));
+		}
+
 		const foundBooks = await query
 			.limit(limit)
 			.skip(skip)
@@ -323,8 +334,14 @@ const getAll = async queryParams => {
 			.populate([
 				{
 					path: 'product',
-					populate: [{ path: 'type', select: '-_id name key' }],
-					select: '-_id name key price quantity code images'
+					populate: { path: 'type', select: '-_id name key' },
+					select:
+						'name creators key price quantity createdAt code images requiresDelivery',
+					transform: product => ({
+						...product,
+						image: product.image ?? product.images[0],
+						images: undefined
+					})
 				},
 				{
 					path: 'authors',
@@ -334,11 +351,6 @@ const getAll = async queryParams => {
 			])
 			.select('authors')
 			.lean();
-
-		foundBooks.forEach(b => {
-			b.product.image = b.product.images[0];
-			delete b.product.images;
-		});
 
 		return {
 			result: foundBooks,
@@ -354,7 +366,7 @@ const getAll = async queryParams => {
 	}
 };
 
-const updateOne = async (id, changes, seller) => {
+const updateOne = async (id, changes) => {
 	const {
 		publisher,
 		authors,
@@ -377,7 +389,10 @@ const updateOne = async (id, changes, seller) => {
 				.equals(id)
 				.where('deletedAt')
 				.exists(false)
-				.findOne();
+				.select('_id')
+				.transform(product => ({ ...product, id: product._id }))
+				.findOne()
+				.lean();
 
 			query.where('product').equals(product?.id);
 		}
@@ -393,27 +408,14 @@ const updateOne = async (id, changes, seller) => {
 			};
 		}
 
-		const foundSeller = await User.where('_id')
-			.equals(seller)
-			.findOne();
-		const isAdmin = foundSeller.role === 'admin';
-		const productOwner = foundSeller.products.includes(
-			bookToUpdate.product
-		);
-
-		if (!isAdmin && !productOwner) {
-			throw {
-				status: 403,
-				message: "Can't update book from other seller"
-			};
-		}
-
 		if (publisher) {
 			const existingPublisher = await Publisher.where('_id')
 				.equals(publisher)
 				.where('deletedAt')
 				.exists(false)
-				.findOne();
+				.select('-_id')
+				.findOne()
+				.lean();
 
 			if (!existingPublisher) {
 				throw {
@@ -430,7 +432,9 @@ const updateOne = async (id, changes, seller) => {
 						.equals(id)
 						.where('deletedAt')
 						.exists(false)
-						.findOne();
+						.select('-_id')
+						.findOne()
+						.lean();
 
 					if (!existingAuthor) {
 						throw {
@@ -449,7 +453,9 @@ const updateOne = async (id, changes, seller) => {
 						.equals(id)
 						.where('deletedAt')
 						.exists(false)
-						.findOne();
+						.select('-_id')
+						.findOne()
+						.lean();
 
 					if (!existingCompiler) {
 						throw {
@@ -468,7 +474,9 @@ const updateOne = async (id, changes, seller) => {
 						.equals(id)
 						.where('deletedAt')
 						.exists(false)
-						.findOne();
+						.select('-_id')
+						.findOne()
+						.lean();
 
 					if (!existingTranslator) {
 						throw {
@@ -487,7 +495,9 @@ const updateOne = async (id, changes, seller) => {
 						.equals(id)
 						.where('deletedAt')
 						.exists(false)
-						.findOne();
+						.select('-_id')
+						.findOne()
+						.lean();
 
 					if (!existingIllustrator) {
 						throw {
@@ -506,7 +516,9 @@ const updateOne = async (id, changes, seller) => {
 						.equals(id)
 						.where('deletedAt')
 						.exists(false)
-						.findOne();
+						.select('-_id')
+						.findOne()
+						.lean();
 
 					if (!existingEditor) {
 						throw {
@@ -523,7 +535,9 @@ const updateOne = async (id, changes, seller) => {
 				.equals(series)
 				.where('deletedAt')
 				.exists(false)
-				.findOne();
+				.select('-_id')
+				.findOne()
+				.lean();
 
 			if (!existingBookSeries) {
 				throw {
@@ -539,16 +553,12 @@ const updateOne = async (id, changes, seller) => {
 		if (publisher && !samePublisher) {
 			await Publisher.updateOne(
 				{ _id: bookToUpdate.publisher },
-				{
-					$pull: { books: bookToUpdate.id }
-				}
+				{ $pull: { books: bookToUpdate.id } }
 			);
 
 			await Publisher.updateOne(
 				{ _id: publisher },
-				{
-					$push: { books: bookToUpdate.id }
-				}
+				{ $push: { books: bookToUpdate.id } }
 			);
 		}
 
@@ -668,24 +678,16 @@ const updateOne = async (id, changes, seller) => {
 		if (series && !sameBookSeries) {
 			await sameBookSeries.updateOne(
 				{ _id: bookToUpdate.series },
-				{
-					$pull: { books: bookToUpdate.id }
-				}
+				{ $pull: { books: bookToUpdate.id } }
 			);
 
 			await sameBookSeries.updateOne(
 				{ _id: series },
-				{
-					$push: { books: bookToUpdate.id }
-				}
+				{ $push: { books: bookToUpdate.id } }
 			);
 		}
 
-		Object.keys(changes).forEach(
-			key => (bookToUpdate[key] = changes[key])
-		);
-
-		await bookToUpdate.save();
+		await bookToUpdate.updateOne(changes);
 
 		return await getOne(id);
 	} catch (err) {
@@ -696,7 +698,7 @@ const updateOne = async (id, changes, seller) => {
 	}
 };
 
-const deleteOne = async (id, seller) => {
+const deleteOne = async id => {
 	try {
 		const query = Book.where('deletedAt').exists(false);
 
@@ -709,7 +711,10 @@ const deleteOne = async (id, seller) => {
 				.equals(id)
 				.where('deletedAt')
 				.exists(false)
-				.findOne();
+				.select('_id')
+				.transform(product => ({ ...product, id: product._id }))
+				.findOne()
+				.lean();
 
 			query.where('product').equals(product?.id);
 		}
@@ -725,28 +730,20 @@ const deleteOne = async (id, seller) => {
 			};
 		}
 
-		const foundSeller = await User.where('_id')
-			.equals(seller)
-			.findOne();
-		const isAdmin = foundSeller.role === 'admin';
-		const productOwner = foundSeller.products.includes(
-			bookToDelete.product
-		);
+		await bookToDelete.populate({
+			path: 'product',
+			select: 'sections',
+			transform: product => ({
+				...product.toObject(),
+				id: product._id
+			})
+		});
 
-		if (!isAdmin && !productOwner) {
-			throw {
-				status: 403,
-				message: "Can't delete book from other seller"
-			};
-		}
-
-		await bookToDelete.populate('product');
-
-		await Product.deleteOne(bookToDelete.product._id);
+		await Product.deleteOne(bookToDelete.product.id);
 
 		await Section.updateMany(
 			{ _id: bookToDelete.product.sections },
-			{ $pull: { products: bookToDelete.product._id } }
+			{ $pull: { products: bookToDelete.product.id } }
 		);
 
 		await Publisher.updateOne(
@@ -800,6 +797,7 @@ const getFilters = async () => {
 			{ path: 'publisher', select: 'name' },
 			{ path: 'authors', select: 'fullName' }
 		])
+		.select('_id type languages')
 		.lean();
 
 	const filters = {

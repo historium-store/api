@@ -27,6 +27,7 @@ const createOne = async orderData => {
 			const userExists = await User.where('deletedAt')
 				.exists(false)
 				.or([{ phoneNumber }, { email }])
+				.select('_id')
 				.findOne()
 				.lean();
 
@@ -46,27 +47,26 @@ const createOne = async orderData => {
 
 			orderData.items = await Promise.all(
 				items.map(async i => {
-					const existingProduct = await Product.where('_id')
+					const foundProduct = await Product.where('_id')
 						.equals(i.product)
 						.where('deletedAt')
 						.exists(false)
-						.findOne()
 						.populate({
 							path: 'type',
-							select: '-_id name',
-							transform: type => type.name
+							select: '-_id name key'
 						})
-						.select('-_id name price code images')
+						.select(
+							'name creators key price quantity createdAt code images requiresDelivery'
+						)
 						.transform(product => ({
-							type: product.type,
-							name: product.name,
-							price: product.price,
-							code: product.code,
-							image: product.image ?? product.images[0]
+							...product,
+							image: product.image ?? product.images[0],
+							images: undefined
 						}))
+						.findOne()
 						.lean();
 
-					if (!existingProduct) {
+					if (!foundProduct) {
 						throw {
 							status: 404,
 							message: `Product with id '${i.product}' not found`
@@ -74,7 +74,7 @@ const createOne = async orderData => {
 					}
 
 					return {
-						product: existingProduct,
+						product: foundProduct,
 						quantity: i.quantity ?? 1
 					};
 				})
@@ -96,7 +96,7 @@ const createOne = async orderData => {
 				password
 			});
 
-			orderData.user = newUser;
+			orderData.user = newUser.id;
 		} else {
 			const foundCart = await Cart.where('_id')
 				.equals(orderData.user.cart)
@@ -106,16 +106,14 @@ const createOne = async orderData => {
 						path: 'product',
 						populate: {
 							path: 'type',
-							select: '-_id name',
-							transform: type => type.name
+							select: '-_id name key'
 						},
-						select: '-_id name price code images',
+						select:
+							'name creators key price quantity createdAt code images requiresDelivery',
 						transform: product => ({
-							type: product.type,
-							name: product.name,
-							price: product.price,
-							code: product.code,
-							image: product.images[0]
+							...product,
+							image: product.image ?? product.images[0],
+							images: undefined
 						})
 					},
 					select: '-_id quantity'
@@ -138,7 +136,8 @@ const createOne = async orderData => {
 			.equals(orderData.deliveryInfo.type)
 			.findOne();
 
-		let deliveryPrice = deliveryType.price;
+		let deliveryPrice = (orderData.deliveryPrice =
+			deliveryType.price);
 		const deliveryCanBeFree = deliveryType.freeDeliveryFrom;
 		const suitableItemsPrice =
 			itemsTotalPrice >= deliveryType.freeDeliveryFrom;

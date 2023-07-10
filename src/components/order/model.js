@@ -128,7 +128,7 @@ const orderSchema = new Schema(
 		items: [
 			{
 				product: {
-					type: {
+					_id: {
 						type: String,
 						required: true
 					},
@@ -140,9 +140,44 @@ const orderSchema = new Schema(
 						type: Number,
 						required: true
 					},
+					quantity: {
+						type: Number,
+						required: false,
+						default: 1
+					},
+					type: {
+						name: {
+							type: String,
+							required: true
+						},
+						key: {
+							type: String,
+							required: true
+						}
+					},
+					createdAt: {
+						type: Number,
+						required: true
+					},
 					code: {
 						type: String,
 						required: true
+					},
+					key: {
+						type: String,
+						required: true
+					},
+					requiresDelivery: {
+						type: Boolean,
+						required: true
+					},
+					creators: {
+						type: [
+							{
+								type: String,
+								required: true
+							}
+						]
 					},
 					image: {
 						type: String,
@@ -162,6 +197,11 @@ const orderSchema = new Schema(
 		},
 
 		totalQuantity: {
+			type: Number,
+			required: true
+		},
+
+		deliveryPrice: {
 			type: Number,
 			required: true
 		},
