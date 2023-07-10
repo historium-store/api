@@ -288,7 +288,13 @@ const deleteOne = async id => {
 			};
 		}
 
-		await bookService.deleteOne(productToDelete.id.toString('hex'));
+		const { _id: book } = await Book.where('product')
+			.equals(productToDelete.id)
+			.select('_id')
+			.findOne()
+			.lean();
+
+		await bookService.deleteOne(book.toString('hex'));
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
