@@ -1,3 +1,4 @@
+import validator from 'validator';
 import Brand from '../brand/model.js';
 import Product from '../product/model.js';
 import BoardGame from './model.js';
@@ -50,6 +51,46 @@ const createOne = async boardGameData => {
 	}
 };
 
+const getOne = async id => {
+	try {
+		const query = BoardGame.where('deletedAt').exists(false);
+
+		const isMongoId = validator.isMongoId(id);
+
+		if (isMongoId) {
+			query.where('_id').equals(id);
+		} else {
+			const product = await Product.where('key')
+				.equals(id)
+				.where('deletedAt')
+				.exists(false)
+				.select('_id')
+				.transform(product => ({ ...product, id: product._id }))
+				.findOne()
+				.lean();
+
+			query.where('product').equals(product?.id);
+		}
+
+		return await query
+			.populate([
+				{
+					path: 'product',
+					populate: { path: 'type', select: '-_id name key' }
+				},
+				{ path: 'brand', select: 'name' }
+			])
+			.findOne()
+			.lean();
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
-	createOne
+	createOne,
+	getOne
 };
