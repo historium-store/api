@@ -13,6 +13,7 @@ const brandSchema = new Schema(
 		products: [
 			{
 				type: ObjectId,
+				ref: 'Product',
 				required: false
 			}
 		],
