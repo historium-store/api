@@ -98,5 +98,9 @@ export const validateQueryParams = [
 	query('withDeleted')
 		.optional()
 		.customSanitizer(() => true),
-	query('type').optional()
+	query('type').optional(),
+	query('status')
+		.optional()
+		.isIn(['active', 'completed', 'canceled'])
+		.withMessage('Invalid order status')
 ];

@@ -3,46 +3,61 @@ import deleteDocument from '../../triggers/delete-document.js';
 
 const { ObjectId } = Schema.Types;
 
-const reviewSchema = new Schema(
+const boardGameSchema = new Schema(
 	{
 		product: {
 			type: ObjectId,
-			ref: 'Product',
 			required: true
 		},
 
-		user: {
+		brand: {
 			type: ObjectId,
-			ref: 'User',
 			required: true
 		},
 
-		title: {
+		article: {
 			type: String,
 			required: true
 		},
 
-		text: {
+		type: {
 			type: String,
 			required: true
 		},
 
-		likes: {
-			type: Number,
-			required: true,
-			default: 0
-		},
-
-		dislikes: {
-			type: Number,
-			required: true,
-			default: 0
-		},
-
-		rating: {
-			type: Number,
+		kind: {
+			type: String,
 			required: true
 		},
+
+		playersCount: {
+			type: String,
+			required: true
+		},
+
+		packaging: {
+			type: String,
+			required: true
+		},
+
+		packageSize: {
+			type: String,
+			required: false
+		},
+
+		languages: [
+			{
+				type: String,
+				required: true
+			}
+		],
+
+		ages: [
+			{
+				type: String,
+				required: false
+			}
+		],
 
 		createdAt: {
 			type: Number
@@ -63,10 +78,10 @@ const reviewSchema = new Schema(
 	}
 );
 
-reviewSchema.methods.deleteOne = async function () {
+boardGameSchema.methods.deleteOne = async function () {
 	await deleteDocument(this);
 };
 
-const Review = model('Review', reviewSchema);
+const BoardGame = model('BoardGame', boardGameSchema);
 
-export default Review;
+export default BoardGame;

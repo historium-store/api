@@ -1,5 +1,4 @@
 import { Schema, model } from 'mongoose';
-import deleteDocument from '../../triggers/delete-document.js';
 
 const bannerSchema = new Schema(
 	{

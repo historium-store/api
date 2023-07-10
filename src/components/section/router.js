@@ -113,7 +113,7 @@ export default sectionRouter;
  *       '409':
  *         description: Section already exists
  *   delete:
- *     summary: Get one section
+ *     summary: Delete one section
  *     security:
  *       - api_auth: []
  *     tags:
