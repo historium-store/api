@@ -130,6 +130,22 @@ const removeFromWishlist = async (req, res, next) => {
 	}
 };
 
+const getOrders = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const queryParams = matchedData(req);
+
+		res.json(await service.getOrders(queryParams, user));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 const addToHistory = async (req, res, next) => {
 	const { id: user } = req.user;
 
@@ -148,17 +164,10 @@ const addToHistory = async (req, res, next) => {
 	}
 };
 
-const getOrders = async (req, res, next) => {
+const getHistory = async (req, res, next) => {
 	const { id: user } = req.user;
-
 	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
-
-		const queryParams = matchedData(req);
-
-		res.json(await service.getOrders(queryParams, user));
+		res.json(await service.getHistory(user));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -172,6 +181,7 @@ export default {
 	getAccount,
 	addToWishlist,
 	removeFromWishlist,
+	getOrders,
 	addToHistory,
-	getOrders
+	getHistory
 };
