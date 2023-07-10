@@ -122,6 +122,13 @@ const createOne = async orderData => {
 				.findOne()
 				.lean();
 
+			if (!foundCart.items.length) {
+				throw {
+					status: 400,
+					message: 'Order must have at least 1 item'
+				};
+			}
+
 			orderData.items = foundCart.items;
 
 			await cartService.clearItems(foundCart._id);
@@ -163,8 +170,6 @@ const createOne = async orderData => {
 		};
 
 		await transporter.sendMail(mailData);
-
-		return await newOrder.save();
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

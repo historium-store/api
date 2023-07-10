@@ -32,6 +32,7 @@ userRouter
 
 userRouter
 	.route('/history')
+	.get(controller.getHistory)
 	.post(validator.validateProductEntry, controller.addToHistory);
 
 userRouter

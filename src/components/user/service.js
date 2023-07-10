@@ -276,6 +276,21 @@ const removeFromWishlist = async (user, product) => {
 	}
 };
 
+const getOrders = async (queryParams, user) => {
+	const { orderBy, order } = queryParams;
+
+	try {
+		return await Order.where('user')
+			.equals(user)
+			.sort({ [orderBy ?? 'createdAt']: order ?? 'desc' });
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 const addToHistory = async (user, product) => {
 	try {
 		const userToUpdate = await User.where('_id')
@@ -332,13 +347,35 @@ const addToHistory = async (user, product) => {
 	}
 };
 
-const getOrders = async (queryParams, user) => {
-	const { orderBy, order } = queryParams;
-
+const getHistory = async user => {
 	try {
-		return await Order.where('user')
+		const foundUser = await User.where('_id')
 			.equals(user)
-			.sort({ [orderBy ?? 'createdAt']: order ?? 'desc' });
+			.where('deletedAt')
+			.exists(false)
+			.select('history')
+			.populate({
+				path: 'history',
+				populate: { path: 'type', select: '-_id name key' },
+				select:
+					'name creators key price quantity createdAt code images requiresDelivery',
+				transform: product => ({
+					...product,
+					image: product.images[0],
+					images: undefined
+				})
+			})
+			.findOne()
+			.lean();
+
+		if (!foundUser) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		return foundUser.history;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -355,6 +392,7 @@ export default {
 	deleteOne,
 	addToWishlist,
 	removeFromWishlist,
+	getOrders,
 	addToHistory,
-	getOrders
+	getHistory
 };

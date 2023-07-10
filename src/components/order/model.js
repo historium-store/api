@@ -125,71 +125,10 @@ const orderSchema = new Schema(
 			required: true
 		},
 
-		items: [
-			{
-				product: {
-					_id: {
-						type: String,
-						required: true
-					},
-					name: {
-						type: String,
-						required: true
-					},
-					price: {
-						type: Number,
-						required: true
-					},
-					quantity: {
-						type: Number,
-						required: false,
-						default: 1
-					},
-					type: {
-						name: {
-							type: String,
-							required: true
-						},
-						key: {
-							type: String,
-							required: true
-						}
-					},
-					createdAt: {
-						type: Number,
-						required: true
-					},
-					code: {
-						type: String,
-						required: true
-					},
-					key: {
-						type: String,
-						required: true
-					},
-					requiresDelivery: {
-						type: Boolean,
-						required: true
-					},
-					creators: {
-						type: [
-							{
-								type: String,
-								required: true
-							}
-						]
-					},
-					image: {
-						type: String,
-						required: true
-					}
-				},
-				quantity: {
-					type: Number,
-					required: true
-				}
-			}
-		],
+		items: {
+			type: [],
+			required: true
+		},
 
 		totalPrice: {
 			type: Number,
