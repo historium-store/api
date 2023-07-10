@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  frontend:
+    build: ./historium
+    restart: always
+    ports:
+      - $FRONTEND_PORTS
+    environment:
+      - VITE_API_URL=$API_URL
+  api:
+    build: ./api
+    restart: always
+    ports:
+      - $BACKEND_PORTS
+    depends_on:
+      - mongo
+    environment:
+      - PORT=$PORT
+      - SECRET=$SECRET
+      - JWT_EXPIRATION=$JWT_EXPIRATION
+      - CONNECTION_STRING=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}/?retryWrites=true&w=majority
+      - EMAIL_PASSWORD=$EMAIL_PASSWORD
+      - NODE_ENV=$NODE_ENV
+      - S3_ACCESS_KEY=$S3_ACCESS_KEY
+      - S3_SECRET_ACCESS_KEY=$S3_SECRET_ACCESS_KEY
+      - S3_BUCKET_REGION=$S3_BUCKET_REGION
+      - S3_BUCKET_NAME=$S3_BUCKET_NAME
+      - VONAGE_API_KEY=$VONAGE_API_KEY
+      - VONAGE_API_SECRET=$VONAGE_API_SECRET
+      - BACKUP_DIR_PATH=$BACKUP_DIR_PATH
+  mongo:
+    image: mongo
+    restart: always
+    volumes:
+      - db:/var/lib/mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD
+volumes:
+  db:
