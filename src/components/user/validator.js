@@ -66,7 +66,14 @@ const validateProductEntry = [
 		.withMessage('Product must be a valid mongo id')
 ];
 
+const validateMergeHistory = [
+	body('history')
+		.isArray()
+		.withMessage('User history must be an array')
+];
+
 export default {
 	validateUpdate,
-	validateProductEntry
+	validateProductEntry,
+	validateMergeHistory
 };

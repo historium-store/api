@@ -33,7 +33,8 @@ userRouter
 userRouter
 	.route('/history')
 	.get(controller.getHistory)
-	.post(validator.validateProductEntry, controller.addToHistory);
+	.post(validator.validateProductEntry, controller.addToHistory)
+	.patch(validator.validateMergeHistory, controller.mergeHistory);
 
 userRouter
 	.route('/orders')
