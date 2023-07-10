@@ -86,7 +86,7 @@ const getOne = async (id, preview) => {
 			.exists(false)
 			.populate({ path: 'type', select: '-_id name key' })
 			.transform(product => {
-				if (preview) {
+				if (product && preview) {
 					return {
 						_id: product._id,
 						name: product.name,
@@ -94,10 +94,7 @@ const getOne = async (id, preview) => {
 						key: product.key,
 						price: product.price,
 						quantity: product.quantity,
-						type: {
-							name: product.type.name,
-							key: product.type.key
-						},
+						type: { ...product.type },
 						createdAt: product.createdAt,
 						code: product.code,
 						image: product.image ?? product.images[0],

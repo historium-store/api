@@ -33,7 +33,8 @@ userRouter
 userRouter
 	.route('/history')
 	.get(controller.getHistory)
-	.post(validator.validateProductEntry, controller.addToHistory);
+	.post(validator.validateProductEntry, controller.addToHistory)
+	.patch(validator.validateMergeHistory, controller.mergeHistory);
 
 userRouter
 	.route('/orders')
@@ -195,26 +196,6 @@ export default userRouter;
  *         description: Product removed from user's wishlist successfully
  *       '404':
  *         description: User or product not found
- * /user/history:
- *   post:
- *     summary: Add product to user's viewed products history
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ProductEntry'
- *     responses:
- *       '204':
- *         description: Product added to user's history successfully
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
- *       '404':
- *         description: User or product not found
  * /user/orders:
  *   get:
  *     summary: Get all orders made by user
@@ -276,6 +257,74 @@ export default userRouter;
  *                 createdAt: 1688580972442
  *                 updatedAt: 1688580972442
  *                 number: '2000134351'
+ * /user/history:
+ *   post:
+ *     summary: Add product to user's viewed products history
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductEntry'
+ *     responses:
+ *       '204':
+ *         description: Product added to user's history successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: User or product not found
+ *   get:
+ *     summary: Get products in user's history
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     responses:
+ *       '200':
+ *         description: All products in user's history
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProductResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: User or product not found
+ *   patch:
+ *     summary: Merge local user history and saved
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: string
+ *             example:
+ *               - 6473b4d9569debe2438c7871
+ *     responses:
+ *       '200':
+ *         description: Updated user history
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProductResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: User or product not found
  * components:
  *   schemas:
  *     UserResponse:

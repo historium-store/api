@@ -384,6 +384,52 @@ const getHistory = async user => {
 	}
 };
 
+const mergeHistory = async (user, history) => {
+	try {
+		const userToUpdate = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.select('history')
+			.findOne();
+
+		await Promise.all(
+			history.map(async id => {
+				const existingProduct = await Product.where('_id')
+					.equals(id)
+					.where('deletedAt')
+					.exists(false)
+					.select('_id')
+					.findOne()
+					.lean();
+
+				if (!existingProduct) {
+					throw {
+						status: 404,
+						message: `Product with id '${id}' not found`
+					};
+				}
+			})
+		);
+
+		userToUpdate.history = [].concat(
+			history,
+			userToUpdate.history.filter(
+				id => !history.includes(id.toHexString())
+			)
+		);
+
+		await userToUpdate.save();
+
+		return getHistory(user);
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
@@ -394,5 +440,6 @@ export default {
 	removeFromWishlist,
 	getOrders,
 	addToHistory,
-	getHistory
+	getHistory,
+	mergeHistory
 };

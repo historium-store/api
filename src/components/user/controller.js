@@ -166,8 +166,25 @@ const addToHistory = async (req, res, next) => {
 
 const getHistory = async (req, res, next) => {
 	const { id: user } = req.user;
+
 	try {
 		res.json(await service.getHistory(user));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+const mergeHistory = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { history } = matchedData(req);
+
+		res.json(await service.mergeHistory(user, history));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -183,5 +200,6 @@ export default {
 	removeFromWishlist,
 	getOrders,
 	addToHistory,
-	getHistory
+	getHistory,
+	mergeHistory
 };
