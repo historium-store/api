@@ -15,4 +15,6 @@ boardGameRouter
 		controller.createOne
 	);
 
+boardGameRouter.route('/:id').get(controller.getOne);
+
 export default boardGameRouter;

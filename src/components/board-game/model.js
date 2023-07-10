@@ -7,11 +7,13 @@ const boardGameSchema = new Schema(
 	{
 		product: {
 			type: ObjectId,
+			ref: 'Product',
 			required: true
 		},
 
 		brand: {
 			type: ObjectId,
+			ref: 'Brand',
 			required: true
 		},
 
