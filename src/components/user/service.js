@@ -277,12 +277,18 @@ const removeFromWishlist = async (user, product) => {
 };
 
 const getOrders = async (queryParams, user) => {
-	const { orderBy, order } = queryParams;
+	const { orderBy, order, status } = queryParams;
 
 	try {
-		return await Order.where('user')
-			.equals(user)
-			.sort({ [orderBy ?? 'createdAt']: order ?? 'desc' });
+		const query = Order.where('user').equals(user);
+
+		if (status) {
+			query.where('status.key').equals(status);
+		}
+
+		return await query.sort({
+			[orderBy ?? 'createdAt']: order ?? 'desc'
+		});
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
