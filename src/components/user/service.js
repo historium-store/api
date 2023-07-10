@@ -421,7 +421,7 @@ const mergeHistory = async (user, history) => {
 
 		await userToUpdate.save();
 
-		return userToUpdate.history;
+		return getHistory(user);
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
