@@ -145,18 +145,14 @@ const getAll = async queryParams => {
 		offset: skip,
 		withProducts,
 		orderBy,
-		order,
-		name
+		order
 	} = queryParams;
 
 	try {
-		const query = Section.where('deletedAt').exists(false);
-
-		if (name) {
-			query.where('name').equals(name);
-		}
-
-		const foundSections = await query
+		const foundSections = await Section.where('root')
+			.equals(true)
+			.where('deletedAt')
+			.exists(false)
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order })
