@@ -8,13 +8,6 @@ const validateCreate = [
 		.bail()
 		.isMongoId()
 		.withMessage('Review product id must be a valid mongo id'),
-	body('user')
-		.trim()
-		.notEmpty()
-		.withMessage('Review user id is required')
-		.bail()
-		.isMongoId()
-		.withMessage('Review user id must be a valid mongo id'),
 	body('title')
 		.trim()
 		.notEmpty()
@@ -37,18 +30,14 @@ const validateUpdate = [
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Review title is required'),
+		.withMessage("Review title can't be empty"),
 	body('text')
 		.optional()
 		.trim()
 		.notEmpty()
-		.withMessage('Review text is required'),
+		.withMessage("Review text can't be empty"),
 	body('rating')
 		.optional()
-		.trim()
-		.notEmpty()
-		.withMessage('Review rating is required')
-		.bail()
 		.isInt({ min: 0, max: 5 })
 		.withMessage('Review rating must be an integer between 0 and 5')
 ];

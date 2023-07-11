@@ -6,86 +6,53 @@ const createOne = async reviewData => {
 	const { product, user } = reviewData;
 
 	try {
-		const existingProduct = await Product.where('_id')
-			.equals(product)
-			.where('deletedAt')
-			.exists(false)
-			.findOne();
+		let productToUpdate;
+		let userToUpdate;
 
-		if (!existingProduct) {
-			throw {
-				status: 404,
-				message: `Product with id '${product}' not found`
-			};
-		}
+		await Promise.all([
+			(async () => {
+				productToUpdate = await Product.where('_id')
+					.equals(product)
+					.where('deletedAt')
+					.exists(false)
+					.select('_id')
+					.findOne();
 
-		const existingUser = await User.where('_id')
-			.equals(user)
-			.where('deletedAt')
-			.exists(false)
-			.findOne();
+				if (!productToUpdate) {
+					throw {
+						status: 404,
+						message: `Product with id '${product}' not found`
+					};
+				}
+			})(),
+			(async () => {
+				userToUpdate = await User.where('_id')
+					.equals(user)
+					.where('deletedAt')
+					.exists(false)
+					.select('_id')
+					.findOne();
 
-		if (!existingUser) {
-			throw {
-				status: 404,
-				message: `User with id '${user}' not found`
-			};
-		}
+				if (!userToUpdate) {
+					throw {
+						status: 404,
+						message: `User with id '${user}' not found`
+					};
+				}
+			})()
+		]);
 
 		const newReview = await Review.create(reviewData);
 
-		await Product.updateOne(
-			{ _id: product },
-			{ $push: { reviews: newReview } }
-		);
+		await productToUpdate.updateOne({
+			$push: { reviews: newReview.id }
+		});
 
-		await User.updateOne(
-			{ _id: user },
-			{ $push: { reviews: newReview } }
-		);
+		await userToUpdate.updateOne({
+			$push: { reviews: newReview.id }
+		});
 
 		return newReview;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
-	}
-};
-
-const getOne = async id => {
-	try {
-		const foundReview = await Review.where('_id')
-			.equals(id)
-			.where('deletedAt')
-			.exists(false)
-			.findOne();
-
-		if (!foundReview) {
-			throw {
-				status: 404,
-				message: `Review with id '${id}' not found`
-			};
-		}
-
-		return foundReview;
-	} catch (err) {
-		throw {
-			status: err.status ?? 500,
-			message: err.message ?? err
-		};
-	}
-};
-
-const getAll = async queryParams => {
-	const { limit, offset: skip, orderBy, order } = queryParams;
-
-	try {
-		return await Review.where('deletedAt')
-			.exists(false)
-			.limit(limit)
-			.skip(skip)
-			.sort({ [orderBy]: order });
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
@@ -128,6 +95,7 @@ const deleteOne = async id => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
+			.select('product user')
 			.findOne();
 
 		if (!reviewToDelete) {
@@ -158,8 +126,6 @@ const deleteOne = async id => {
 
 export default {
 	createOne,
-	getOne,
-	getAll,
 	updateOne,
 	deleteOne
 };

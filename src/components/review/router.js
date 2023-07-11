@@ -1,26 +1,21 @@
 import { Router } from 'express';
-import { validateId, validateQueryParams } from '../../middleware.js';
-import { authenticate } from '../auth/controller.js';
+import { validateId } from '../../middleware.js';
+import { authenticate as authentication } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
 const reviewRouter = Router();
 
+reviewRouter.use(authentication);
+
 reviewRouter
 	.route('/')
-	.post(authenticate, validator.validateCreate, controller.createOne)
-	.get(validateQueryParams, controller.getAll);
+	.post(validator.validateCreate, controller.createOne);
 
 reviewRouter
 	.route('/:id')
-	.get(validateId, controller.getOne)
-	.patch(
-		authenticate,
-		validateId,
-		validator.validateUpdate,
-		controller.updateOne
-	)
-	.delete(authenticate, validateId, controller.deleteOne);
+	.patch(validateId, validator.validateUpdate, controller.updateOne)
+	.delete(validateId, controller.deleteOne);
 
 export default reviewRouter;
 
@@ -33,37 +28,34 @@ export default reviewRouter;
  *       - api_auth: []
  *     tags:
  *       - review
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               product:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               text:
+ *                 type: string
+ *               rating:
+ *                 type: integer
+ *             example:
+ *               product: 6473b1aa394b41f5828a5e34
+ *               title: Товар во 👍
+ *               text: Після придбання даного товару моє життя пішло вгору
+ *               rating: 5
  *     responses:
  *       '201':
  *         description: Created review
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
- *   get:
- *     summary: Get all reviews
- *     tags:
- *       - review
- *     parameters:
- *       - $ref: '#/components/parameters/limit'
- *       - $ref: '#/components/parameters/offset'
- *       - $ref: '#/components/parameters/orderBy'
- *       - $ref: '#/components/parameters/order'
- *     responses:
- *       '200':
- *         description: All reviews
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ReviewResponse'
  * /review/{id}:
- *   get:
- *     summary: Get one review
- *     tags:
- *       - review
- *     parameters:
- *       - $ref: '#/components/parameters/id'
- *     responses:
- *       '200':
- *         description: Requested review
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
- *       '404':
- *         description: Review not found
  *   patch:
  *     summary: Update one existing review
  *     security:
@@ -72,9 +64,29 @@ export default reviewRouter;
  *       - review
  *     parameters:
  *       - $ref: '#/components/parameters/id'
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               text:
+ *                 type: string
+ *               rating:
+ *                 type: integer
+ *             example:
+ *               rating: 4
  *     responses:
  *       '200':
- *         description: Requested review
+ *         description: Updated review
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ReviewResponse'
  *       '403':
  *         $ref: '#/components/responses/Forbidden'
  *       '404':
@@ -94,4 +106,40 @@ export default reviewRouter;
  *         $ref: '#/components/responses/Forbidden'
  *       '404':
  *         description: Review not found
+ * components:
+ *   schemas:
+ *     ReviewResponse:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         product:
+ *           type: string
+ *         user:
+ *           type: string
+ *         title:
+ *           type: string
+ *         text:
+ *           type: string
+ *         rating:
+ *           type: integer
+ *         likes:
+ *           type: integer
+ *         dislikes:
+ *           type: integer
+ *         createdAt:
+ *           type: integer
+ *         updatedAt:
+ *           type: integer
+ *       example:
+ *         _id: 64acfd79cffe6bdb61920f92
+ *         product: 64acfdb609fe6f3dbfe4b5d2
+ *         user: 64acfd97f95ef41175576c0f
+ *         title: Товар во 👍
+ *         text: Після придбання даного товару моє життя пішло вгору
+ *         rating: 5
+ *         likes: 11
+ *         dislikes: 3
+ *         createdAt: 1689058866802
+ *         updatedAt: 1689058866802
  */
