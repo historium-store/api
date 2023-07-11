@@ -32,6 +32,11 @@ const sectionSchema = new Schema(
 			}
 		],
 
+		image: {
+			type: String,
+			requried: false
+		},
+
 		root: {
 			type: Boolean,
 			required: true,
