@@ -6,7 +6,12 @@ const findProducts = async valueToFind => {
 			.exists(false)
 			.or([
 				{ name: { $regex: valueToFind, $options: 'i' } },
-				{ code: valueToFind }
+				{ code: valueToFind },
+				{
+					creators: {
+						$elemMatch: { $regex: valueToFind, $options: 'i' }
+					}
+				}
 			])
 			.populate({
 				path: 'type',
