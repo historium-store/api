@@ -32,6 +32,12 @@ const sectionSchema = new Schema(
 			}
 		],
 
+		root: {
+			type: Boolean,
+			required: true,
+			default: false
+		},
+
 		createdAt: {
 			type: Number
 		},
