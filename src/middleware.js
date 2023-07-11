@@ -102,5 +102,10 @@ export const validateQueryParams = [
 	query('status')
 		.optional()
 		.isIn(['active', 'completed', 'canceled'])
-		.withMessage('Invalid order status')
+		.withMessage('Invalid order status'),
+	query('name')
+		.optional()
+		.trim()
+		.notEmpty()
+		.withMessage("Query parameter 'name' must have a value")
 ];
