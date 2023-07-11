@@ -4,10 +4,7 @@ import {
 	validateId,
 	validateQueryParams
 } from '../../middleware.js';
-import {
-	authenticate,
-	authenticate as authentication
-} from '../auth/controller.js';
+import { authenticate as authentication } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
 
@@ -120,7 +117,7 @@ export default userRouter;
  *                 type: string
  *             example:
  *               email: imyan.prizviskov@gmail.com
- *               password: '87654321'
+ *               password: '69ysGtaNk8NP4kXN'
  *     responses:
  *       '200':
  *         description: Updated user
@@ -156,7 +153,7 @@ export default userRouter;
  *       - user
  *     responses:
  *       '200':
- *         description: User data associated with account
+ *         description: User account
  *         content:
  *           application/json:
  *             schema:
@@ -209,11 +206,12 @@ export default userRouter;
  *         content:
  *           application/json:
  *             example:
- *               - contactInfo:
+ *               - _id: 64a5b36c488aec4d50a691c4
+ *                 contactInfo:
  *                   firstName: Ім'ян
  *                   lastName: Прізвиськов
  *                   phoneNumber: "+380442138972"
- *                   email: bimlicupsu@gufum.com
+ *                   email: imyan.prizviskov@ukr.net
  *                 receiverInfo:
  *                   firstName: Прізва
  *                   lastName: Ім'янова
@@ -230,30 +228,46 @@ export default userRouter;
  *                 status:
  *                   name: Поточний
  *                   key: active
- *                 _id: 64a5b36c488aec4d50a691c4
  *                 gift: false
  *                 callback: true
  *                 paymentType: 'Готівкою або карткою: При отриманні'
  *                 user: 64a5b36c488aec4d50a691be
  *                 items:
  *                 - product:
- *                     type: Книга
+ *                     _id: 6473c4ef569debe2438c794f
  *                     name: Мистецтво говорити. Таємниці ефективного спілкування
+ *                     creators:
+ *                       - Джеймс Борг
+ *                     key: mistectvo-govoriti-taiemnici-efektivnogo-spilkuvannya
  *                     price: 320
- *                     code: '115994'
+ *                     quantity: 500
+ *                     type:
+ *                       name: Книга
+ *                       key: book
+ *                     createdAt: 1689079469671
+ *                     code: '116018'
  *                     image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/206ec0fb-7f22-43c5-b7a6-c361f7b416ef.webp
+ *                     requiresDelivery: true
  *                   quantity: 1
- *                   _id: 64a5b36c488aec4d50a691c5
  *                 - product:
- *                     type: Книга
+ *                     _id: 6474dd020472d62ed62f4513
  *                     name: Бетмен. Книга 1. Суд сов
+ *                     creators:
+ *                       - Скотт Снайдер
+ *                     key: betmen-kniga-1-sud-sov
  *                     price: 468
- *                     code: '116000'
+ *                     quantity: 0
+ *                     type:
+ *                       name: Книга
+ *                       key: book
+ *                     createdAt: 1689079469671
+ *                     code: '116022'
  *                     image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/cbdd4b36-50e5-47c6-b516-a3632476ee7e.webp
+ *                     requiresDelivery: true
  *                   quantity: 3
- *                   _id: 64a5b36c488aec4d50a691c6
  *                 totalPrice: 1784
  *                 totalQuantity: 4
+ *                 deliveryPrice: 60
  *                 createdAt: 1688580972442
  *                 updatedAt: 1688580972442
  *                 number: '2000134351'

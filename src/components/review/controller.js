@@ -3,6 +3,8 @@ import { createError } from '../../utils.js';
 import service from './service.js';
 
 const createOne = async (req, res, next) => {
+	const { id: user } = req.user;
+
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
@@ -10,35 +12,9 @@ const createOne = async (req, res, next) => {
 
 		const reviewData = matchedData(req);
 
+		reviewData.user = user;
+
 		res.status(201).json(await service.createOne(reviewData));
-	} catch (err) {
-		next(createError(err));
-	}
-};
-
-const getOne = async (req, res, next) => {
-	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
-
-		const { id } = matchedData(req);
-
-		res.json(await service.getOne(id));
-	} catch (err) {
-		next(createError(err));
-	}
-};
-
-const getAll = async (req, res, next) => {
-	try {
-		validationResult(req)
-			.formatWith(e => e.msg)
-			.throw();
-
-		const queryParams = matchedData(req);
-
-		res.json(await service.getAll(queryParams));
 	} catch (err) {
 		next(createError(err));
 	}
@@ -96,8 +72,6 @@ const deleteOne = async (req, res, next) => {
 
 export default {
 	createOne,
-	getOne,
-	getAll,
 	updateOne,
 	deleteOne
 };

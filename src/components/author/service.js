@@ -35,7 +35,6 @@ const getOne = async id => {
 			.equals(id)
 			.where('deletedAt')
 			.exists(false)
-			.select('_id')
 			.findOne()
 			.lean();
 

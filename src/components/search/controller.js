@@ -6,7 +6,9 @@ const findProducts = async (req, res, next) => {
 
 	try {
 		res.json(
-			valueToFind ? await service.findProducts(valueToFind) : []
+			valueToFind
+				? await service.findProducts(valueToFind)
+				: { result: [], total: 0 }
 		);
 	} catch (err) {
 		next(createError(err));

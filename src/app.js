@@ -138,6 +138,14 @@ export default app;
  *         type: string
  *         example: 649d6ff51af81ee6f957f198
  *       description: Mongo id of a document
+ *     key:
+ *       in: path
+ *       name: key
+ *       required: true
+ *       schema:
+ *         type: string
+ *         example: trista-poeziy
+ *       description: Key of a product
  *     limit:
  *       in: query
  *       name: limit
