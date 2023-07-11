@@ -54,9 +54,9 @@ export default authRouter;
  *             example:
  *               firstName: Ім'ян
  *               lastName: Прізвиськов
- *               phoneNumber: '+380442138972'
+ *               phoneNumber: '0442138972'
  *               email: imyan.prizviskov@ukr.net
- *               password: '12345678'
+ *               password: 'auRwAkv5w985yQ3R'
  *     responses:
  *       '201':
  *         description: Created user
@@ -102,8 +102,8 @@ export default authRouter;
  *             phoneNumber:
  *               summary: Using phone number
  *               value:
- *                 login: '+380442138972'
- *                 password: '12345678'
+ *                 login: '0442138972'
+ *                 password: 'auRwAkv5w985yQ3R'
  *             email:
  *               summary: Using email
  *               value:
@@ -149,7 +149,7 @@ export default authRouter;
  *               phoneNumber:
  *                 summary: Using phone number
  *                 value:
- *                   login: '+380442138972'
+ *                   login: '0442138972'
  *               email:
  *                 summary: Using email
  *                 value:
