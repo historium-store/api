@@ -8,7 +8,6 @@ import Product from '../product/model.js';
 import Publisher from '../publisher/model.js';
 import Section from '../section/model.js';
 import Translator from '../translator/model.js';
-import User from '../user/model.js';
 import Book from './model.js';
 
 const createOne = async bookData => {
@@ -30,7 +29,7 @@ const createOne = async bookData => {
 
 	try {
 		await Promise.all([
-			async () => {
+			(async () => {
 				const existingProduct = await Product.where('_id')
 					.equals(product)
 					.where('deletedAt')
@@ -45,8 +44,8 @@ const createOne = async bookData => {
 						message: `Product with id '${product}' not found`
 					};
 				}
-			},
-			async () => {
+			})(),
+			(async () => {
 				const existingPublisher = await Publisher.where('_id')
 					.equals(publisher)
 					.where('deletedAt')
@@ -61,7 +60,7 @@ const createOne = async bookData => {
 						message: `Publisher with id '${publisher}' not found`
 					};
 				}
-			},
+			})(),
 			...authors.map(async id => {
 				const existingAuthor = await Author.where('_id')
 					.equals(id)
@@ -142,7 +141,7 @@ const createOne = async bookData => {
 					};
 				}
 			}),
-			async () => {
+			(async () => {
 				if (series) {
 					const existingBookSeries = await BookSeries.where('_id')
 						.equals(series)
@@ -159,7 +158,7 @@ const createOne = async bookData => {
 						};
 					}
 				}
-			}
+			})()
 		]);
 
 		const newBook = await Book.create(bookData);
