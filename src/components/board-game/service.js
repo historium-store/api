@@ -90,7 +90,46 @@ const getOne = async id => {
 	}
 };
 
+const getAll = async queryParams => {
+	const { limit, offset: skip, orderBy, order } = queryParams;
+
+	try {
+		const query = BoardGame.where('deletedAt').exists(false);
+
+		return await query
+			.limit(limit)
+			.skip(skip)
+			.sort({ [orderBy ?? 'createdAt']: order ?? 'asc' })
+			.populate([
+				{
+					path: 'product',
+					populate: { path: 'type', select: '-_id name key' },
+					select:
+						'name creators key price quantity createdAt code images requiresDelivery',
+					transform: product => ({
+						...product,
+						image: product.image ?? product.images[0],
+						images: undefined
+					})
+				},
+				{
+					path: 'brand',
+					select: '-_id name',
+					transform: a => a.name
+				}
+			])
+			.select('brand')
+			.lean();
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
-	getOne
+	getOne,
+	getAll
 };

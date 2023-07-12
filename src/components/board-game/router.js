@@ -13,7 +13,8 @@ boardGameRouter
 		checkRole(['admin', 'seller']),
 		validator.validateCreate,
 		controller.createOne
-	);
+	)
+	.get(controller.getAll);
 
 boardGameRouter.route('/:id').get(controller.getOne);
 
