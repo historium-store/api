@@ -28,6 +28,12 @@ userRouter
 	.delete(controller.removeFromWishlist);
 
 userRouter
+	.route('/waitlist')
+	.all(validator.validateProductEntry)
+	.post(controller.addToWaitlist)
+	.delete(controller.removeFromWaitlist);
+
+userRouter
 	.route('/history')
 	.get(controller.getHistory)
 	.post(validator.validateProductEntry, controller.addToHistory)
@@ -191,6 +197,41 @@ export default userRouter;
  *     responses:
  *       '204':
  *         description: Product removed from user's wishlist successfully
+ *       '404':
+ *         description: User or product not found
+ * /user/waitlist:
+ *   post:
+ *     summary: Add product to user's waitlist
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductEntry'
+ *     responses:
+ *       '204':
+ *         description: Product added to user's waitlist successfully
+ *       '404':
+ *         description: User or product not found
+ *   delete:
+ *     summary: Remove product from user's waitlist
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductEntry'
+ *     responses:
+ *       '204':
+ *         description: Product removed from user's waitlist successfully
  *       '404':
  *         description: User or product not found
  * /user/orders:
