@@ -20,24 +20,36 @@ describe('user system', () => {
 		await mongoose.connection.collection('sections').deleteMany();
 		await mongoose.connection
 			.collection('users')
+			.deleteMany({ role: { $ne: 'admin' } });
+		await mongoose.connection
+			.collection('users')
 			.findOneAndUpdate({}, { $set: { wishlist: [] } });
+		await mongoose.connection
+			.collection('users')
+			.findOneAndUpdate({}, { $set: { history: [] } });
 
 		await mongoose.connection.close();
 	});
 
+	beforeEach(async () => {
+		const userData = {
+			login: 'dobriy.edu@gmail.com',
+			password: '41424344'
+		};
+
+		userToken += (await request(app).post('/login').send(userData))
+			.body.token;
+	});
+
+	afterEach(() => {
+		userToken = 'Bearer ';
+	});
+
 	let userToken = 'Bearer ';
-	let productId;
+	let productId, userId;
 
-	describe(' "/user/" GET request ', () => {
-		it('The token is correct; the role is correct; an array of users should be returned', async () => {
-			const userData = {
-				login: 'dobriy.edu@gmail.com',
-				password: '41424344'
-			};
-
-			userToken += (await request(app).post('/login').send(userData))
-				.body.token;
-
+	describe(' GET "/user/" Get all users ', () => {
+		it(' Should return an array of users ', async () => {
 			await request(app)
 				.get('/user/')
 				.set('Authorization', userToken)
@@ -47,12 +59,65 @@ describe('user system', () => {
 						'application/json'
 					);
 					expect(response.body).to.be.an('array');
+
+					userId = response.body[0]._id;
 				});
 		});
 	});
 
-	describe(' "/user/:id" DELETE request ', () => {
-		it.skip(' should change the user property "deletedAt". The user is no longer displayed in the list of all users, but is not removed from the database', async () => {
+	describe(' GET "/user/:id" Get one user ', () => {
+		it(' Should return user by id ', async () => {
+			const expectedFields = [
+				'_id',
+				'firstName',
+				'lastName',
+				'phoneNumber',
+				'email',
+				'role',
+				'reviews',
+				'wishlist',
+				'createdAt',
+				'updatedAt',
+				'cart'
+			];
+
+			await request(app)
+				.get(`/user/${userId}`)
+				.set('Authorization', userToken)
+				.then(response => {
+					expect(response.status).to.equal(200);
+					expect(response.header['content-type']).to.include(
+						'application/json'
+					);
+					expect(response.body).to.include.keys(...expectedFields);
+				});
+		});
+	});
+
+	describe(' PATCH "/user/:id" Update one existing user ', () => {
+		it(' Should return the user with updated data ', async () => {
+			const newData = {
+				firstName: 'Артем',
+				lastName: 'Желіковський'
+			};
+
+			await request(app)
+				.patch(`/user/${userId}`)
+				.set('Authorization', userToken)
+				.send(newData)
+				.then(response => {
+					expect(response.status).to.equal(200);
+					expect(response.header['content-type']).to.include(
+						'application/json'
+					);
+					expect(response.body.firstName).to.equal(newData.firstName);
+					expect(response.body.lastName).to.equal(newData.lastName);
+				});
+		});
+	});
+
+	describe(' DELETE "/user/:id" Delete one user ', () => {
+		it(' Should mark the user as deleted via the "deletedAt" field, but not delete him ', async () => {
 			const newUser = {
 				firstName: 'Oleg',
 				lastName: 'Smirniv',
@@ -71,14 +136,47 @@ describe('user system', () => {
 			await request(app)
 				.delete(`/user/${userId}`)
 				.set('Authorization', userToken)
-				.then(async response => {
-					console.log(response.body);
+				.then(async () => {
+					const deletedUser = await mongoose.connection
+						.collection('users')
+						.findOne({ email: 'lahefi3700@devswp.com' });
+
+					expect(deletedUser).to.include.keys('deletedAt');
 				});
 		});
 	});
 
-	describe(' "/user/wishlist/" POST request ', () => {
-		it(' Product added to wishlist successfully ', async () => {
+	describe(' GET "/user/account" Get user account ', () => {
+		it(' Should return information about the authorized user ', async () => {
+			const expectedFields = [
+				'_id',
+				'firstName',
+				'lastName',
+				'phoneNumber',
+				'email',
+				'role',
+				'reviews',
+				'wishlist',
+				'createdAt',
+				'updatedAt',
+				'cart'
+			];
+
+			await request(app)
+				.get(`/user/${userId}`)
+				.set('Authorization', userToken)
+				.then(response => {
+					expect(response.status).to.equal(200);
+					expect(response.header['content-type']).to.include(
+						'application/json'
+					);
+					expect(response.body).to.include.keys(...expectedFields);
+				});
+		});
+	});
+
+	describe(` POST "/user/wishlist/" Add product to user's wishlist `, () => {
+		it(' Should add product to wishlist ', async () => {
 			//#region adding the necessary objects to the database
 
 			const productType = {
@@ -144,14 +242,14 @@ describe('user system', () => {
 		});
 	});
 
-	describe(' "/user/wishlist/" DELETE request ', () => {
-		it(' Product removed from wishlist successfully ', async () => {
+	describe(` DELETE "/user/wishlist/" Remove product from user's wishlist `, () => {
+		it(' Must remove product from wishlist ', async () => {
 			const requestBody = {
 				product: productId
 			};
 
 			await request(app)
-				.delete('/user/wishlist')
+				.delete('/user/wishlist/')
 				.set('Authorization', userToken)
 				.send(requestBody)
 				.then(async response => {
@@ -162,6 +260,43 @@ describe('user system', () => {
 					).wishlist;
 
 					expect(userWishlist).to.be.empty;
+				});
+		});
+	});
+
+	//!!!!!!!!!!!!!
+	describe(` POST "/user/history/" Add product to user's viewed products history `, () => {
+		it(' Should add new element to "history" array ', async () => {
+			await request(app)
+				.get(`/user/history/`)
+				.set('Authorization', userToken)
+				.send(productId)
+				.then(async response => {
+					expect(response.status).to.equal(200);
+					expect(response.header['content-type']).to.include(
+						'application/json'
+					);
+
+					const user = await mongoose.connection
+						.collection('users')
+						.findOne();
+
+					console.log(user.history); // = []
+				});
+		});
+	});
+
+	describe(` GET "/user/orders/" Get all orders made by user `, () => {
+		it(' Should return an array of orders ', async () => {
+			await request(app)
+				.get(`/user/orders/`)
+				.set('Authorization', userToken)
+				.then(response => {
+					expect(response.status).to.equal(200);
+					expect(response.header['content-type']).to.include(
+						'application/json'
+					);
+					expect(response.body).to.be.an('array');
 				});
 		});
 	});

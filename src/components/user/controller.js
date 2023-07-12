@@ -130,6 +130,16 @@ const removeFromWishlist = async (req, res, next) => {
 	}
 };
 
+const getWishlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		res.json(await service.getWishlist(user));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 const getOrders = async (req, res, next) => {
 	const { id: user } = req.user;
 
@@ -190,6 +200,52 @@ const mergeHistory = async (req, res, next) => {
 	}
 };
 
+const addToWaitlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { product } = matchedData(req);
+
+		await service.addToWaitlist(user, product);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+const removeFromWaitlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { product } = matchedData(req);
+
+		await service.removeFromWaitlist(user, product);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+const getWaitlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		res.json(await service.getWaitlist(user));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	getOne,
 	getAll,
@@ -198,8 +254,12 @@ export default {
 	getAccount,
 	addToWishlist,
 	removeFromWishlist,
+	getWishlist,
 	getOrders,
 	addToHistory,
 	getHistory,
-	mergeHistory
+	mergeHistory,
+	addToWaitlist,
+	removeFromWaitlist,
+	getWaitlist
 };

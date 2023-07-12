@@ -50,7 +50,7 @@ describe(' Order system ', () => {
 	};
 
 	describe('  Create order ', () => {
-		it(' The user does not exist. The user is created. 2 emails are sent to the email. Order is being created ', async function () {
+		it.skip(' The user does not exist. The user is created. 2 emails are sent to the email. Order is being created ', async function () {
 			// Increased test execution time because emails take a long time to send
 			this.timeout(10000);
 

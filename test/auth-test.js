@@ -17,7 +17,7 @@ describe('auth system', () => {
 		await mongoose.connection.close();
 	});
 
-	describe('"/signup" request test', () => {
+	describe(' "/signup" Create new user ', () => {
 		it('The data should be validated and the body of the created user should be returned', async () => {
 			const newUser = {
 				firstName: 'Artem',
@@ -38,7 +38,10 @@ describe('auth system', () => {
 				'reviews',
 				'_id',
 				'createdAt',
-				'updatedAt'
+				'updatedAt',
+				'history',
+				'products',
+				'wishlist'
 			];
 
 			await request(app)
@@ -54,7 +57,7 @@ describe('auth system', () => {
 		});
 	});
 
-	describe(' "/login" request test', () => {
+	describe(' "/login" Login existing user ', () => {
 		it('The password and login are correct, the token is returned', async () => {
 			const inputData = {
 				login: 'dobriy.edu@gmail.com',

@@ -1,5 +1,6 @@
 import { ObjectId } from 'bson';
 import { expect } from 'chai';
+import { response } from 'express';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
@@ -35,11 +36,11 @@ describe(' section system', () => {
 		userToken = 'Bearer ';
 	});
 
-	describe(' "/section/" POST request ', () => {
-		it(' the section data is correct; the new section object is returned ', async () => {
-			const newSection = {
-				name: 'Fantastic',
-				key: 'fantastic',
+	describe(' POST "/section/" Create new section ', () => {
+		it(' Should add new section to database ', async () => {
+			const section = {
+				name: 'Художня література',
+				key: 'khudozhnia-literatura',
 				products: [],
 				sections: []
 			};
@@ -57,21 +58,22 @@ describe(' section system', () => {
 			await request(app)
 				.post('/section/')
 				.set('Authorization', userToken)
-				.send(newSection)
+				.send(section)
 				.then(response => {
-					sectionId = response.body._id;
-
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
+
+					sectionId = response.body._id;
 				});
 		});
 	});
 
-	describe(' "/section/" GET request ', () => {
-		it(' should return an array of sections ', async () => {
+	describe(' GET "/section/" Get all sections ', () => {
+		it(' Should return all sections  ', async () => {
 			await request(app)
 				.get('/section/')
 				.set('Authorization', userToken)
@@ -80,13 +82,14 @@ describe(' section system', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.be.an('array');
 				});
 		});
 	});
 
-	describe(' "/section/:id" GET request ', () => {
-		it(' should return section object', async () => {
+	describe(' GET "/section/:id" Get one section ', () => {
+		it(' Should return one section by id ', async () => {
 			const expectedFields = ['name', 'key', '_id', 'sections'];
 
 			await request(app)
@@ -97,15 +100,32 @@ describe(' section system', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});
 
-	describe(' "/section/:id" PATCH request ', () => {
-		it(' correct values are sent; the changed section object is returned ', async () => {
+	describe(' PATCH "/section/:id" Update one existing section ', () => {
+		it(' Should return updated section ', async () => {
+			//#region adding the necessary objects to the database
+
+			const newSection = {
+				name: 'Фантастика',
+				key: 'fantastic',
+				products: [],
+				sections: []
+			};
+			const newSectionId = (
+				await mongoose.connection
+					.collection('sections')
+					.insertOne(newSection)
+			).insertedId;
+
+			//#endregion
+
 			const updatedSectionData = {
-				key: 'fc'
+				sections: [newSectionId]
 			};
 
 			await request(app)
@@ -117,32 +137,42 @@ describe(' section system', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
-					expect(response.body.key).to.equal('fc');
+
+					expect(response.body.sections).to.include(
+						newSectionId.toString()
+					);
 				});
 		});
 	});
 
-	describe(' "/section/:id" DELETE request ', () => {
-		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+	describe(' GET "/section/:id/products" Get all section products ', () => {
+		it(' Should return all section products ', async () => {
+			await request(app)
+				.get(`/section/${sectionId}/products`)
+				.set('Authorization', userToken)
+				.then(response => {
+					expect(response.status).to.equal(200);
+					expect(response.header['content-type']).to.include(
+						'application/json'
+					);
+
+					expect(response.body.result).to.be.an('array');
+				});
+		});
+	});
+
+	describe(' DELETE "/section/:id" Delete one section ', () => {
+		it(' Should mark section as deleted via the "deletedAt" field, but not delete ', async () => {
 			await request(app)
 				.delete(`/section/${sectionId}`)
 				.set('Authorization', userToken)
 				.then(async response => {
-					// get arr of sections from request
-					const sections = (
-						await request(app)
-							.get('/section/')
-							.set('Authorization', userToken)
-					).body;
+					expect(response.status).to.equal(204);
 
-					// get section object from db
-					const sectionObject = await mongoose.connection
+					const section = await mongoose.connection
 						.collection('sections')
-						.findOne(new ObjectId(sectionId));
-
-					expect(response.status).to.be.equal(204);
-					expect(sections).to.be.empty;
-					expect(sectionObject.deletedAt).to.not.be.null;
+						.findOne({ _id: new ObjectId(sectionId) });
+					expect(section.deletedAt).not.be.null;
 				});
 		});
 	});

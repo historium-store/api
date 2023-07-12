@@ -276,6 +276,45 @@ const removeFromWishlist = async (user, product) => {
 	}
 };
 
+const getWishlist = async user => {
+	try {
+		const foundUser = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.select('wishlist')
+			.populate({
+				path: 'wishlist',
+				populate: { path: 'type', select: '-_id name key' },
+				select:
+					'name creators key price quantity createdAt code images requiresDelivery',
+				transform: product => {
+					product.image = product.images[0];
+
+					delete product.images;
+
+					return product;
+				}
+			})
+			.findOne()
+			.lean();
+
+		if (!foundUser) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		return foundUser.wishlist;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 const getOrders = async (queryParams, user) => {
 	const { orderBy, order, status } = queryParams;
 
@@ -436,6 +475,125 @@ const mergeHistory = async (user, history) => {
 	}
 };
 
+const addToWaitlist = async (user, product) => {
+	try {
+		const userToUpdate = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.select('_id')
+			.exists(false)
+			.findOne();
+
+		if (!userToUpdate) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		const existingProduct = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.select('_id')
+			.findOne()
+			.lean();
+
+		if (!existingProduct) {
+			throw {
+				status: 404,
+				message: `Product with id '${product}' not found`
+			};
+		}
+
+		await userToUpdate.updateOne({ $push: { waitlist: product } });
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+const removeFromWaitlist = async (user, product) => {
+	try {
+		const userToUpdate = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.select('_id')
+			.exists(false)
+			.findOne();
+
+		if (!userToUpdate) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		const existingProduct = await Product.where('_id')
+			.equals(product)
+			.where('deletedAt')
+			.exists(false)
+			.select('_id')
+			.findOne()
+			.lean();
+
+		if (!existingProduct) {
+			throw {
+				status: 404,
+				message: `Product with id '${product}' not found`
+			};
+		}
+
+		await userToUpdate.updateOne({ $pull: { waitlist: product } });
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+const getWaitlist = async user => {
+	try {
+		const foundUser = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.select('waitlist')
+			.populate({
+				path: 'waitlist',
+				populate: { path: 'type', select: '-_id name key' },
+				select:
+					'name creators key price quantity createdAt code images requiresDelivery',
+				transform: product => {
+					product.image = product.images[0];
+
+					delete product.images;
+
+					return product;
+				}
+			})
+			.findOne()
+			.lean();
+
+		if (!foundUser) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		return foundUser.waitlist;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
@@ -444,8 +602,12 @@ export default {
 	deleteOne,
 	addToWishlist,
 	removeFromWishlist,
+	getWishlist,
 	getOrders,
 	addToHistory,
 	getHistory,
-	mergeHistory
+	mergeHistory,
+	addToWaitlist,
+	removeFromWaitlist,
+	getWaitlist
 };

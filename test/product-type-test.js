@@ -35,8 +35,8 @@ describe(' product-type system ', () => {
 	let userToken = 'Bearer ';
 	let productTypeId;
 
-	describe(' "/product-type/" POST request ', () => {
-		it(' the product-type data is correct; the new product type object is returnd ', async () => {
+	describe(' POST "/product-type/" Create new product type ', () => {
+		it(' Should add new product type to database ', async () => {
 			const newProductType = {
 				name: 'Book',
 				key: 'book'
@@ -54,19 +54,20 @@ describe(' product-type system ', () => {
 				.set('Authorization', userToken)
 				.send(newProductType)
 				.then(response => {
-					productTypeId = response.body._id;
-
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
+
+					productTypeId = response.body._id;
 				});
 		});
 	});
 
-	describe(' "/product-type/" GET request ', () => {
-		it(' should return an array of prdocut types ', async () => {
+	describe(' GET "/product-type/" Get all product types ', () => {
+		it(' Should return all product types ', async () => {
 			await request(app)
 				.get('/product-type/')
 				.set('Authorization', userToken)
@@ -75,13 +76,14 @@ describe(' product-type system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.be.an('array');
 				});
 		});
 	});
 
-	describe(' "/product-type/:id" GET request ', () => {
-		it(' should return product type object ', async () => {
+	describe(' GET "/product-type/:id" Get one product type ', () => {
+		it(' Should return one product type by id ', async () => {
 			const expectedFields = [
 				'name',
 				'_id',
@@ -97,13 +99,14 @@ describe(' product-type system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});
 
-	describe(' "/product-type/:id" PATCH request ', () => {
-		it(' correct values are sent; updated product type object is returned ', async () => {
+	describe(' PATCH "/product-type/:id" Update one existing product type ', () => {
+		it(' Should return product type with updated data ', async () => {
 			const updatedProductTypeData = {
 				name: 'E-Book',
 				key: 'e-book'
@@ -125,23 +128,23 @@ describe(' product-type system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});
 
-	describe(' "/prodcut-type/:id" DELETE request ', () => {
-		it(' should set the "deletedAt" field. the object must be removed from the database ', async () => {
+	describe(' DELETE "/prodcut-type/:id" Delete one product type ', () => {
+		it(' Should delete one product type from database ', async () => {
 			await request(app)
 				.delete(`/product-type/${productTypeId}`)
 				.set('Authorization', userToken)
 				.then(async response => {
-					// get section object from db
+					expect(response.status).to.be.equal(204);
+
 					const productTypeObject = await mongoose.connection
 						.collection('producttypes')
 						.findOne();
-
-					expect(response.status).to.be.equal(204);
 					expect(productTypeObject).to.be.null;
 				});
 		});

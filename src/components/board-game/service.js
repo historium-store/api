@@ -111,19 +111,16 @@ const getAll = async queryParams => {
 						image: product.image ?? product.images[0],
 						images: undefined
 					})
-				},
-				{
-					path: 'brand',
-					select: '-_id name',
-					transform: a => a.name
 				}
 			])
-			.select('brand')
+			.select('-_id product')
 			.lean();
 
 		return {
-			result: foundBoardGames,
-			total: await BoardGame.countDocuments(),
+			result: foundBoardGames.map(b => b.product),
+			total: await BoardGame.where('deletedAt')
+				.exists(false)
+				.countDocuments(),
 			totalFound: foundBoardGames.length
 		};
 	} catch (err) {

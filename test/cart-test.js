@@ -1,5 +1,6 @@
 import { ObjectId } from 'bson';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import { response } from 'express';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import app from '../src/app.js';
@@ -14,17 +15,9 @@ describe(' cart system ', () => {
 	});
 
 	after(async () => {
-		await mongoose.connection.collection('books').deleteMany();
-		await mongoose.connection.collection('bookseries').deleteMany();
-		await mongoose.connection.collection('authors').deleteMany();
-		await mongoose.connection.collection('compilers').deleteMany();
-		await mongoose.connection.collection('editors').deleteMany();
-		await mongoose.connection.collection('illustrators').deleteMany();
 		await mongoose.connection.collection('products').deleteMany();
 		await mongoose.connection.collection('producttypes').deleteMany();
-		await mongoose.connection.collection('publishers').deleteMany();
 		await mongoose.connection.collection('sections').deleteMany();
-		await mongoose.connection.collection('translators').deleteMany();
 		await mongoose.connection
 			.collection('carts')
 			.updateOne({}, { $set: { items: [] } });
@@ -50,10 +43,42 @@ describe(' cart system ', () => {
 	let userToken = 'Bearer ';
 	let productId;
 
-	describe(' "/cart-item/" POST request | add item into cart', () => {
-		it(' should return a 204 response and an empty body; the added element must match the expected "productId ', async () => {
-			// adding the necessary objects to the database
-			//#region
+	describe(' GET "/cart/" Get cart associated with user ', () => {
+		it(' Should return information about the cart of the authorized user ', async () => {
+			const expectedFields = ['items', 'totalPrice', 'totalQuantity'];
+
+			await request(app)
+				.get('/cart/')
+				.set('Authorization', userToken)
+				.then(response => {
+					expect(response.status).to.equal(200);
+					expect(response.header['content-type']).to.include(
+						'application/json'
+					);
+					expect(response.body).to.be.include.keys(...expectedFields);
+				});
+		});
+	});
+
+	describe(' DELETE "/cart/" Clear user cart ', () => {
+		it(' Should empty cart of the authorized user ', async () => {
+			await request(app)
+				.delete('/cart/')
+				.set('Authorization', userToken)
+				.then(async response => {
+					expect(response.status).to.equal(204);
+
+					const cart = await mongoose.connection
+						.collection('carts')
+						.findOne({});
+					expect(cart.items).to.be.empty;
+				});
+		});
+	});
+
+	describe(' POST "/cart-item/" Add item to user cart ', () => {
+		it(' Should add the product to the cart of an authorized user ', async () => {
+			//#region adding the necessary objects to the database
 
 			const productType = {
 				name: 'Книга',
@@ -80,92 +105,70 @@ describe(' cart system ', () => {
 			const product = {
 				name: 'Збірка українських поезій',
 				type: productTypeId,
-				price: 99.99,
+				price: 99,
+				deliveryPrice: 60,
 				quantity: 10,
 				description:
 					'"Збірка українських поезій" - поетичний скарб, що втілює красу та духовність української літератури.',
 				images: ['image1.png'],
-				sections: [sectionId]
+				sections: [sectionId],
+				model: 'Book'
 			};
 			productId = (
-				await mongoose.connection
-					.collection('products')
-					.insertOne(product)
-			).insertedId;
+				await request(app)
+					.post('/product/')
+					.set('Authorization', userToken)
+					.send(product)
+			).body._id;
 
 			//#endregion
 
-			// creating new carItem with chosen product
-			const newCartItem = {
-				product: productId,
-				quantity: 3
+			const body = {
+				product: productId.toString()
 			};
 
-			// request for adding new product(cartItem) into cart
 			await request(app)
 				.post('/cart-item/')
 				.set('Authorization', userToken)
-				.send(newCartItem)
+				.send(body)
 				.then(async response => {
-					//  getting user cart id
-					const cartId = (
-						await request(app)
-							.get('/user/account')
-							.set('Authorization', userToken)
-					).body.cart;
-
-					// getting cart object by id
-					const cartObject = await mongoose.connection
-						.collection('carts')
-						.findOne(new ObjectId(cartId));
-
-					// getting created cart item object
-					const cartItemObject = await mongoose.connection
-						.collection('cartitems')
-						.findOne(new ObjectId(cartObject.items[0]));
-
 					expect(response.status).to.equal(204);
-					expect(cartItemObject.product.toString()).to.equal(
-						productId.toString()
-					);
+
+					const cart = await mongoose.connection
+						.collection('carts')
+						.findOne({});
+					expect(cart.items).to.be.not.empty;
+
+					const cartItem = await mongoose.connection
+						.collection('cartitems')
+						.findOne({ _id: cart.items[0] });
+					expect(cartItem.product.toString()).to.be.equal(productId);
 				});
 		});
 	});
 
-	describe(' "/cart-item/" DELETE request | remove item from cart ', () => {
-		it(' should remove the specified item from the cart and return a 204 response and an empty body ', async () => {
-			const cartItem = {
-				product: productId,
-				quantity: Number.MAX_SAFE_INTEGER
+	describe(' DELETE "/cart-item/" Remove item from user cart ', () => {
+		it(' Should remove the product from the cart of an authorized user ', async () => {
+			const body = {
+				product: productId.toString()
 			};
 
 			await request(app)
-				.delete(`/cart-item/`)
+				.delete('/cart-item/')
 				.set('Authorization', userToken)
-				.send(cartItem)
+				.send(body)
 				.then(async response => {
 					expect(response.status).to.equal(204);
 
-					//  getting user cart id
-					const cartId = (
-						await request(app)
-							.get('/user/account')
-							.set('Authorization', userToken)
-					).body.cart;
-
-					// getting cart object by id
-					let cartObject = await mongoose.connection
+					const cart = await mongoose.connection
 						.collection('carts')
-						.findOne(new ObjectId(cartId));
+						.findOne({});
+					expect(cart.items).to.be.empty;
 
-					// checking that collection 'cartitems' is empty
-					expect(
-						await mongoose.connection
-							.collection('cartitems')
-							.findOne()
-					).to.be.null;
-
-					expect(cartObject.items).to.be.empty;
+					const cartItems = await mongoose.connection
+						.collection('cartitems')
+						.findOne({});
+					expect(cartItems).to.be.null;
 				});
 		});
 	});
