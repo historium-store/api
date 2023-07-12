@@ -163,11 +163,6 @@ const createOne = async bookData => {
 
 		const newBook = await Book.create(bookData);
 
-		await Product.updateOne(
-			{ _id: product },
-			{ $set: { creators: newBook.authors.map(a => a.fullName) } }
-		);
-
 		await Publisher.updateOne(
 			{ _id: publisher },
 			{ $push: { books: newBook.id } }
