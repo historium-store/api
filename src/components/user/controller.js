@@ -190,6 +190,42 @@ const mergeHistory = async (req, res, next) => {
 	}
 };
 
+const addToWaitlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { product } = matchedData(req);
+
+		await service.addToWaitlist(user, product);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+const removeFromWaitlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const { product } = matchedData(req);
+
+		await service.removeFromWaitlist(user, product);
+
+		res.sendStatus(204);
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	getOne,
 	getAll,
@@ -201,5 +237,7 @@ export default {
 	getOrders,
 	addToHistory,
 	getHistory,
-	mergeHistory
+	mergeHistory,
+	addToWaitlist,
+	removeFromWaitlist
 };
