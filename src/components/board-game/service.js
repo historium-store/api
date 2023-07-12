@@ -90,7 +90,49 @@ const getOne = async id => {
 	}
 };
 
+const getAll = async queryParams => {
+	const { limit, offset: skip, orderBy, order } = queryParams;
+
+	try {
+		const query = BoardGame.where('deletedAt').exists(false);
+
+		const foundBoardGames = await query
+			.limit(limit)
+			.skip(skip)
+			.sort({ [orderBy ?? 'createdAt']: order ?? 'asc' })
+			.populate([
+				{
+					path: 'product',
+					populate: { path: 'type', select: '-_id name key' },
+					select:
+						'name creators key price quantity createdAt code images requiresDelivery',
+					transform: product => ({
+						...product,
+						image: product.image ?? product.images[0],
+						images: undefined
+					})
+				}
+			])
+			.select('-_id product')
+			.lean();
+
+		return {
+			result: foundBoardGames.map(b => b.product),
+			total: await BoardGame.where('deletedAt')
+				.exists(false)
+				.countDocuments(),
+			totalFound: foundBoardGames.length
+		};
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
-	getOne
+	getOne,
+	getAll
 };

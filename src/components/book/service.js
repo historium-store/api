@@ -341,14 +341,9 @@ const getAll = async queryParams => {
 						image: product.image ?? product.images[0],
 						images: undefined
 					})
-				},
-				{
-					path: 'authors',
-					select: '-_id fullName',
-					transform: a => a.fullName
 				}
 			])
-			.select('authors')
+			.select('-_id product')
 			.lean();
 
 		return {

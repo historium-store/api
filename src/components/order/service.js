@@ -82,6 +82,11 @@ const createOne = async orderData => {
 
 			const password = randomBytes(8).toString('hex');
 
+			const newUser = await userService.createOne({
+				...contactInfo,
+				password
+			});
+
 			const mailData = {
 				from: '"Historium" noreply@historium.store',
 				to: email,
@@ -90,11 +95,6 @@ const createOne = async orderData => {
 			};
 
 			await transporter.sendMail(mailData);
-
-			const newUser = await userService.createOne({
-				...contactInfo,
-				password
-			});
 
 			orderData.user = newUser.id;
 		} else {

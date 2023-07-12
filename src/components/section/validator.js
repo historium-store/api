@@ -12,7 +12,8 @@ const validateCreate = [
 		.withMessage('Section key is required'),
 	body('sections')
 		.optional()
-		.custom(isArrayOfMongoIds('Section', 'sections'))
+		.custom(isArrayOfMongoIds('Section', 'sections')),
+	body('root').customSanitizer(value => Boolean(value))
 ];
 
 const validateUpdate = [
@@ -28,7 +29,10 @@ const validateUpdate = [
 		.withMessage("Section key can't be empty"),
 	body('sections')
 		.optional()
-		.custom(isArrayOfMongoIds('Section', 'sections'))
+		.custom(isArrayOfMongoIds('Section', 'sections')),
+	body('root')
+		.optional()
+		.customSanitizer(value => Boolean(value))
 ];
 
 export default {
