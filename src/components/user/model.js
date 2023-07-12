@@ -68,6 +68,14 @@ const userSchema = new Schema(
 			}
 		],
 
+		waitlist: [
+			{
+				type: ObjectId,
+				ref: 'Product',
+				required: false
+			}
+		],
+
 		history: [
 			{
 				type: ObjectId,
