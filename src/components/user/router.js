@@ -24,12 +24,14 @@ userRouter.get('/account', controller.getAccount);
 userRouter
 	.route('/wishlist')
 	.all(validator.validateProductEntry)
+	.get(controller.getWishlist)
 	.post(controller.addToWishlist)
 	.delete(controller.removeFromWishlist);
 
 userRouter
 	.route('/waitlist')
 	.all(validator.validateProductEntry)
+	.get(controller.getWaitlist)
 	.post(controller.addToWaitlist)
 	.delete(controller.removeFromWaitlist);
 

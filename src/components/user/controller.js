@@ -130,6 +130,16 @@ const removeFromWishlist = async (req, res, next) => {
 	}
 };
 
+const getWishlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		res.json(await service.getWishlist(user));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 const getOrders = async (req, res, next) => {
 	const { id: user } = req.user;
 
@@ -226,6 +236,16 @@ const removeFromWaitlist = async (req, res, next) => {
 	}
 };
 
+const getWaitlist = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		res.json(await service.getWaitlist(user));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	getOne,
 	getAll,
@@ -234,10 +254,12 @@ export default {
 	getAccount,
 	addToWishlist,
 	removeFromWishlist,
+	getWishlist,
 	getOrders,
 	addToHistory,
 	getHistory,
 	mergeHistory,
 	addToWaitlist,
-	removeFromWaitlist
+	removeFromWaitlist,
+	getWaitlist
 };

@@ -276,6 +276,45 @@ const removeFromWishlist = async (user, product) => {
 	}
 };
 
+const getWishlist = async user => {
+	try {
+		const foundUser = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.select('wishlist')
+			.populate({
+				path: 'wishlist',
+				populate: { path: 'type', select: '-_id name key' },
+				select:
+					'name creators key price quantity createdAt code images requiresDelivery',
+				transform: product => {
+					product.image = product.images[0];
+
+					delete product.images;
+
+					return product;
+				}
+			})
+			.findOne()
+			.lean();
+
+		if (!foundUser) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		return foundUser.wishlist;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 const getOrders = async (queryParams, user) => {
 	const { orderBy, order, status } = queryParams;
 
@@ -516,6 +555,45 @@ const removeFromWaitlist = async (user, product) => {
 	}
 };
 
+const getWaitlist = async user => {
+	try {
+		const foundUser = await User.where('_id')
+			.equals(user)
+			.where('deletedAt')
+			.exists(false)
+			.select('waitlist')
+			.populate({
+				path: 'waitlist',
+				populate: { path: 'type', select: '-_id name key' },
+				select:
+					'name creators key price quantity createdAt code images requiresDelivery',
+				transform: product => {
+					product.image = product.images[0];
+
+					delete product.images;
+
+					return product;
+				}
+			})
+			.findOne()
+			.lean();
+
+		if (!foundUser) {
+			throw {
+				status: 404,
+				message: `User with id '${user}' not found`
+			};
+		}
+
+		return foundUser.waitlist;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
@@ -524,10 +602,12 @@ export default {
 	deleteOne,
 	addToWishlist,
 	removeFromWishlist,
+	getWishlist,
 	getOrders,
 	addToHistory,
 	getHistory,
 	mergeHistory,
 	addToWaitlist,
-	removeFromWaitlist
+	removeFromWaitlist,
+	getWaitlist
 };
