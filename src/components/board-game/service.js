@@ -96,7 +96,7 @@ const getAll = async queryParams => {
 	try {
 		const query = BoardGame.where('deletedAt').exists(false);
 
-		return await query
+		const foundBoardGames = await query
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy ?? 'createdAt']: order ?? 'asc' })
@@ -120,6 +120,12 @@ const getAll = async queryParams => {
 			])
 			.select('brand')
 			.lean();
+
+		return {
+			result: foundBoardGames,
+			total: await BoardGame.countDocuments(),
+			totalFound: foundBoardGames.length
+		};
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
