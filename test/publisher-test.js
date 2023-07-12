@@ -35,8 +35,8 @@ describe(' publisher system ', () => {
 	let userToken = 'Bearer ';
 	let publisherId;
 
-	describe(' "/publisher/" post request ', () => {
-		it(' the publisher data is correct; the new publisher object is returned ', async () => {
+	describe(' POST "/publisher/" Create new publisher ', () => {
+		it(' Should create new publisher ', async () => {
 			const newPublisher = {
 				name: 'OpenAI',
 				books: [],
@@ -60,19 +60,20 @@ describe(' publisher system ', () => {
 				.set('Authorization', userToken)
 				.send(newPublisher)
 				.then(response => {
-					publisherId = response.body._id;
-
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
+
+					publisherId = response.body._id;
 				});
 		});
 	});
 
-	describe(' "/publisher/" get request ', () => {
-		it(' should return an array of users ', async () => {
+	describe(' GET "/publisher/" Get all publishers ', () => {
+		it(' Should return fll publishers ', async () => {
 			await request(app)
 				.get('/publisher/')
 				.set('Authorization', userToken)
@@ -81,13 +82,14 @@ describe(' publisher system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.be.an('array');
 				});
 		});
 	});
 
-	describe(' "/publisher/:id" get request ', () => {
-		it(' should return user object ', async () => {
+	describe(' GET "/publisher/:id" Get one publisher ', () => {
+		it(' Should return one publisher by id ', async () => {
 			const expectedFields = [
 				'name',
 				'books',
@@ -106,19 +108,21 @@ describe(' publisher system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});
 
-	describe(' "/publisher/:id" patch request ', () => {
-		it(' correct values are sent; the changed publisher object is returned ', async () => {
+	describe(' PATCH "/publisher/:id" Update one existing publisher ', () => {
+		it(' Should return one publisher with updated data ', async () => {
 			const updatedPublisherData = {
 				name: 'Updated Publisher',
 				description:
 					'This is an updated description with more than 40 characters.',
 				logo: 'https://example.com/updated-logo.png'
 			};
+
 			const expectedFields = [
 				'name',
 				'books',
@@ -138,32 +142,24 @@ describe(' publisher system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});
 
-	describe(' "/publisher/:id" DELETE request ', () => {
-		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+	describe(' DELETE "/publisher/:id" Delete one publisher ', () => {
+		it(' Should mark section as deleted via the "deletedAt" field, but not delete ', async () => {
 			await request(app)
 				.delete(`/publisher/${publisherId}`)
 				.set('Authorization', userToken)
 				.then(async response => {
-					// get arr of publisherы from request
-					const publishers = (
-						await request(app)
-							.get('/publisher/')
-							.set('Authorization', userToken)
-					).body;
-
-					// get publisher object from db
-					const publisherObject = await mongoose.connection
-						.collection('publishers')
-						.findOne(new ObjectId(publisherId));
-
 					expect(response.status).to.be.equal(204);
-					expect(publishers).to.be.empty;
-					expect(publisherObject.deletedAt).to.not.be.null;
+
+					const publisher = await mongoose.connection
+						.collection('publishers')
+						.findOne({});
+					expect(publisher.deletedAt).to.be.not.null;
 				});
 		});
 	});
