@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import {
+	cache,
 	checkRole,
 	validateId,
 	validateQueryParams
 } from '../../middleware.js';
+import { CACHE_DURATION } from '../../utils.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -18,11 +20,11 @@ illustratorRouter
 		validator.validateCreate,
 		controller.createOne
 	)
-	.get(validateQueryParams, controller.getAll);
+	.get(validateQueryParams, cache(CACHE_DURATION), controller.getAll);
 
 illustratorRouter
 	.route('/:id')
-	.get(validateId, controller.getOne)
+	.get(validateId, cache(CACHE_DURATION), controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin', 'seller']),

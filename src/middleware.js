@@ -1,3 +1,4 @@
+import apicache from 'apicache';
 import { param, query } from 'express-validator';
 import createHttpError from 'http-errors';
 
@@ -104,3 +105,10 @@ export const validateQueryParams = [
 		.isIn(['active', 'completed', 'canceled'])
 		.withMessage('Invalid order status')
 ];
+
+export const cache = apicache.options({
+	headers: {
+		'Cache-Control': 'no-cache'
+	},
+	enabled: process.env.NODE_ENV === 'production'
+}).middleware;

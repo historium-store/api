@@ -84,18 +84,6 @@ const userSchema = new Schema(
 			}
 		],
 
-		products: {
-			type: [
-				{
-					type: ObjectId,
-					ref: 'Product',
-					required: false
-				}
-			],
-			required: false,
-			default: []
-		},
-
 		cart: {
 			type: ObjectId,
 			ref: 'Cart',

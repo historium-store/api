@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import {
+	cache,
 	checkRole,
 	validateId,
 	validateQueryParams
 } from '../../middleware.js';
+import { CACHE_DURATION } from '../../utils.js';
 import { authenticate as authentication } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -16,6 +18,7 @@ userRouter.get(
 	'/',
 	checkRole(['admin']),
 	validateQueryParams,
+	cache(CACHE_DURATION),
 	controller.getAll
 );
 
@@ -47,7 +50,12 @@ userRouter
 
 userRouter
 	.route('/:id')
-	.get(checkRole(['admin']), validateId, controller.getOne)
+	.get(
+		checkRole(['admin']),
+		validateId,
+		cache(CACHE_DURATION),
+		controller.getOne
+	)
 	.patch(validateId, validator.validateUpdate, controller.updateOne)
 	.delete(validateId, controller.deleteOne);
 

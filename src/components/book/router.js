@@ -1,5 +1,10 @@
 import { Router } from 'express';
-import { checkRole, validateQueryParams } from '../../middleware.js';
+import {
+	cache,
+	checkRole,
+	validateQueryParams
+} from '../../middleware.js';
+import { CACHE_DURATION } from '../../utils.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -8,7 +13,7 @@ const bookRouter = Router();
 
 bookRouter
 	.route('/')
-	.get(validateQueryParams, controller.getAll)
+	.get(validateQueryParams, cache(CACHE_DURATION), controller.getAll)
 	.post(
 		authenticate,
 		checkRole(['admin', 'seller']),
@@ -20,7 +25,7 @@ bookRouter.get('/filters', controller.getFilters);
 
 bookRouter
 	.route('/:id')
-	.get(controller.getOne)
+	.get(cache(CACHE_DURATION), controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin', 'seller']),

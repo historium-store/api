@@ -130,3 +130,4 @@ export const normalizePhoneNumber = phoneNumber => {
 };
 
 export const MAX_HISTORY_SIZE = 12;
+export const CACHE_DURATION = '30 minutes';

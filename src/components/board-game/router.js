@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { checkRole } from '../../middleware.js';
+import { cache, checkRole } from '../../middleware.js';
+import { CACHE_DURATION } from '../../utils.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -14,8 +15,10 @@ boardGameRouter
 		validator.validateCreate,
 		controller.createOne
 	)
-	.get(controller.getAll);
+	.get(cache(CACHE_DURATION), controller.getAll);
 
-boardGameRouter.route('/:id').get(controller.getOne);
+boardGameRouter
+	.route('/:id')
+	.get(cache(CACHE_DURATION), controller.getOne);
 
 export default boardGameRouter;
