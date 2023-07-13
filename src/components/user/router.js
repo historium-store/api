@@ -5,6 +5,7 @@ import {
 	validateId,
 	validateQueryParams
 } from '../../middleware.js';
+import { CACHE_DURATION } from '../../utils.js';
 import { authenticate as authentication } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -17,7 +18,7 @@ userRouter.get(
 	'/',
 	checkRole(['admin']),
 	validateQueryParams,
-	cache('5 minutes'),
+	cache(CACHE_DURATION),
 	controller.getAll
 );
 
@@ -52,7 +53,7 @@ userRouter
 	.get(
 		checkRole(['admin']),
 		validateId,
-		cache('5 minutes'),
+		cache(CACHE_DURATION),
 		controller.getOne
 	)
 	.patch(validateId, validator.validateUpdate, controller.updateOne)

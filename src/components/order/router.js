@@ -5,6 +5,7 @@ import {
 	validateId,
 	validateQueryParams
 } from '../../middleware.js';
+import { CACHE_DURATION } from '../../utils.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -17,14 +18,14 @@ orderRouter
 		authenticate,
 		checkRole(['admin']),
 		validateQueryParams,
-		cache('5 minutes'),
+		cache(CACHE_DURATION),
 		controller.getAll
 	)
 	.post(validator.validateCreate, controller.createOne);
 
 orderRouter.get(
 	'/statuses',
-	cache('5 minutes'),
+	cache(CACHE_DURATION),
 	controller.getStatuses
 );
 
@@ -42,7 +43,7 @@ orderRouter
 	.get(
 		authenticate,
 		validateId,
-		cache('5 minutes'),
+		cache(CACHE_DURATION),
 		controller.getOne
 	)
 	.patch(

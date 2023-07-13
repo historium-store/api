@@ -5,6 +5,7 @@ import {
 	validateId,
 	validateQueryParams
 } from '../../middleware.js';
+import { CACHE_DURATION } from '../../utils.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -19,11 +20,11 @@ translatorRouter
 		validator.validateCreate,
 		controller.createOne
 	)
-	.get(validateQueryParams, cache('5 minutes'), controller.getAll);
+	.get(validateQueryParams, cache(CACHE_DURATION), controller.getAll);
 
 translatorRouter
 	.route('/:id')
-	.get(validateId, cache('5 minutes'), controller.getOne)
+	.get(validateId, cache(CACHE_DURATION), controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin', 'seller']),

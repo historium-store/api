@@ -4,6 +4,7 @@ import {
 	checkRole,
 	validateQueryParams
 } from '../../middleware.js';
+import { CACHE_DURATION } from '../../utils.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -12,7 +13,7 @@ const sectionRouter = Router();
 
 sectionRouter
 	.route('/')
-	.get(validateQueryParams, cache('5 minutes'), controller.getAll)
+	.get(validateQueryParams, cache(CACHE_DURATION), controller.getAll)
 	.post(
 		authenticate,
 		checkRole(['admin']),
@@ -23,13 +24,13 @@ sectionRouter
 sectionRouter.get(
 	'/:id/products',
 	validateQueryParams,
-	cache('5 minutes'),
+	cache(CACHE_DURATION),
 	controller.getProducts
 );
 
 sectionRouter
 	.route('/:id')
-	.get(validateQueryParams, cache('5 minutes'), controller.getOne)
+	.get(validateQueryParams, cache(CACHE_DURATION), controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin']),
