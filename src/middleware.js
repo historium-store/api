@@ -1,6 +1,8 @@
 import apicache from 'apicache';
+import { rateLimit } from 'express-rate-limit';
 import { param, query } from 'express-validator';
 import createHttpError from 'http-errors';
+import { createError } from './utils.js';
 
 export const verifyApiKey = (req, res, next) => {
 	const apiKey = req.get('API-Key');
@@ -112,3 +114,13 @@ export const cache = apicache.options({
 	},
 	enabled: process.env.NODE_ENV === 'production'
 }).middleware;
+
+export const rateLimiter = rateLimit({
+	windowMs: 5 * 60 * 1000, // 5 minutes in milliseconds
+	max: 200,
+	standardHeaders: true,
+	legacyHeaders: false,
+	handler: (req, res, next) => {
+		next(createError({ status: 429 }));
+	}
+});

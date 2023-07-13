@@ -4,7 +4,11 @@ import createHttpError from 'http-errors';
 import logger from 'morgan';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUI from 'swagger-ui-express';
-import { errorHandler, verifyApiKey } from './middleware.js';
+import {
+	errorHandler,
+	rateLimiter,
+	verifyApiKey
+} from './middleware.js';
 
 import authRouter from './components/auth/router.js';
 import authorRouter from './components/author/router.js';
@@ -32,6 +36,8 @@ import translatorRouter from './components/translator/router.js';
 import userRouter from './components/user/router.js';
 
 const app = express();
+
+app.use(rateLimiter);
 
 if (process.env.NODE_ENV === 'production') {
 	app.use(verifyApiKey);
