@@ -1,11 +1,12 @@
 import { Router } from 'express';
+import { cache } from '../../middleware.js';
 import controller from './controller.js';
 
 const countryRouter = Router();
 
-countryRouter.get('/', controller.getAll);
+countryRouter.get('/', cache('5 minutes'), controller.getAll);
 
-countryRouter.get('/:id', controller.getOne);
+countryRouter.get('/:id', cache('5 minutes'), controller.getOne);
 
 export default countryRouter;
 

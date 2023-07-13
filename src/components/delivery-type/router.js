@@ -1,9 +1,10 @@
 import { Router } from 'express';
+import { cache } from '../../middleware.js';
 import controller from './controller.js';
 
 const deliveryTypeRouter = Router();
 
-deliveryTypeRouter.get('/', controller.getAll);
+deliveryTypeRouter.get('/', cache('5 minutes'), controller.getAll);
 
 export default deliveryTypeRouter;
 

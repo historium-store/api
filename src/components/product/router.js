@@ -1,5 +1,9 @@
 import { Router } from 'express';
-import { checkRole, validateQueryParams } from '../../middleware.js';
+import {
+	cache,
+	checkRole,
+	validateQueryParams
+} from '../../middleware.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -8,7 +12,7 @@ const productRouter = Router();
 
 productRouter
 	.route('/')
-	.get(validateQueryParams, controller.getAll)
+	.get(validateQueryParams, cache('5 minutes'), controller.getAll)
 	.post(
 		authenticate,
 		checkRole(['admin', 'seller']),
@@ -18,7 +22,7 @@ productRouter
 
 productRouter
 	.route('/:id')
-	.get(validateQueryParams, controller.getOne)
+	.get(validateQueryParams, cache('5 minutes'), controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin', 'seller']),

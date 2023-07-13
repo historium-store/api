@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { checkRole, validateId } from '../../middleware.js';
+import { cache, checkRole, validateId } from '../../middleware.js';
 import { authenticate } from '../auth/controller.js';
 import controller from './controller.js';
 import validator from './validator.js';
@@ -8,7 +8,7 @@ const bannerRouter = Router();
 
 bannerRouter
 	.route('/')
-	.get(controller.getAll)
+	.get(cache('5 minutes'), controller.getAll)
 	.post(
 		authenticate,
 		checkRole(['admin']),
@@ -18,7 +18,7 @@ bannerRouter
 
 bannerRouter
 	.route('/:id')
-	.get(validateId, controller.getOne)
+	.get(validateId, cache('5 minutes'), controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin']),

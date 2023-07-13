@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+	cache,
 	checkRole,
 	validateId,
 	validateQueryParams
@@ -16,11 +17,16 @@ orderRouter
 		authenticate,
 		checkRole(['admin']),
 		validateQueryParams,
+		cache('5 minutes'),
 		controller.getAll
 	)
 	.post(validator.validateCreate, controller.createOne);
 
-orderRouter.get('/statuses', controller.getStatuses);
+orderRouter.get(
+	'/statuses',
+	cache('5 minutes'),
+	controller.getStatuses
+);
 
 orderRouter.patch(
 	'/status/:id',
@@ -33,7 +39,12 @@ orderRouter.patch(
 
 orderRouter
 	.route('/:id')
-	.get(authenticate, validateId, controller.getOne)
+	.get(
+		authenticate,
+		validateId,
+		cache('5 minutes'),
+		controller.getOne
+	)
 	.patch(
 		authenticate,
 		checkRole(['admin', 'seller']),

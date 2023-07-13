@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+	cache,
 	checkRole,
 	validateId,
 	validateQueryParams
@@ -12,7 +13,7 @@ const productTypeRouter = Router();
 
 productTypeRouter
 	.route('/')
-	.get(validateQueryParams, controller.getAll)
+	.get(validateQueryParams, cache('5 minutes'), controller.getAll)
 	.post(
 		authenticate,
 		checkRole(['admin']),
@@ -22,7 +23,7 @@ productTypeRouter
 
 productTypeRouter
 	.route('/:id')
-	.get(validateId, controller.getOne)
+	.get(validateId, cache('5 minutes'), controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin']),

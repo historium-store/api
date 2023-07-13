@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+	cache,
 	checkRole,
 	validateId,
 	validateQueryParams
@@ -18,11 +19,11 @@ translatorRouter
 		validator.validateCreate,
 		controller.createOne
 	)
-	.get(validateQueryParams, controller.getAll);
+	.get(validateQueryParams, cache('5 minutes'), controller.getAll);
 
 translatorRouter
 	.route('/:id')
-	.get(validateId, controller.getOne)
+	.get(validateId, cache('5 minutes'), controller.getOne)
 	.patch(
 		authenticate,
 		checkRole(['admin', 'seller']),

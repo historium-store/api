@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+	cache,
 	checkRole,
 	validateId,
 	validateQueryParams
@@ -16,6 +17,7 @@ userRouter.get(
 	'/',
 	checkRole(['admin']),
 	validateQueryParams,
+	cache('5 minutes'),
 	controller.getAll
 );
 
@@ -47,7 +49,12 @@ userRouter
 
 userRouter
 	.route('/:id')
-	.get(checkRole(['admin']), validateId, controller.getOne)
+	.get(
+		checkRole(['admin']),
+		validateId,
+		cache('5 minutes'),
+		controller.getOne
+	)
 	.patch(validateId, validator.validateUpdate, controller.updateOne)
 	.delete(validateId, controller.deleteOne);
 
