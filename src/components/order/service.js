@@ -182,6 +182,8 @@ const createOne = async orderData => {
 		};
 
 		await transporter.sendMail(mailData);
+
+		return newOrder;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
