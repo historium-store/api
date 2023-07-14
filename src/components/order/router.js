@@ -343,29 +343,26 @@ export default orderRouter;
  *           type: boolean
  *         paymentType:
  *           type: string
- *         comment:
- *           type: string
- *           maxLength: 500
  *         items:
  *           type: array
  *           items:
  *             type: object
  *             properties:
  *               product:
- *                 type: object
- *                 properties:
- *                   type:
- *                     type: string
- *                   name:
- *                     type: string
- *                   price:
- *                     type: integer
- *                   code:
- *                     type: string
- *                   image:
- *                     type: string
+ *                 $ref: '#/components/schemas/ProductResponse'
  *               quantity:
  *                 type: integer
+ *         user:
+ *           type: string
+ *         comment:
+ *           type: string
+ *           maxLength: 500
+ *         totalPrice:
+ *           type: integer
+ *         totalQuantity:
+ *           type: integer
+ *         deliveryPrice:
+ *           type: integer
  *         status:
  *           type: object
  *           properties:
@@ -373,17 +370,29 @@ export default orderRouter;
  *               type: string
  *             key:
  *               type: string
- *         totalPrice:
- *           type: integer
- *         totalQuantity:
- *           type: integer
  *         number:
  *           type: string
  *         createdAt:
  *           type: integer
  *         updatedAt:
  *           type: integer
+ *       required:
+ *         - _id
+ *         - contactInfo
+ *         - gift
+ *         - callback
+ *         - paymentType
+ *         - items
+ *         - user
+ *         - totalPrice
+ *         - totalQuantity
+ *         - deliveryPrice
+ *         - status
+ *         - number
+ *         - createdAt
+ *         - updatedAt
  *       example:
+ *         _id: 64a5b36c488aec4d50a691c4
  *         contactInfo:
  *           firstName: Ім'ян
  *           lastName: Прізвиськов
@@ -393,62 +402,59 @@ export default orderRouter;
  *           firstName: Прізва
  *           lastName: Ім'янова
  *           phoneNumber: "+380445139822"
- *         gift: false
  *         companyInfo:
  *           name: Компакт
  *           identificationNumber: '18452271'
  *           address: вул. Поточна, 23/1
- *         callback: true
  *         deliveryInfo:
  *           country: Україна
  *           city: Полтава
  *           type: Відділення Нова Пошта
  *           address: просп. Довідкова, 12
+ *         gift: false
+ *         callback: true
  *         paymentType: 'Готівкою або карткою: При отриманні'
+ *         items:
+ *         - product:
+ *             _id: 6473c4ef569debe2438c794f
+ *             name: Мистецтво говорити. Таємниці ефективного спілкування
+ *             creators:
+ *               - Джеймс Борг
+ *             key: mistectvo-govoriti-taiemnici-efektivnogo-spilkuvannya
+ *             price: 320
+ *             quantity: 500
+ *             type:
+ *               name: Книга
+ *               key: book
+ *             createdAt: 1689079469671
+ *             code: '116018'
+ *             image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/ 206ec0fb-7f22-43c5-b7a6-c361f7b416ef. webp
+ *             requiresDelivery: true
+ *           quantity: 1
+ *         - product:
+ *             _id: 6474dd020472d62ed62f4513
+ *             name: Бетмен. Книга 1. Суд сов
+ *             creators:
+ *               - Скотт Снайдер
+ *             key: betmen-kniga-1-sud-sov
+ *             price: 468
+ *             quantity: 0
+ *             type:
+ *               name: Книга
+ *               key: book
+ *             createdAt: 1689079469671
+ *             code: '116022'
+ *             image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/ cbdd4b36-50e5-47c6-b516-a3632476ee7e. webp
+ *             requiresDelivery: true
+ *           quantity: 3
+ *         user: 64a5b36c488aec4d50a691be
+ *         totalPrice: 1784
+ *         totalQuantity: 4
+ *         deliveryPrice: 60
  *         status:
  *           name: Поточний
  *           key: active
- *         user:
- *           firstName: Ім'ян
- *           lastName: Прізвиськов
- *           phoneNumber: "+380442138972"
- *           email: imyan.prizviskov@ukr.net
- *           password: 8b89f0f7e1ba551a3875cd39f318e64994b0b8735aa7a3228ac1e39d401867d3
- *           salt: f556aedd3805753a17df728e1e30f200
- *           role: user
- *           reviews: []
- *           wishlist: []
- *           products: []
- *           _id: 64a16b673415f20927d3dc67
- *           createdAt: 1688300391024
- *           updatedAt: 1688300391027
- *           cart:
- *             items: []
- *             user: 64a16b673415f20927d3dc67
- *             _id: 64a16b673415f20927d3dc69
- *             createdAt: 1688300391025
- *             updatedAt: 1688300391025
- *         items:
- *         - product:
- *             type: Книга
- *             name: Мистецтво говорити. Таємниці ефективного спілкування
- *             price: 320
- *             code: '115975'
- *             image: https://historium-bucket-eu.s3.eu-central-1.amazonaws.com/       3de802f9-836c-42ac-b6d9-a3aeae97f82d.webp
- *           quantity: 1
- *           _id: 64a16b673415f20927d3dc6e
- *         - product:
- *             type: Книга
- *             name: Бетмен. Книга 1. Суд сов
- *             price: 468
- *             code: '115979'
- *             image: https://historium-bucket-eu.s3.eu-central-1.amazonaws.com/       b50bb425-4fc3-4ab3-ada2-9c95b377f081.webp
- *           quantity: 3
- *           _id: 64a16b673415f20927d3dc6f
- *         totalPrice: 1784
- *         totalQuantity: 4
- *         _id: 64a16b673415f20927d3dc6d
- *         createdAt: 1688300391031
- *         updatedAt: 1688300391031
- *         number: '2000134373'
+ *         number: '2000134351'
+ *         createdAt: 1688580972442
+ *         updatedAt: 1688580972442
  */

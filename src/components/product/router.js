@@ -157,6 +157,15 @@ export default productRouter;
  *         code: '116010'
  *         image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/2c1475ac-6a0d-43da-8b31-c522d7ccaff4.jpg
  *         requiresDelivery: true
+ *     ProductEntry:
+ *       type: object
+ *       properties:
+ *         product:
+ *           type: string
+ *       required:
+ *         - product
+ *       example:
+ *         product: 649d2022af43bbb201d8e129
  *   responses:
  *     ProductNotFound:
  *       description: Product not found
