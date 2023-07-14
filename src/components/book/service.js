@@ -792,7 +792,7 @@ const getFilters = async () => {
 
 	const filters = {
 		trend: ['Новинки', 'Знижка'],
-		type: [...new Set(books.map(b => b.type))],
+		bookType: [...new Set(books.map(b => b.type))],
 		publisher: [...new Set(books.map(b => b.publisher.name))],
 		language: [...new Set(books.map(b => b.languages).flat())],
 		author: [
