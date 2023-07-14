@@ -240,6 +240,11 @@ const bookSchema = new Schema(
 			]
 		},
 
+		files: {
+			type: Map,
+			of: String
+		},
+
 		createdAt: {
 			type: Number
 		},
