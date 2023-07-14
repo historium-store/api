@@ -149,7 +149,6 @@ export default authorRouter;
  *                 minItems: 1
  *                 maxItems: 3
  *             example:
- *               fullName: Ім'ян Прізвиськов
  *               pictures:
  *                 - url-to-new-picture
  *                 - url-to-another-new-picture

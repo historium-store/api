@@ -86,6 +86,212 @@ export default userRouter;
  *                 $ref: '#/components/schemas/UserResponse'
  *       '403':
  *         $ref: '#/components/responses/Forbidden'
+ * /user/account:
+ *   get:
+ *     summary: Get user account
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     responses:
+ *       '200':
+ *         description: User account
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/UserResponse'
+ * /user/wishlist:
+ *   post:
+ *     summary: Add product to user's wishlist
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductEntry'
+ *     responses:
+ *       '204':
+ *         description: Product added to user's wishlist successfully
+ *       '404':
+ *         description: User or product not found
+ *   delete:
+ *     summary: Remove product from user's wishlist
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductEntry'
+ *     responses:
+ *       '204':
+ *         description: Product removed from user's wishlist successfully
+ *       '404':
+ *         description: User or product not found
+ *   get:
+ *     summary: Get products in user's wishlist
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     responses:
+ *       '200':
+ *         description: All products in user's wishlist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProductResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: User or product not found
+ * /user/waitlist:
+ *   post:
+ *     summary: Add product to user's waitlist
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductEntry'
+ *     responses:
+ *       '204':
+ *         description: Product added to user's waitlist successfully
+ *       '404':
+ *         description: User or product not found
+ *   delete:
+ *     summary: Remove product from user's waitlist
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductEntry'
+ *     responses:
+ *       '204':
+ *         description: Product removed from user's waitlist successfully
+ *       '404':
+ *         description: User or product not found
+ *   get:
+ *     summary: Get products in user's waitlist
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     responses:
+ *       '200':
+ *         description: All products in user's waitlist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProductResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: User or product not found
+ * /user/orders:
+ *   get:
+ *     summary: Get all orders made by user
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     responses:
+ *       '200':
+ *         description: All orders made by user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/OrderResponse'
+ * /user/history:
+ *   post:
+ *     summary: Add product to user's history
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductEntry'
+ *     responses:
+ *       '204':
+ *         description: Product added to user's history successfully
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: User or product not found
+ *   get:
+ *     summary: Get products in user's history
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     responses:
+ *       '200':
+ *         description: All products in user's history
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProductResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: User or product not found
+ *   patch:
+ *     summary: Merge local user history and saved
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: string
+ *             example:
+ *               - 6473b4d9569debe2438c7871
+ *     responses:
+ *       '200':
+ *         description: Updated user history
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProductResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: User or product not found
  * /user/{id}:
  *   get:
  *     summary: Get one user
@@ -160,236 +366,6 @@ export default userRouter;
  *         $ref: '#/components/responses/Forbidden'
  *       '404':
  *         $ref: '#/components/responses/UserNotFound'
- * /user/account:
- *   get:
- *     summary: Get user account
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     responses:
- *       '200':
- *         description: User account
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserResponse'
- * /user/wishlist:
- *   post:
- *     summary: Add product to user's wishlist
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ProductEntry'
- *     responses:
- *       '204':
- *         description: Product added to user's wishlist successfully
- *       '404':
- *         description: User or product not found
- *   delete:
- *     summary: Remove product from user's wishlist
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ProductEntry'
- *     responses:
- *       '204':
- *         description: Product removed from user's wishlist successfully
- *       '404':
- *         description: User or product not found
- * /user/waitlist:
- *   post:
- *     summary: Add product to user's waitlist
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ProductEntry'
- *     responses:
- *       '204':
- *         description: Product added to user's waitlist successfully
- *       '404':
- *         description: User or product not found
- *   delete:
- *     summary: Remove product from user's waitlist
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ProductEntry'
- *     responses:
- *       '204':
- *         description: Product removed from user's waitlist successfully
- *       '404':
- *         description: User or product not found
- * /user/orders:
- *   get:
- *     summary: Get all orders made by user
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     responses:
- *       '200':
- *         description: All orders made by user
- *         content:
- *           application/json:
- *             example:
- *               - _id: 64a5b36c488aec4d50a691c4
- *                 contactInfo:
- *                   firstName: Ім'ян
- *                   lastName: Прізвиськов
- *                   phoneNumber: "+380442138972"
- *                   email: imyan.prizviskov@ukr.net
- *                 receiverInfo:
- *                   firstName: Прізва
- *                   lastName: Ім'янова
- *                   phoneNumber: "+380445139822"
- *                 companyInfo:
- *                   name: Компакт
- *                   identificationNumber: '18452271'
- *                   address: вул. Поточна, 23/1
- *                 deliveryInfo:
- *                   country: Україна
- *                   city: Полтава
- *                   type: Відділення Нова Пошта
- *                   address: просп. Довідкова, 12
- *                 status:
- *                   name: Поточний
- *                   key: active
- *                 gift: false
- *                 callback: true
- *                 paymentType: 'Готівкою або карткою: При отриманні'
- *                 user: 64a5b36c488aec4d50a691be
- *                 items:
- *                 - product:
- *                     _id: 6473c4ef569debe2438c794f
- *                     name: Мистецтво говорити. Таємниці ефективного спілкування
- *                     creators:
- *                       - Джеймс Борг
- *                     key: mistectvo-govoriti-taiemnici-efektivnogo-spilkuvannya
- *                     price: 320
- *                     quantity: 500
- *                     type:
- *                       name: Книга
- *                       key: book
- *                     createdAt: 1689079469671
- *                     code: '116018'
- *                     image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/206ec0fb-7f22-43c5-b7a6-c361f7b416ef.webp
- *                     requiresDelivery: true
- *                   quantity: 1
- *                 - product:
- *                     _id: 6474dd020472d62ed62f4513
- *                     name: Бетмен. Книга 1. Суд сов
- *                     creators:
- *                       - Скотт Снайдер
- *                     key: betmen-kniga-1-sud-sov
- *                     price: 468
- *                     quantity: 0
- *                     type:
- *                       name: Книга
- *                       key: book
- *                     createdAt: 1689079469671
- *                     code: '116022'
- *                     image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/cbdd4b36-50e5-47c6-b516-a3632476ee7e.webp
- *                     requiresDelivery: true
- *                   quantity: 3
- *                 totalPrice: 1784
- *                 totalQuantity: 4
- *                 deliveryPrice: 60
- *                 createdAt: 1688580972442
- *                 updatedAt: 1688580972442
- *                 number: '2000134351'
- * /user/history:
- *   post:
- *     summary: Add product to user's viewed products history
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ProductEntry'
- *     responses:
- *       '204':
- *         description: Product added to user's history successfully
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
- *       '404':
- *         description: User or product not found
- *   get:
- *     summary: Get products in user's history
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     responses:
- *       '200':
- *         description: All products in user's history
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/ProductResponse'
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
- *       '404':
- *         description: User or product not found
- *   patch:
- *     summary: Merge local user history and saved
- *     security:
- *       - api_auth: []
- *     tags:
- *       - user
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: array
- *             items:
- *               type: string
- *             example:
- *               - 6473b4d9569debe2438c7871
- *     responses:
- *       '200':
- *         description: Updated user history
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/ProductResponse'
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
- *       '404':
- *         description: User or product not found
  * components:
  *   schemas:
  *     UserResponse:
@@ -430,18 +406,10 @@ export default userRouter;
  *         role: user
  *         reviews: []
  *         wishlist: []
+ *         history: []
+ *         cart: 617c9e5d4c5ad0c2a95e9b1f
  *         createdAt: 1686387456078
  *         updatedAt: 1686387456078
- *         cart: 617c9e5d4c5ad0c2a95e9b1f
- *     ProductEntry:
- *       type: object
- *       properties:
- *         product:
- *           type: string
- *       required:
- *         - product
- *       example:
- *         product: 649d2022af43bbb201d8e129
  *   responses:
  *     UserCredentialsNotFound:
  *       description: User credentials not found
