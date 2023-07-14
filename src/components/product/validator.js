@@ -47,7 +47,10 @@ const validateCreate = [
 		.isArray({ min: 1 })
 		.withMessage('Product must be in at least 1 section')
 		.bail()
-		.custom(isArrayOfMongoIds('Product', 'sections'))
+		.custom(isArrayOfMongoIds('Product', 'sections')),
+	body('requiresDelivery')
+		.optional()
+		.customSanitizer(value => Boolean(value))
 ];
 
 const validateUpdate = [
@@ -99,7 +102,10 @@ const validateUpdate = [
 		.isArray({ min: 1 })
 		.withMessage('Product must be in at least 1 section')
 		.bail()
-		.custom(isArrayOfMongoIds('Product', 'sections'))
+		.custom(isArrayOfMongoIds('Product', 'sections')),
+	body('requiresDelivery')
+		.optional()
+		.customSanitizer(value => Boolean(value))
 ];
 
 export default {

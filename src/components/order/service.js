@@ -10,7 +10,7 @@ import userService from '../user/service.js';
 import Order from './model.js';
 
 const createOne = async orderData => {
-	const { contactInfo, items } = orderData;
+	const { contactInfo, deliveryInfo, items } = orderData;
 
 	try {
 		Object.keys(orderData).forEach(key => {
@@ -119,6 +119,7 @@ const createOne = async orderData => {
 					select: '-_id quantity'
 				})
 				.select('items')
+				.transform(cart => ({ items: cart.items, id: cart._id }))
 				.findOne()
 				.lean();
 
@@ -131,7 +132,7 @@ const createOne = async orderData => {
 
 			orderData.items = foundCart.items;
 
-			await cartService.clearItems(foundCart._id);
+			await cartService.clearItems(foundCart.id);
 		}
 
 		const itemsTotalPrice = orderData.items.reduce(
@@ -139,21 +140,25 @@ const createOne = async orderData => {
 			0
 		);
 
-		const deliveryType = await DeliveryType.where('name')
-			.equals(orderData.deliveryInfo.type)
-			.findOne();
+		orderData.deliveryPrice = 0;
 
-		let deliveryPrice = (orderData.deliveryPrice =
-			deliveryType.price);
-		const deliveryCanBeFree = deliveryType.freeDeliveryFrom;
-		const suitableItemsPrice =
-			itemsTotalPrice >= deliveryType.freeDeliveryFrom;
+		if (deliveryInfo) {
+			const deliveryType = await DeliveryType.where('name')
+				.equals(orderData.deliveryInfo.type)
+				.select('-_id price freeDeliveryFrom')
+				.findOne()
+				.lean();
 
-		if (deliveryCanBeFree && suitableItemsPrice) {
-			deliveryPrice = 0;
+			const deliveryCanBeFree = deliveryType.freeDeliveryFrom;
+			const suitableItemsPrice =
+				itemsTotalPrice >= deliveryType.freeDeliveryFrom;
+
+			if (!deliveryCanBeFree || !suitableItemsPrice) {
+				orderData.deliveryPrice = deliveryType.price;
+			}
 		}
 
-		orderData.totalPrice = itemsTotalPrice + deliveryPrice;
+		orderData.totalPrice = itemsTotalPrice + orderData.deliveryPrice;
 
 		orderData.totalQuantity = orderData.items.reduce(
 			(acc, item) => acc + item.quantity,

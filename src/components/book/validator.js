@@ -132,7 +132,11 @@ const validateCreate = [
 	body('excerpts')
 		.optional()
 		.isArray({ max: 50 })
-		.withMessage('Book can have up to 50 excerpts')
+		.withMessage('Book can have up to 50 excerpts'),
+	body('files')
+		.optional()
+		.isObject()
+		.withMessage('Book files must be an object')
 ];
 
 const validateUpdate = [
