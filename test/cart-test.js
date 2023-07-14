@@ -6,42 +6,55 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' cart system ', () => {
+	const adminUser = {
+		firstName: 'Артем',
+		lastName: 'Желіковський',
+		phoneNumber: '+380987321123',
+		email: 'test.mail@gmail.com',
+		password: '41424344'
+	};
+	let userToken = 'Bearer ';
+	let productId;
+
 	before(async () => {
 		await mongoose
 			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
+
+		//#region add admin user to db and take token
+
+		await request(app).post('/signup').send(adminUser);
+		await mongoose.connection
+			.collection('users')
+			.updateOne(
+				{ email: adminUser.email },
+				{ $set: { role: 'admin' } }
+			);
+
+		const userData = {
+			login: adminUser.email,
+			password: adminUser.password
+		};
+
+		userToken += (await request(app).post('/login').send(userData))
+			.body.token;
+
+		//#endregion
 	});
 
 	after(async () => {
 		await mongoose.connection.collection('products').deleteMany();
 		await mongoose.connection.collection('producttypes').deleteMany();
 		await mongoose.connection.collection('sections').deleteMany();
-		await mongoose.connection
-			.collection('carts')
-			.updateOne({}, { $set: { items: [] } });
 		await mongoose.connection.collection('cartitems').deleteMany();
+
+		await mongoose.connection.collection('users').deleteMany();
+		await mongoose.connection.collection('carts').deleteMany();
 
 		await mongoose.connection.close();
 	});
-
-	beforeEach(async () => {
-		const userData = {
-			login: 'dobriy.edu@gmail.com',
-			password: '41424344'
-		};
-
-		userToken += (await request(app).post('/login').send(userData))
-			.body.token;
-	});
-
-	afterEach(() => {
-		userToken = 'Bearer ';
-	});
-
-	let userToken = 'Bearer ';
-	let productId;
 
 	describe(' GET "/cart/" Get cart associated with user ', () => {
 		it(' Should return information about the cart of the authorized user ', async () => {

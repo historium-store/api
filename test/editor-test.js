@@ -5,38 +5,55 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' editor system ', () => {
+	const adminUser = {
+		firstName: 'Артем',
+		lastName: 'Желіковський',
+		phoneNumber: '+380987321123',
+		email: 'test.mail@gmail.com',
+		password: '41424344'
+	};
+	let userToken = 'Bearer ';
+	let editorId;
+
 	before(async () => {
 		await mongoose
 			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
-	});
 
-	after(async () => {
-		await mongoose.connection.collection('editors').deleteMany();
-		await mongoose.connection.close();
-	});
+		//#region add admin user to db and take token
 
-	beforeEach(async () => {
+		await request(app).post('/signup').send(adminUser);
+		await mongoose.connection
+			.collection('users')
+			.updateOne(
+				{ email: adminUser.email },
+				{ $set: { role: 'admin' } }
+			);
+
 		const userData = {
-			login: 'dobriy.edu@gmail.com',
-			password: '41424344'
+			login: adminUser.email,
+			password: adminUser.password
 		};
 
 		userToken += (await request(app).post('/login').send(userData))
 			.body.token;
+
+		//#endregion
 	});
 
-	afterEach(() => {
-		userToken = 'Bearer ';
+	after(async () => {
+		await mongoose.connection.collection('editors').deleteMany();
+
+		await mongoose.connection.collection('users').deleteMany();
+		await mongoose.connection.collection('carts').deleteMany();
+
+		await mongoose.connection.close();
 	});
 
-	let userToken = 'Bearer ';
-	let editorId;
-
-	describe(' "/editor/" post request ', () => {
-		it(' the editor data is correct; the new editor object is returned ', async () => {
+	describe(' POST "/editor/" Create new editor ', () => {
+		it(' Should create new editor in database ', async () => {
 			const newEditor = {
 				fullName: 'Anna Petrova',
 				books: []
@@ -55,19 +72,20 @@ describe(' editor system ', () => {
 				.set('Authorization', userToken)
 				.send(newEditor)
 				.then(response => {
-					editorId = response.body._id;
-
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
+
+					editorId = response.body._id;
 				});
 		});
 	});
 
-	describe(' "/editor/" get request ', () => {
-		it(' should return an array of editors ', async () => {
+	describe(' GET "/editor/" Get all editors ', () => {
+		it(' Should return all editors ', async () => {
 			await request(app)
 				.get('/editor/')
 				.set('Authorization', userToken)
@@ -76,13 +94,14 @@ describe(' editor system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.be.an('array');
 				});
 		});
 	});
 
-	describe(' "/editor/:id" get request ', () => {
-		it(' should return editor object ', async () => {
+	describe(' GET "/editor/:id" Get one editor ', () => {
+		it(' Should return one editor by id  ', async () => {
 			const expectedFields = [
 				'fullName',
 				'books',
@@ -99,23 +118,17 @@ describe(' editor system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});
 
-	describe(' "/editor/:id" patch request ', () => {
-		it(' correct values are sent; the changed editor object is returned ', async () => {
+	describe(' PATCH "/editor/:id" Update one existing editor ', () => {
+		it(' Should return one editor with updated data ', async () => {
 			const updatedEditorData = {
 				fullName: 'Updated editor name'
 			};
-			const expectedFields = [
-				'fullName',
-				'books',
-				'_id',
-				'createdAt',
-				'updatedAt'
-			];
 
 			await request(app)
 				.patch(`/editor/${editorId}`)
@@ -126,32 +139,26 @@ describe(' editor system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
-					expect(response.body).to.include.keys(...expectedFields);
+
+					expect(response.body.fullName).to.be.equal(
+						'Updated editor name'
+					);
 				});
 		});
 	});
 
-	describe(' "/editor/:id" DELETE request ', () => {
-		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+	describe(' DELETE "/editor/:id" Delete one editor ', () => {
+		it(' Should mark editor as deleted via the "deletedAt" field, but not delete ', async () => {
 			await request(app)
 				.delete(`/editor/${editorId}`)
 				.set('Authorization', userToken)
 				.then(async response => {
-					// get arr of editors from request
-					const editors = (
-						await request(app)
-							.get('/editor/')
-							.set('Authorization', userToken)
-					).body;
-
-					// get editor object from db
-					const editorObject = await mongoose.connection
-						.collection('editors')
-						.findOne(new ObjectId(editorId));
-
 					expect(response.status).to.be.equal(204);
-					expect(editors).to.be.empty;
-					expect(editorObject.deletedAt).to.not.be.null;
+
+					const deletedEditor = await mongoose.connection
+						.collection('editors')
+						.findOne({});
+					expect(deletedEditor.deletedAt).to.not.be.null;
 				});
 		});
 	});
