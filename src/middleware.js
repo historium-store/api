@@ -117,7 +117,7 @@ export const cache = apicache.options({
 
 export const rateLimiter = rateLimit({
 	windowMs: 5 * 60 * 1000, // 5 minutes in milliseconds
-	max: 200,
+	max: 500,
 	standardHeaders: true,
 	legacyHeaders: false,
 	handler: (req, res, next) => {
