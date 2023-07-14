@@ -14,14 +14,14 @@ const orderRouter = Router();
 
 orderRouter
 	.route('/')
+	.post(validator.validateCreate, controller.createOne)
 	.get(
 		authenticate,
 		checkRole(['admin']),
 		validateQueryParams,
 		cache(CACHE_DURATION),
 		controller.getAll
-	)
-	.post(validator.validateCreate, controller.createOne);
+	);
 
 orderRouter.get(
 	'/statuses',
@@ -143,7 +143,7 @@ export default orderRouter;
  *                 type: string
  *                 maxLength: 500
  *               items:
- *                 description: If authorization token is provided - items will be taken from user's cart. No need to send it
+ *                 description: If authorization token is provided - items will be taken from  user's cart. No need to send it
  *                 type: array
  *                 items:
  *                   type: object
@@ -215,6 +215,53 @@ export default orderRouter;
  *     responses:
  *       '200':
  *         description: All order statuses
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   key:
+ *                     type: string
+ *                 example:
+ *                   _id: 64b13d1b614469bf255d1892
+ *                   name: Скасований
+ *                   key: canceled
+ * /order/status/{id}:
+ *   patch:
+ *     summary: Update status of one existing order
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - order
+ *     parameters:
+ *       - $ref: '#/components/parameters/id'
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *             example:
+ *               status: Виконаний
+ *     responses:
+ *       '200':
+ *         description: Updated order
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/OrderResponse'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '404':
+ *         description: Order not found
  * /order/{id}:
  *   get:
  *     summary: Get one order
@@ -243,36 +290,81 @@ export default orderRouter;
  *       - order
  *     parameters:
  *       - $ref: '#/components/parameters/id'
- *     responses:
- *       '200':
- *         description: Updated order
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/OrderResponse'
- *       '403':
- *         $ref: '#/components/responses/Forbidden'
- *       '404':
- *         description: Order not found
- * /order/status/{id}:
- *   patch:
- *     summary: Update status of one existing order
- *     security:
- *       - api_auth: []
- *     tags:
- *       - order
- *     parameters:
- *       - $ref: '#/components/parameters/id'
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               status:
+ *               contactInfo:
+ *                 type: object
+ *                 properties:
+ *                   firstName:
+ *                     type: string
+ *                   lastName:
+ *                     type: string
+ *                   phoneNumber:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *               receiverInfo:
+ *                 type: object
+ *                 properties:
+ *                   firstName:
+ *                     type: string
+ *                   lastName:
+ *                     type: string
+ *                   phoneNumber:
+ *                     type: string
+ *               companyInfo:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                   identificationNumber:
+ *                     type: string
+ *                   address:
+ *                     type: string
+ *               deliveryInfo:
+ *                 type: object
+ *                 properties:
+ *                   country:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   type:
+ *                     type: string
+ *                   address:
+ *                     type: string
+ *                   street:
+ *                     type: string
+ *                   house:
+ *                     type: string
+ *                   apartment:
+ *                     type: string
+ *               gift:
+ *                 type: boolean
+ *               callback:
+ *                 type: boolean
+ *               paymentType:
  *                 type: string
+ *               comment:
+ *                 type: string
+ *                 maxLength: 500
+ *               items:
+ *                 description: If authorization token is provided - items will be taken from  user's cart. No need to send it
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     product:
+ *                       type: string
+ *                     quantity:
+ *                       type: integer
  *             example:
- *               status: Виконаний
+ *               deliveryInfo:
+ *                 address: "вул. Свободи, 23"
+ *               paymentType: Оплата карткою On-line
  *     responses:
  *       '200':
  *         description: Updated order
@@ -428,7 +520,7 @@ export default orderRouter;
  *               key: book
  *             createdAt: 1689079469671
  *             code: '116018'
- *             image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/ 206ec0fb-7f22-43c5-b7a6-c361f7b416ef. webp
+ *             image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/206ec0fb-7f22-43c5-b7a6-c361f7b416ef.webp
  *             requiresDelivery: true
  *           quantity: 1
  *         - product:
@@ -444,7 +536,7 @@ export default orderRouter;
  *               key: book
  *             createdAt: 1689079469671
  *             code: '116022'
- *             image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/ cbdd4b36-50e5-47c6-b516-a3632476ee7e. webp
+ *             image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/cbdd4b36-50e5-47c6-b516-a3632476ee7e.webp
  *             requiresDelivery: true
  *           quantity: 3
  *         user: 64a5b36c488aec4d50a691be
