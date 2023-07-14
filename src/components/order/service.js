@@ -144,10 +144,17 @@ const createOne = async orderData => {
 
 		if (deliveryInfo) {
 			const deliveryType = await DeliveryType.where('name')
-				.equals(orderData.deliveryInfo.type)
+				.equals(deliveryInfo.type)
 				.select('-_id price freeDeliveryFrom')
 				.findOne()
 				.lean();
+
+			if (!deliveryType) {
+				throw {
+					status: 404,
+					message: `Delivery type '${deliveryInfo.type}' not found`
+				};
+			}
 
 			const deliveryCanBeFree = deliveryType.freeDeliveryFrom;
 			const suitableItemsPrice =
