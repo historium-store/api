@@ -119,7 +119,7 @@ const createOne = async orderData => {
 					select: '-_id quantity'
 				})
 				.select('items')
-				.transform(cart => ({ items: cart.items, id: cart._id }))
+				.transform(cart => ({ ...cart, id: cart._id }))
 				.findOne()
 				.lean();
 
@@ -132,7 +132,7 @@ const createOne = async orderData => {
 
 			orderData.items = foundCart.items;
 
-			await cartService.clearItems(foundCart.id);
+			await cartService.clearItems(foundCart.id ?? foundCart._id);
 		}
 
 		const itemsTotalPrice = orderData.items.reduce(
