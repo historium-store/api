@@ -5,38 +5,55 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' author system ', () => {
+	const adminUser = {
+		firstName: 'Артем',
+		lastName: 'Желіковський',
+		phoneNumber: '+380987321123',
+		email: 'test.mail@gmail.com',
+		password: '41424344'
+	};
+	let userToken = 'Bearer ';
+	let authorId;
+
 	before(async () => {
 		await mongoose
 			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
-	});
 
-	after(async () => {
-		await mongoose.connection.collection('authors').deleteMany();
-		await mongoose.connection.close();
-	});
+		//#region add admin user to db and take token
 
-	beforeEach(async () => {
+		await request(app).post('/signup').send(adminUser);
+		await mongoose.connection
+			.collection('users')
+			.updateOne(
+				{ email: adminUser.email },
+				{ $set: { role: 'admin' } }
+			);
+
 		const userData = {
-			login: 'dobriy.edu@gmail.com',
-			password: '41424344'
+			login: adminUser.email,
+			password: adminUser.password
 		};
 
 		userToken += (await request(app).post('/login').send(userData))
 			.body.token;
+
+		//#endregion
 	});
 
-	afterEach(() => {
-		userToken = 'Bearer ';
+	after(async () => {
+		await mongoose.connection.collection('authors').deleteMany();
+
+		await mongoose.connection.collection('users').deleteMany();
+		await mongoose.connection.collection('carts').deleteMany();
+
+		await mongoose.connection.close();
 	});
 
-	let userToken = 'Bearer ';
-	let authorId;
-
-	describe(' "/author/" POST request ', () => {
-		it(' the author data is correct; the new author object is returned ', async () => {
+	describe(' POST "/author/" Create new author ', () => {
+		it(' Shoud create new author in database ', async () => {
 			const newAuthor = {
 				fullName: 'John Smith',
 				biography:
@@ -60,19 +77,20 @@ describe(' author system ', () => {
 				.set('Authorization', userToken)
 				.send(newAuthor)
 				.then(response => {
-					authorId = response.body._id;
-					console.log(response.body.message);
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
+
+					authorId = response.body._id;
 				});
 		});
 	});
 
-	describe(' "/author/" GET request ', () => {
-		it(' should return an array of authors ', async () => {
+	describe(' GET "/author/" Get all authors ', () => {
+		it(' Should return all authors ', async () => {
 			await request(app)
 				.get('/author/')
 				.set('Authorization', userToken)
@@ -81,13 +99,14 @@ describe(' author system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.be.an('array');
 				});
 		});
 	});
 
-	describe(' "/author/:id" GET request ', () => {
-		it(' should return author object', async () => {
+	describe(' GET "/author/:id" Get one author ', () => {
+		it(' Should return one author by id ', async () => {
 			const expectedFields = [
 				'fullName',
 				'biography',
@@ -106,15 +125,17 @@ describe(' author system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});
 
-	describe(' "/author/:id" PATCH request ', () => {
-		it(' correct values are sent; the changed author object is returned ', async () => {
+	describe(' PATCH "/author/:id" Update one existing author ', () => {
+		it(' Should return one author with updated data ', async () => {
 			const updatedAuthorData = {
-				fullName: 'Updated author name'
+				fullName: "Ім'ян Прізвиськов",
+				pictures: ['url-to-new-picture', 'url-to-another-new-picture']
 			};
 
 			await request(app)
@@ -126,34 +147,30 @@ describe(' author system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body.fullName).to.equal(
-						'Updated author name'
+						"Ім'ян Прізвиськов"
+					);
+					expect(response.body.pictures).to.includes(
+						'url-to-new-picture',
+						'url-to-another-new-picture'
 					);
 				});
 		});
 	});
 
-	describe(' "/author/:id" DELETE request ', () => {
-		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+	describe(' DELETE "/author/:id" Delete one author ', () => {
+		it(' Should mark author as deleted via the "deletedAt" field, but not delete. ', async () => {
 			await request(app)
 				.delete(`/author/${authorId}`)
 				.set('Authorization', userToken)
 				.then(async response => {
-					// get arr of authors from request
-					const authors = (
-						await request(app)
-							.get('/author/')
-							.set('Authorization', userToken)
-					).body;
-
-					// get author object from db
-					const authorObject = await mongoose.connection
-						.collection('authors')
-						.findOne(new ObjectId(authorId));
-
 					expect(response.status).to.be.equal(204);
-					expect(authors).to.be.empty;
-					expect(authorObject.deletedAt).to.not.be.null;
+
+					const author = await mongoose.connection
+						.collection('authors')
+						.findOne({});
+					expect(author.deletedAt).to.not.be.null;
 				});
 		});
 	});

@@ -5,6 +5,14 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe('auth system', () => {
+	const adminUser = {
+		firstName: 'Артем',
+		lastName: 'Желіковський',
+		phoneNumber: '+380987321123',
+		email: 'test.mail@gmail.com',
+		password: '41424344'
+	};
+
 	before(async () => {
 		await mongoose
 			.connect(process.env.TEST_CONNECTION_STRING)
@@ -14,39 +22,32 @@ describe('auth system', () => {
 	});
 
 	after(async () => {
+		await mongoose.connection.collection('users').deleteMany();
+		await mongoose.connection.collection('carts').deleteMany();
+
 		await mongoose.connection.close();
 	});
 
 	describe(' "/signup" Create new user ', () => {
 		it('The data should be validated and the body of the created user should be returned', async () => {
-			const newUser = {
-				firstName: 'Artem',
-				lastName: 'Zhelikovskij',
-				phoneNumber: '+380997846872',
-				email: 'dobriy.edu@gmail.com',
-				password: '41424344'
-			};
-
 			const expectedFields = [
 				'firstName',
 				'lastName',
 				'phoneNumber',
 				'email',
-				'password',
-				'salt',
 				'role',
 				'reviews',
 				'_id',
 				'createdAt',
 				'updatedAt',
 				'history',
-				'products',
-				'wishlist'
+				'wishlist',
+				'waitlist'
 			];
 
 			await request(app)
 				.post('/signup')
-				.send(newUser)
+				.send(adminUser)
 				.then(async response => {
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
@@ -60,8 +61,8 @@ describe('auth system', () => {
 	describe(' "/login" Login existing user ', () => {
 		it('The password and login are correct, the token is returned', async () => {
 			const inputData = {
-				login: 'dobriy.edu@gmail.com',
-				password: '41424344'
+				login: adminUser.email,
+				password: adminUser.password
 			};
 
 			await request(app)
