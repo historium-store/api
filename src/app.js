@@ -39,9 +39,15 @@ const app = express();
 
 app.use(rateLimiter);
 
-if (process.env.NODE_ENV === 'production') {
-	app.use(verifyApiKey);
-}
+// if (process.env.NODE_ENV === 'production') {
+// 	app.use(verifyApiKey);
+// }
+
+app.use((req, res, next) => {
+	console.log(req.ip);
+
+	next();
+});
 
 app.use(cors());
 app.use(logger('dev'));

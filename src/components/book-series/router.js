@@ -50,9 +50,33 @@ export default bookSeriesRouter;
  *       - api_auth: []
  *     tags:
  *       - book-series
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               publisher:
+ *                 type: string
+ *               books:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *             example:
+ *               name: Українська Поетична Антологія
+ *               publisher: 64734ad09d7e69643faf5ef1
+ *               books:
+ *                 - 6473b4da569debe2438c787a
  *     responses:
  *       '201':
  *         description: Created book series
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BookSeriesResponse'
  *       '403':
  *         $ref: '#/components/responses/Forbidden'
  *   get:
@@ -67,6 +91,12 @@ export default bookSeriesRouter;
  *     responses:
  *       '200':
  *         description: All book series
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/BookSeriesResponse'
  * /book-series/{id}:
  *   get:
  *     summary: Get one book series
@@ -77,6 +107,10 @@ export default bookSeriesRouter;
  *     responses:
  *       '200':
  *         description: Requested book series
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BookSeriesResponse'
  *       '403':
  *         $ref: '#/components/responses/Forbidden'
  *       '404':
@@ -89,9 +123,29 @@ export default bookSeriesRouter;
  *       - book-series
  *     parameters:
  *       - $ref: '#/components/parameters/id'
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               publisher:
+ *                 type: string
+ *               books:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *             example:
+ *               name: Навчальна література
  *     responses:
  *       '200':
- *         description: Requested book series
+ *         description: Updated book series
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/BookSeriesResponse'
  *       '403':
  *         $ref: '#/components/responses/Forbidden'
  *       '404':
@@ -111,4 +165,31 @@ export default bookSeriesRouter;
  *         $ref: '#/components/responses/Forbidden'
  *       '404':
  *         description: Book series not found
+ * components:
+ *   schemas:
+ *     BookSeriesResponse:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         publisher:
+ *           type: string
+ *         books:
+ *           type: array
+ *           items:
+ *             type: string
+ *         createdAt:
+ *           type: integer
+ *         updatedAt:
+ *           type: integer
+ *       example:
+ *         _id: 6473a950c9dd40d6f991c557
+ *         name: Українська Поетична Антологія
+ *         publisher: 64734ad09d7e69643faf5ef1
+ *         books:
+ *           - 6473b4da569debe2438c787a
+ *         createdAt: 1685301584043
+ *         updatedAt: 1685304538177
  */
