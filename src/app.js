@@ -43,12 +43,6 @@ app.use(rateLimiter);
 // 	app.use(verifyApiKey);
 // }
 
-app.use((req, res, next) => {
-	console.log(req.ip);
-
-	next();
-});
-
 app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
