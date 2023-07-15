@@ -138,7 +138,10 @@ const createOne = async orderData => {
 			}
 
 			for (let item of foundCart.items) {
-				if (item.product.quantity && item.product.quantity == 0) {
+				if (
+					item.product.quantity !== undefined &&
+					item.product.quantity == 0
+				) {
 					throw {
 						status: 400,
 						message: `Product '${item.product._id}' is out of stock`
@@ -303,7 +306,7 @@ const updateStatus = async (id, status) => {
 						};
 					}
 
-					if (productToUpdate.quantity) {
+					if (productToUpdate.quantity !== undefined) {
 						const enoughProduct =
 							productToUpdate.quantity - item.quantity > -1;
 
