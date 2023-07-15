@@ -10,7 +10,7 @@ import userService from '../user/service.js';
 import Order from './model.js';
 
 const createOne = async orderData => {
-	const { contactInfo, deliveryInfo, items } = orderData;
+	const { contactInfo, items } = orderData;
 
 	try {
 		Object.keys(orderData).forEach(key => {
@@ -73,6 +73,13 @@ const createOne = async orderData => {
 						};
 					}
 
+					if (foundProduct.quantity && foundProduct.quantity == 0) {
+						throw {
+							status: 400,
+							message: `Product '${i.product}' is out of stock`
+						};
+					}
+
 					return {
 						product: foundProduct,
 						quantity: i.quantity ?? 1
@@ -130,6 +137,18 @@ const createOne = async orderData => {
 				};
 			}
 
+			for (let item of foundCart.items) {
+				if (
+					item.product.quantity !== undefined &&
+					item.product.quantity == 0
+				) {
+					throw {
+						status: 400,
+						message: `Product '${item.product._id}' is out of stock`
+					};
+				}
+			}
+
 			orderData.items = foundCart.items;
 
 			await cartService.clearItems(foundCart.id ?? foundCart._id);
@@ -142,7 +161,7 @@ const createOne = async orderData => {
 
 		orderData.deliveryPrice = 0;
 
-		if (deliveryInfo) {
+		if (orderData.deliveryInfo) {
 			const deliveryType = await DeliveryType.where('name')
 				.equals(deliveryInfo.type)
 				.select('-_id price freeDeliveryFrom')
@@ -263,11 +282,49 @@ const updateStatus = async (id, status) => {
 				.toArray()
 		).find(s => s._id.toHexString() === status);
 
+		console.log(foundStatus);
+
 		if (!foundStatus) {
 			throw {
 				status: 404,
 				message: `Status with id '${status}' not found`
 			};
+		}
+
+		if (foundStatus.key === 'accepted') {
+			await Promise.all(
+				orderToUpdate.items.map(async item => {
+					const productToUpdate = await Product.where('_id')
+						.equals(item.product._id)
+						.where('deletedAt')
+						.exists(false)
+						.select('quantity')
+						.findOne();
+
+					if (!productToUpdate) {
+						throw {
+							status: 404,
+							message: `Product with id '${item.product._id}' not found`
+						};
+					}
+
+					if (productToUpdate.quantity !== undefined) {
+						const enoughProduct =
+							productToUpdate.quantity - item.quantity > -1;
+
+						if (!enoughProduct) {
+							throw {
+								status: 400,
+								message: `Not enough product in stock with id '${item.product._id}'`
+							};
+						}
+
+						await productToUpdate.updateOne({
+							$inc: { quantity: -item.quantity }
+						});
+					}
+				})
+			);
 		}
 
 		delete foundStatus._id;
@@ -284,6 +341,8 @@ const updateStatus = async (id, status) => {
 };
 
 const updateOne = async (id, changes) => {
+	const { status } = changes;
+
 	try {
 		const orderToUpdate = await Order.where('_id')
 			.equals(id)
@@ -294,6 +353,10 @@ const updateOne = async (id, changes) => {
 				status: 404,
 				message: `Order with id '${id}' not found`
 			};
+		}
+
+		if (status) {
+			changes.status = (await updateStatus(id, status)).status;
 		}
 
 		Object.keys(changes).forEach(

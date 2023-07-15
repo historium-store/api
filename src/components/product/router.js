@@ -354,6 +354,30 @@ export default productRouter;
  *         - product
  *       example:
  *         product: 649d2022af43bbb201d8e129
+ *     LibraryProductResponse:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ProductResponse'
+ *         - type: object
+ *           properties:
+ *             files:
+ *               type: object
+ *       example:
+ *         _id: 6473b1aa394b41f5828a5e34
+ *         name: Людина в пошуках справжнього сенсу. Психолог у концтаборі
+ *         creators:
+ *           - Віктор Франкл
+ *         key: lyudina-v-poshukah-spravzhnogo-sensu-psiholog-u-konctabori
+ *         price: 130
+ *         quantity: 10000
+ *         type:
+ *           name: Книга
+ *           key: book
+ *         createdAt: 1685303722631
+ *         code: '116010'
+ *         image: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/2c1475ac-6a0d-43da-8b31-c522d7ccaff4.jpg
+ *         requiresDelivery: true
+ *         files:
+ *           pdf: https://historium-store-s3-eu.s3.eu-central-1.amazonaws.com/bf082a80-0d0f-46dd-be63-b2623c612310.pdf
  *   responses:
  *     ProductNotFound:
  *       description: Product not found

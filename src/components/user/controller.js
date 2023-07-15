@@ -246,6 +246,16 @@ const getWaitlist = async (req, res, next) => {
 	}
 };
 
+const getLibrary = async (req, res, next) => {
+	const { id: user } = req.user;
+
+	try {
+		res.json(await service.getLibrary(user));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	getOne,
 	getAll,
@@ -261,5 +271,6 @@ export default {
 	mergeHistory,
 	addToWaitlist,
 	removeFromWaitlist,
-	getWaitlist
+	getWaitlist,
+	getLibrary
 };
