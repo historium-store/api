@@ -55,11 +55,17 @@ const getAll = async queryParams => {
 	const { limit, offset: skip, orderBy, order } = queryParams;
 
 	try {
-		return await Editor.where('deletedAt')
+		const foundEditors = await Editor.where('deletedAt')
 			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order });
+			.lean();
+
+		foundEditors.sort((a, b) =>
+			a.fullName.localeCompare(b.fullName, 'uk')
+		);
+
+		return foundEditors;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

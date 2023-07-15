@@ -250,6 +250,7 @@ const getOne = async id => {
 				{ path: 'editors', select: 'fullName' },
 				{ path: 'series', select: 'name' }
 			])
+			.select('-files')
 			.findOne()
 			.lean();
 

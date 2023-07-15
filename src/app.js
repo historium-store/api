@@ -151,7 +151,7 @@ export default app;
  *       schema:
  *         type: string
  *         example: trista-poeziy
- *       description: Key of a product
+ *       description: Key of a document
  *     limit:
  *       in: query
  *       name: limit
