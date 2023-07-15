@@ -125,8 +125,8 @@ export default sectionRouter;
  *     tags:
  *       - section
  *     responses:
- *       '200':
- *         description: Requested section
+ *       '204':
+ *         description: Section deleted successfully
  *       '403':
  *         $ref: '#/components/responses/Forbidden'
  *       '404':

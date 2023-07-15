@@ -282,8 +282,6 @@ const updateStatus = async (id, status) => {
 				.toArray()
 		).find(s => s._id.toHexString() === status);
 
-		console.log(foundStatus);
-
 		if (!foundStatus) {
 			throw {
 				status: 404,

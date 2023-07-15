@@ -1,21 +1,6 @@
 import Book from '../book/model.js';
 import Illustrator from './model.js';
 
-const checkIllustratorExistence = async fullName => {
-	const existingIllustrator = await Illustrator.where('fullName')
-		.equals(fullName)
-		.where('deletedAt')
-		.exists(false)
-		.findOne();
-
-	if (existingIllustrator) {
-		throw {
-			status: 409,
-			message: `Illustrator with full name '${fullName}' already exists`
-		};
-	}
-};
-
 const createOne = async illustratorData => {
 	let { fullName } = illustratorData;
 
@@ -67,14 +52,20 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip, orderBy, order } = queryParams;
+	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Illustrator.where('deletedAt')
+		const foundIllustrators = await Illustrator.where('deletedAt')
 			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order });
+			.lean();
+
+		foundIllustrators.sort((a, b) =>
+			a.fullName.localeCompare(b.fullName, 'uk')
+		);
+
+		return foundIllustrators;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

@@ -52,14 +52,20 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip, orderBy, order } = queryParams;
+	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Compiler.where('deletedAt')
+		const foundCompilers = await Compiler.where('deletedAt')
 			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order });
+			.lean();
+
+		foundCompilers.sort((a, b) =>
+			a.fullName.localeCompare(b.fullName, 'uk')
+		);
+
+		return foundCompilers;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

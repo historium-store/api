@@ -52,14 +52,20 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip, orderBy, order } = queryParams;
+	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await Translator.where('deletedAt')
+		const foundTranslators = await Translator.where('deletedAt')
 			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order });
+			.lean();
+
+		foundTranslators.sort((a, b) =>
+			a.fullName.localeCompare(b.fullName, 'uk')
+		);
+
+		return foundTranslators;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
