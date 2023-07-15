@@ -10,7 +10,7 @@ import userService from '../user/service.js';
 import Order from './model.js';
 
 const createOne = async orderData => {
-	const { contactInfo, deliveryInfo, items } = orderData;
+	const { contactInfo, items } = orderData;
 
 	try {
 		Object.keys(orderData).forEach(key => {
@@ -161,7 +161,7 @@ const createOne = async orderData => {
 
 		orderData.deliveryPrice = 0;
 
-		if (deliveryInfo) {
+		if (orderData.deliveryInfo) {
 			const deliveryType = await DeliveryType.where('name')
 				.equals(deliveryInfo.type)
 				.select('-_id price freeDeliveryFrom')
@@ -282,6 +282,8 @@ const updateStatus = async (id, status) => {
 				.toArray()
 		).find(s => s._id.toHexString() === status);
 
+		console.log(foundStatus);
+
 		if (!foundStatus) {
 			throw {
 				status: 404,
@@ -354,7 +356,7 @@ const updateOne = async (id, changes) => {
 		}
 
 		if (status) {
-			await updateStatus(id, status);
+			changes.status = (await updateStatus(id, status)).status;
 		}
 
 		Object.keys(changes).forEach(

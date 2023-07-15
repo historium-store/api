@@ -110,29 +110,29 @@ const validateCreate = [
 		.trim()
 		.notEmpty()
 		.withMessage('Delivery type is required'),
-	oneOf(
-		[
-			body('deliveryInfo.address')
-				.trim()
-				.notEmpty()
-				.withMessage('Delivery address is required'),
-			[
-				body('deliveryInfo.street')
-					.trim()
-					.notEmpty()
-					.withMessage('Delivery street is required'),
-				body('deliveryInfo.house')
-					.trim()
-					.notEmpty()
-					.withMessage('Delivery house number is required'),
-				body('deliveryInfo.apartment')
-					.trim()
-					.notEmpty()
-					.withMessage('Delivery apartment number is required')
-			]
-		],
-		{ message: 'Invalid delivery address' }
-	),
+	// oneOf(
+	// 	[
+	// 		body('deliveryInfo.address')
+	// 			.trim()
+	// 			.notEmpty()
+	// 			.withMessage('Delivery address is required'),
+	// 		[
+	// 			body('deliveryInfo.street')
+	// 				.trim()
+	// 				.notEmpty()
+	// 				.withMessage('Delivery street is required'),
+	// 			body('deliveryInfo.house')
+	// 				.trim()
+	// 				.notEmpty()
+	// 				.withMessage('Delivery house number is required'),
+	// 			body('deliveryInfo.apartment')
+	// 				.trim()
+	// 				.notEmpty()
+	// 				.withMessage('Delivery apartment number is required')
+	// 		]
+	// 	],
+	// 	{ message: 'Invalid delivery address' }
+	// ),
 
 	body('gift').customSanitizer(value => Boolean(value)),
 	body('callback').customSanitizer(value => Boolean(value)),
@@ -277,33 +277,33 @@ const validateUpdate = [
 		.trim()
 		.notEmpty()
 		.withMessage("Delivery type can't be empty"),
-	oneOf(
-		[
-			body('deliveryInfo.address')
-				.optional()
-				.trim()
-				.notEmpty()
-				.withMessage("Delivery address can't be empty"),
-			[
-				body('deliveryInfo.street')
-					.optional()
-					.trim()
-					.notEmpty()
-					.withMessage("Delivery street can't be empty"),
-				body('deliveryInfo.house')
-					.optional()
-					.trim()
-					.notEmpty()
-					.withMessage("Delivery house number can't be empty"),
-				body('deliveryInfo.apartment')
-					.optional()
-					.trim()
-					.notEmpty()
-					.withMessage("Delivery apartment number can't be empty")
-			]
-		],
-		{ message: 'Invalid delivery address' }
-	),
+	// oneOf(
+	// 	[
+	// 		body('deliveryInfo.address')
+	// 			.optional()
+	// 			.trim()
+	// 			.notEmpty()
+	// 			.withMessage("Delivery address can't be empty"),
+	// 		[
+	// 			body('deliveryInfo.street')
+	// 				.optional()
+	// 				.trim()
+	// 				.notEmpty()
+	// 				.withMessage("Delivery street can't be empty"),
+	// 			body('deliveryInfo.house')
+	// 				.optional()
+	// 				.trim()
+	// 				.notEmpty()
+	// 				.withMessage("Delivery house number can't be empty"),
+	// 			body('deliveryInfo.apartment')
+	// 				.optional()
+	// 				.trim()
+	// 				.notEmpty()
+	// 				.withMessage("Delivery apartment number can't be empty")
+	// 		]
+	// 	],
+	// 	{ message: 'Invalid delivery address' }
+	// ),
 
 	body('gift')
 		.optional()
@@ -324,7 +324,10 @@ const validateUpdate = [
 	body('items')
 		.optional()
 		.isArray({ min: 1 })
-		.withMessage('Order must have at least 1 item')
+		.withMessage('Order must have at least 1 item'),
+	body('status')
+		.isMongoId()
+		.withMessage('Order status must be a valid mongo id')
 ];
 
 export default {

@@ -78,7 +78,7 @@ app.use(
 	swaggerUI.setup(
 		swaggerJSDoc({
 			definition: {
-				openapi: '3.0.0',
+				openapi: '3.1.0',
 				info: {
 					title: 'Historium API',
 					description:
