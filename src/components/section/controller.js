@@ -90,11 +90,35 @@ const getProducts = async (req, res, next) => {
 	}
 };
 
+const getSectionsTree = async (req, res, next) => {
+	try {
+		validationResult(req)
+			.formatWith(e => e.msg)
+			.throw();
+
+		const queryParams = matchedData(req);
+
+		res.json(await service.getSectionsTree(queryParams));
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
+const getSectionNames = async (req, res, next) => {
+	try {
+		res.json(await service.getSectionNames());
+	} catch (err) {
+		next(createError(err));
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
 	deleteOne,
-	getProducts
+	getProducts,
+	getSectionsTree,
+	getSectionNames
 };
