@@ -85,7 +85,7 @@ const validateCreate = [
 	body('illustrationsType')
 		.optional()
 		.isArray()
-		.withMessage("Book illustrations type can't be empty"),
+		.withMessage('Book illustrations type must be an array'),
 	body('literaturePeriod')
 		.optional()
 		.isArray()
