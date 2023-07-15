@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import { MAX_HISTORY_SIZE, hashPassword } from '../../utils.js';
+import Book from '../book/model.js';
 import CartItem from '../cart-item/model.js';
 import Cart from '../cart/model.js';
 import Order from '../order/model.js';
@@ -594,6 +595,53 @@ const getWaitlist = async user => {
 	}
 };
 
+const getLibrary = async user => {
+	try {
+		const products = (
+			await Order.where('user')
+				.equals(user)
+				.where('status.key')
+				.equals('completed')
+				.select('-_id items')
+				.transform(result =>
+					result.map(o => o.items.map(i => i.product))
+				)
+				.lean()
+		).flat();
+
+		let distinctProducts = products.reduce((acc, product) => {
+			const found = acc.find(p => p._id === product._id);
+
+			if (!found) {
+				acc.push(product);
+			}
+
+			return acc;
+		}, []);
+
+		return await Promise.all(
+			distinctProducts.map(async p => {
+				if (['e-book', 'audiobook'].includes(p.type.key)) {
+					p.files = (
+						await Book.where('product')
+							.equals(p._id)
+							.select('-_id files')
+							.findOne()
+							.lean()
+					).files;
+				}
+
+				return p;
+			})
+		);
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
@@ -609,5 +657,6 @@ export default {
 	mergeHistory,
 	addToWaitlist,
 	removeFromWaitlist,
-	getWaitlist
+	getWaitlist,
+	getLibrary
 };

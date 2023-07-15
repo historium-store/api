@@ -48,6 +48,8 @@ userRouter
 	.route('/orders')
 	.get(validateQueryParams, controller.getOrders);
 
+userRouter.route('/library').get(controller.getLibrary);
+
 userRouter
 	.route('/:id')
 	.get(
@@ -292,6 +294,20 @@ export default userRouter;
  *         $ref: '#/components/responses/Forbidden'
  *       '404':
  *         description: User or product not found
+ * /user/library:
+ *   get:
+ *     summary: Get user's bought products
+ *     security:
+ *       - api_auth: []
+ *     tags:
+ *       - user
+ *     responses:
+ *       '200':
+ *         description: All user's bought products
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LibraryProductResponse'
  * /user/{id}:
  *   get:
  *     summary: Get one user
