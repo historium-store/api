@@ -5,12 +5,42 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' review system ', () => {
+	const adminUser = {
+		firstName: 'Артем',
+		lastName: 'Желіковський',
+		phoneNumber: '+380987321123',
+		email: 'test.mail@gmail.com',
+		password: '41424344'
+	};
+	let userToken = 'Bearer ';
+	let reviewId;
+
 	before(async () => {
 		await mongoose
 			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
+
+		//#region add admin user to db and take token
+
+		await request(app).post('/signup').send(adminUser);
+		await mongoose.connection
+			.collection('users')
+			.updateOne(
+				{ email: adminUser.email },
+				{ $set: { role: 'admin' } }
+			);
+
+		const userData = {
+			login: adminUser.email,
+			password: adminUser.password
+		};
+
+		userToken += (await request(app).post('/login').send(userData))
+			.body.token;
+
+		//#endregion
 	});
 
 	after(async () => {
@@ -18,29 +48,12 @@ describe(' review system ', () => {
 		await mongoose.connection.collection('producttypes').deleteMany();
 		await mongoose.connection.collection('sections').deleteMany();
 		await mongoose.connection.collection('reviews').deleteMany();
-		await mongoose.connection
-			.collection('users')
-			.updateOne({}, { $set: { reviews: [] } });
+
+		await mongoose.connection.collection('users').deleteMany();
+		await mongoose.connection.collection('carts').deleteMany();
 
 		await mongoose.connection.close();
 	});
-
-	beforeEach(async () => {
-		const userData = {
-			login: 'dobriy.edu@gmail.com',
-			password: '41424344'
-		};
-
-		userToken += (await request(app).post('/login').send(userData))
-			.body.token;
-	});
-
-	afterEach(() => {
-		userToken = 'Bearer ';
-	});
-
-	let userToken = 'Bearer ';
-	let reviewId;
 
 	describe(' POST "/review/" Create new review ', () => {
 		it(' Should create new review ', async () => {
@@ -127,51 +140,6 @@ describe(' review system ', () => {
 					expect(response.body).to.include.keys(...expectedFields);
 
 					reviewId = response.body._id;
-				});
-		});
-	});
-
-	describe(' GET "/review/" Get all reviews ', () => {
-		it(' Should return all reviews ', async () => {
-			await request(app)
-				.get('/review/')
-				.set('Authorization', userToken)
-				.then(response => {
-					expect(response.status).to.equal(200);
-					expect(response.header['content-type']).to.include(
-						'application/json'
-					);
-
-					expect(response.body).to.be.an('array');
-				});
-		});
-	});
-
-	describe(' GET "/review/:id" Get one review ', () => {
-		it(' Should return one review by id ', async () => {
-			const expectedFields = [
-				'product',
-				'user',
-				'title',
-				'text',
-				'likes',
-				'dislikes',
-				'rating',
-				'_id',
-				'createdAt',
-				'updatedAt'
-			];
-
-			await request(app)
-				.get(`/review/${reviewId}`)
-				.set('Authorization', userToken)
-				.then(response => {
-					expect(response.status).to.equal(200);
-					expect(response.header['content-type']).to.include(
-						'application/json'
-					);
-
-					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});

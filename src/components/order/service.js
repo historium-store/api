@@ -119,7 +119,7 @@ const createOne = async orderData => {
 					select: '-_id quantity'
 				})
 				.select('items')
-				.transform(cart => ({ items: cart.items, id: cart._id }))
+				.transform(cart => ({ ...cart, id: cart._id }))
 				.findOne()
 				.lean();
 
@@ -132,7 +132,7 @@ const createOne = async orderData => {
 
 			orderData.items = foundCart.items;
 
-			await cartService.clearItems(foundCart.id);
+			await cartService.clearItems(foundCart.id ?? foundCart._id);
 		}
 
 		const itemsTotalPrice = orderData.items.reduce(
@@ -144,10 +144,17 @@ const createOne = async orderData => {
 
 		if (deliveryInfo) {
 			const deliveryType = await DeliveryType.where('name')
-				.equals(orderData.deliveryInfo.type)
+				.equals(deliveryInfo.type)
 				.select('-_id price freeDeliveryFrom')
 				.findOne()
 				.lean();
+
+			if (!deliveryType) {
+				throw {
+					status: 404,
+					message: `Delivery type '${deliveryInfo.type}' not found`
+				};
+			}
 
 			const deliveryCanBeFree = deliveryType.freeDeliveryFrom;
 			const suitableItemsPrice =
@@ -175,6 +182,8 @@ const createOne = async orderData => {
 		};
 
 		await transporter.sendMail(mailData);
+
+		return newOrder;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,

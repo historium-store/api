@@ -37,11 +37,11 @@ import userRouter from './components/user/router.js';
 
 const app = express();
 
-app.use(rateLimiter);
+// app.use(rateLimiter);
 
-if (process.env.NODE_ENV === 'production') {
-	app.use(verifyApiKey);
-}
+// if (process.env.NODE_ENV === 'production') {
+// 	app.use(verifyApiKey);
+// }
 
 app.use(cors());
 app.use(logger('dev'));

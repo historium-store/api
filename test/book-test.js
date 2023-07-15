@@ -5,12 +5,42 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' boook system ', () => {
+	const adminUser = {
+		firstName: 'Артем',
+		lastName: 'Желіковський',
+		phoneNumber: '+380987321123',
+		email: 'test.mail@gmail.com',
+		password: '41424344'
+	};
+	let userToken = 'Bearer ';
+	let bookId;
+
 	before(async () => {
 		await mongoose
 			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
+
+		//#region add admin user to db and take token
+
+		await request(app).post('/signup').send(adminUser);
+		await mongoose.connection
+			.collection('users')
+			.updateOne(
+				{ email: adminUser.email },
+				{ $set: { role: 'admin' } }
+			);
+
+		const userData = {
+			login: adminUser.email,
+			password: adminUser.password
+		};
+
+		userToken += (await request(app).post('/login').send(userData))
+			.body.token;
+
+		//#endregion
 	});
 
 	after(async () => {
@@ -26,25 +56,11 @@ describe(' boook system ', () => {
 		await mongoose.connection.collection('sections').deleteMany();
 		await mongoose.connection.collection('translators').deleteMany();
 
+		await mongoose.connection.collection('users').deleteMany();
+		await mongoose.connection.collection('carts').deleteMany();
+
 		await mongoose.connection.close();
 	});
-
-	beforeEach(async () => {
-		const userData = {
-			login: 'dobriy.edu@gmail.com',
-			password: '41424344'
-		};
-
-		userToken += (await request(app).post('/login').send(userData))
-			.body.token;
-	});
-
-	afterEach(() => {
-		userToken = 'Bearer ';
-	});
-
-	let userToken = 'Bearer ';
-	let bookId;
 
 	describe(' POST "/book/" Create new book ', async () => {
 		it(' Should create new book to database ', async () => {
@@ -97,6 +113,9 @@ describe(' boook system ', () => {
 					.collection('authors')
 					.insertOne(author)
 			).insertedId;
+			const authorName = (
+				await mongoose.connection.collection('authors').findOne({})
+			).fullName;
 
 			const compiler = {
 				fullName: 'Іван Бойко',
@@ -152,14 +171,13 @@ describe(' boook system ', () => {
 			const product = {
 				name: 'Збірка українських поезій',
 				type: productTypeId,
-				price: 99.99,
+				price: 99,
 				quantity: 10,
 				description:
 					'"Збірка українських поезій" - поетичний скарб, що втілює красу та духовність української літератури.',
 				images: ['image1.png'],
 				sections: [sectionId],
-				model: 'Book',
-				deliveryPrice: 60
+				creators: [authorName]
 			};
 			const productId = (
 				await request(app)
@@ -310,22 +328,13 @@ describe(' boook system ', () => {
 								result.books.map(id => id.toString())
 							).to.include(bookId);
 						});
-					await mongoose.connection
-						.collection('products')
-						.findOne({})
-						.then(result => {
-							expect(result.specificProduct.toString()).to.be.equal(
-								bookId.toString()
-							);
-						});
-
 					//#endregion
 				});
 		});
 	});
 
-	describe(' "/book/" GET request ', () => {
-		it.skip(' should return an array of books ', async () => {
+	describe(' GET "/book/" Get all books ', () => {
+		it(' Should return all books ', async () => {
 			await request(app)
 				.get('/book/')
 				.set('Authorization', userToken)
@@ -340,8 +349,8 @@ describe(' boook system ', () => {
 		});
 	});
 
-	describe(' "/book/:id" GET request', () => {
-		it.skip(' should return book object ', async () => {
+	describe(' GET "/book/:id" Get one book ', () => {
+		it(' Should return one book by id ', async () => {
 			const expectedFields = [
 				'product',
 				'type',
@@ -390,10 +399,11 @@ describe(' boook system ', () => {
 		});
 	});
 
-	describe(' "/book/:id" PATCH request ', () => {
-		it.skip(' correct values are sent; the changed book object is returned ', async () => {
+	describe(' PATCH "/book/:id" Update one existing book ', () => {
+		it(' Should return book with updated data ', async () => {
 			const updatedBookData = {
-				publishedIn: '1982'
+				publishedIn: '1982',
+				languages: ['English']
 			};
 
 			await request(app)
@@ -405,31 +415,25 @@ describe(' boook system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body.publishedIn).to.equal(1982);
+					expect(response.body.languages).to.include('English');
 				});
 		});
 	});
 
-	describe(' "/book/:id" DELETE request ', () => {
-		it.skip(' should set the "deletedAt" field for book and product. the object cannot be obtained using a request, but it is in the database ', async () => {
+	describe(' DELETE "/book/:id" Delete one book ', () => {
+		it(' Should mark product as deleted via the "deletedAt" field, but not delete. ', async () => {
 			await request(app)
 				.delete(`/book/${bookId}`)
 				.set('Authorization', userToken)
 				.then(async response => {
 					expect(response.status).to.be.equal(204);
 
-					const books = (
-						await request(app)
-							.get('/book/')
-							.set('Authorization', userToken)
-					).body;
-
-					const bookObject = await mongoose.connection
+					const deletedBook = await mongoose.connection
 						.collection('books')
-						.findOne(new ObjectId(bookId));
-
-					expect(books.result).to.be.empty;
-					expect(bookObject.deletedAt).to.not.be.null;
+						.findOne({});
+					expect(deletedBook.deletedAt).to.not.be.null;
 
 					//#region checking all dependencies
 

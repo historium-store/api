@@ -4,12 +4,42 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' product system ', () => {
+	const adminUser = {
+		firstName: 'Артем',
+		lastName: 'Желіковський',
+		phoneNumber: '+380987321123',
+		email: 'test.mail@gmail.com',
+		password: '41424344'
+	};
+	let userToken = 'Bearer ';
+	let productId;
+
 	before(async () => {
 		await mongoose
 			.connect(process.env.TEST_CONNECTION_STRING)
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
+
+		//#region add admin user to db and take token
+
+		await request(app).post('/signup').send(adminUser);
+		await mongoose.connection
+			.collection('users')
+			.updateOne(
+				{ email: adminUser.email },
+				{ $set: { role: 'admin' } }
+			);
+
+		const userData = {
+			login: adminUser.email,
+			password: adminUser.password
+		};
+
+		userToken += (await request(app).post('/login').send(userData))
+			.body.token;
+
+		//#endregion
 	});
 
 	after(async () => {
@@ -25,25 +55,11 @@ describe(' product system ', () => {
 		await mongoose.connection.collection('sections').deleteMany();
 		await mongoose.connection.collection('translators').deleteMany();
 
+		await mongoose.connection.collection('users').deleteMany();
+		await mongoose.connection.collection('carts').deleteMany();
+
 		await mongoose.connection.close();
 	});
-
-	beforeEach(async () => {
-		const userData = {
-			login: 'dobriy.edu@gmail.com',
-			password: '41424344'
-		};
-
-		userToken += (await request(app).post('/login').send(userData))
-			.body.token;
-	});
-
-	afterEach(() => {
-		userToken = 'Bearer ';
-	});
-
-	let userToken = 'Bearer ';
-	let productId;
 
 	describe(' GET "/product/" Create new product ', () => {
 		it(' Should add new product to database. The value of the "currentProductsQuantity" property of the "products_quantity" collection should increase', async () => {
@@ -71,6 +87,20 @@ describe(' product system ', () => {
 					.insertOne(section)
 			).insertedId;
 
+			const author = {
+				fullName: 'John Smith',
+				biography:
+					'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+				books: [],
+				pictures: ['picture1.jpg', 'picture2.jpg']
+			};
+			await mongoose.connection
+				.collection('authors')
+				.insertOne(author);
+			const authorName = (
+				await mongoose.connection.collection('authors').findOne({})
+			).fullName;
+
 			//#endregion
 
 			const oldProductsQuantity = (
@@ -83,13 +113,12 @@ describe(' product system ', () => {
 				name: 'Збірка українських поезій',
 				type: productTypeId,
 				price: 99,
-				deliveryPrice: 60,
 				quantity: 10,
 				description:
 					'"Збірка українських поезій" - поетичний скарб, що втілює красу та духовність української літератури.',
 				images: ['image1.png'],
 				sections: [sectionId],
-				model: 'Book'
+				creators: [authorName]
 			};
 
 			const expectedFields = [
@@ -214,7 +243,7 @@ describe(' product system ', () => {
 	});
 
 	describe(' DELETE "/prodcut/:id" Delete one product ', () => {
-		it(' Should mark product as deleted via the "deletedAt" field, but not delete. ', async () => {
+		it(' Should mark product as deleted via the "deletedAt" field, but not delete ', async () => {
 			//#region add necessary dependencies
 			const publisher = {
 				name: 'Квітка',

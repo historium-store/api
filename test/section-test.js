@@ -6,6 +6,13 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' section system', () => {
+	const adminUser = {
+		firstName: 'Артем',
+		lastName: 'Желіковський',
+		phoneNumber: '+380987321123',
+		email: 'test.mail@gmail.com',
+		password: '41424344'
+	};
 	let userToken = 'Bearer ';
 	let sectionId;
 
@@ -15,25 +22,35 @@ describe(' section system', () => {
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
-	});
 
-	after(async () => {
-		await mongoose.connection.collection('sections').deleteMany();
-		await mongoose.connection.close();
-	});
+		//#region add admin user to db and take token
 
-	beforeEach(async () => {
+		await request(app).post('/signup').send(adminUser);
+		await mongoose.connection
+			.collection('users')
+			.updateOne(
+				{ email: adminUser.email },
+				{ $set: { role: 'admin' } }
+			);
+
 		const userData = {
-			login: 'dobriy.edu@gmail.com',
-			password: '41424344'
+			login: adminUser.email,
+			password: adminUser.password
 		};
 
 		userToken += (await request(app).post('/login').send(userData))
 			.body.token;
+
+		//#endregion
 	});
 
-	afterEach(() => {
-		userToken = 'Bearer ';
+	after(async () => {
+		await mongoose.connection.collection('sections').deleteMany();
+
+		await mongoose.connection.collection('users').deleteMany();
+		await mongoose.connection.collection('carts').deleteMany();
+
+		await mongoose.connection.close();
 	});
 
 	describe(' POST "/section/" Create new section ', () => {

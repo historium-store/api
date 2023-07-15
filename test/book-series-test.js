@@ -5,6 +5,13 @@ import request from 'supertest';
 import app from '../src/app.js';
 
 describe(' book-series system ', () => {
+	const adminUser = {
+		firstName: 'Артем',
+		lastName: 'Желіковський',
+		phoneNumber: '+380987321123',
+		email: 'test.mail@gmail.com',
+		password: '41424344'
+	};
 	let userToken = 'Bearer ';
 	let bookSeriesId;
 
@@ -14,30 +21,42 @@ describe(' book-series system ', () => {
 			.catch(err => {
 				console.log(`Failed to connect to database: ${err.message}`);
 			});
+
+		//#region add admin user to db and take token
+
+		await request(app).post('/signup').send(adminUser);
+		await mongoose.connection
+			.collection('users')
+			.updateOne(
+				{ email: adminUser.email },
+				{ $set: { role: 'admin' } }
+			);
+
+		const userData = {
+			login: adminUser.email,
+			password: adminUser.password
+		};
+
+		userToken += (await request(app).post('/login').send(userData))
+			.body.token;
+
+		//#endregion
 	});
 
 	after(async () => {
 		await mongoose.connection.collection('bookseries').deleteMany();
 		await mongoose.connection.collection('publishers').deleteMany();
+
+		await mongoose.connection.collection('users').deleteMany();
+		await mongoose.connection.collection('carts').deleteMany();
+
 		await mongoose.connection.close();
 	});
 
-	beforeEach(async () => {
-		const userData = {
-			login: 'dobriy.edu@gmail.com',
-			password: '41424344'
-		};
+	describe(' POST "/book-series/" Create new book series ', () => {
+		it(' Should create new book series in database ', async () => {
+			//#region adding the necessary objects to the database
 
-		userToken += (await request(app).post('/login').send(userData))
-			.body.token;
-	});
-
-	afterEach(() => {
-		userToken = 'Bearer ';
-	});
-
-	describe(' "/book-series/" POST request ', () => {
-		it(' the book series data is correct; the new book series object is returned ', async () => {
 			const Publisher = {
 				name: 'Новий Вік',
 				books: [],
@@ -53,6 +72,8 @@ describe(' book-series system ', () => {
 					.set('Authorization', userToken)
 					.send(Publisher)
 			).body._id;
+
+			//#endregion
 
 			const newBookSeries = {
 				name: 'Українська класика',
@@ -74,19 +95,20 @@ describe(' book-series system ', () => {
 				.set('Authorization', userToken)
 				.send(newBookSeries)
 				.then(response => {
-					bookSeriesId = response.body._id;
-
 					expect(response.status).to.equal(201);
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
+
+					bookSeriesId = response.body._id;
 				});
 		});
 	});
 
-	describe(' "/book-series/" GET request ', () => {
-		it(' should retrun an array of book series ', async () => {
+	describe(' GET "/book-series/" Get all book series ', () => {
+		it(' Should return all book series ', async () => {
 			await request(app)
 				.get('/book-series/')
 				.set('Authorization', userToken)
@@ -95,13 +117,14 @@ describe(' book-series system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.be.an('array');
 				});
 		});
 	});
 
-	describe(' "/book-series/:id" GET request ', async () => {
-		it(' should retrun book series object ', async () => {
+	describe(' GET "/book-series/:id" Get one book series ', async () => {
+		it(' Should return one book series by id ', async () => {
 			const expectedFields = [
 				'name',
 				'publisher',
@@ -119,13 +142,14 @@ describe(' book-series system ', () => {
 					expect(response.header['content-type']).to.include(
 						'application/json'
 					);
+
 					expect(response.body).to.include.keys(...expectedFields);
 				});
 		});
 	});
 
-	describe(' "/book-series/:id" PATCH request ', () => {
-		it(' correct values are sent; updated book series object is retruned ', async () => {
+	describe(' PATCH "/book-series/:id" Update one existing book series ', () => {
+		it(' Should return one book series with updated data ', async () => {
 			const updatedBookSeries = {
 				name: 'Українська класика *updated'
 			};
@@ -146,27 +170,23 @@ describe(' book-series system ', () => {
 		});
 	});
 
-	describe(' "/book-series/:id" DELETE request ', () => {
-		it(' should set the "deletedAt" field. the object cannot be obtained using a request, but it is in the database ', async () => {
+	describe(' DELETE "/book-series/:id" Delete one book series ', () => {
+		it(' Should mark book series as deleted via the "deletedAt" field, but not delete ', async () => {
 			await request(app)
 				.delete(`/book-series/${bookSeriesId}`)
 				.set('Authorization', userToken)
 				.then(async response => {
-					// get arr of book series from request
-					const bookSeries = (
-						await request(app)
-							.get('/book-series/')
-							.set('Authorization', userToken)
-					).body;
-
-					// get book series object from db
-					const bookSeriesObject = await mongoose.connection
-						.collection('bookseries')
-						.findOne(new ObjectId(bookSeriesId));
-
 					expect(response.status).to.be.equal(204);
-					expect(bookSeries).to.be.empty;
-					expect(bookSeriesObject.deletedAt).to.not.be.null;
+
+					const deletedBookSeries = await mongoose.connection
+						.collection('bookseries')
+						.findOne({});
+					expect(deletedBookSeries.deletedAt).to.not.be.null;
+
+					const publisher = await mongoose.connection
+						.collection('publishers')
+						.findOne({});
+					expect(publisher.bookSeries).to.be.empty;
 				});
 		});
 	});
