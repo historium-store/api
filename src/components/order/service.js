@@ -10,7 +10,7 @@ import userService from '../user/service.js';
 import Order from './model.js';
 
 const createOne = async orderData => {
-	const { contactInfo, items } = orderData;
+	const { contactInfo, deliveryInfo, items } = orderData;
 
 	try {
 		Object.keys(orderData).forEach(key => {
