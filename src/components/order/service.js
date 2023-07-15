@@ -73,6 +73,13 @@ const createOne = async orderData => {
 						};
 					}
 
+					if (foundProduct.quantity && foundProduct.quantity == 0) {
+						throw {
+							status: 400,
+							message: `Product '${i.product}' is out of stock`
+						};
+					}
+
 					return {
 						product: foundProduct,
 						quantity: i.quantity ?? 1
@@ -128,6 +135,15 @@ const createOne = async orderData => {
 					status: 400,
 					message: 'Order must have at least 1 item'
 				};
+			}
+
+			for (let item of foundCart.items) {
+				if (item.product.quantity && item.product.quantity == 0) {
+					throw {
+						status: 400,
+						message: `Product '${item.product._id}' is out of stock`
+					};
+				}
 			}
 
 			orderData.items = foundCart.items;
@@ -270,6 +286,42 @@ const updateStatus = async (id, status) => {
 			};
 		}
 
+		if (foundStatus.key === 'accepted') {
+			await Promise.all(
+				orderToUpdate.items.map(async item => {
+					const productToUpdate = await Product.where('_id')
+						.equals(item.product._id)
+						.where('deletedAt')
+						.exists(false)
+						.select('quantity')
+						.findOne();
+
+					if (!productToUpdate) {
+						throw {
+							status: 404,
+							message: `Product with id '${item.product._id}' not found`
+						};
+					}
+
+					if (productToUpdate.quantity) {
+						const enoughProduct =
+							productToUpdate.quantity - item.quantity > -1;
+
+						if (!enoughProduct) {
+							throw {
+								status: 400,
+								message: `Not enough product in stock with id '${item.product._id}'`
+							};
+						}
+
+						await productToUpdate.updateOne({
+							$inc: { quantity: -item.quantity }
+						});
+					}
+				})
+			);
+		}
+
 		delete foundStatus._id;
 
 		orderToUpdate.status = foundStatus;
@@ -284,6 +336,8 @@ const updateStatus = async (id, status) => {
 };
 
 const updateOne = async (id, changes) => {
+	const { status } = changes;
+
 	try {
 		const orderToUpdate = await Order.where('_id')
 			.equals(id)
@@ -294,6 +348,10 @@ const updateOne = async (id, changes) => {
 				status: 404,
 				message: `Order with id '${id}' not found`
 			};
+		}
+
+		if (status) {
+			await updateStatus(id, status);
 		}
 
 		Object.keys(changes).forEach(
