@@ -612,7 +612,10 @@ const getLibrary = async user => {
 		let distinctProducts = products.reduce((acc, product) => {
 			const found = acc.find(p => p._id === product._id);
 
-			if (!found) {
+			if (
+				!found &&
+				['e-book', 'audiobook'].includes(product.type.key)
+			) {
 				acc.push(product);
 			}
 
@@ -621,15 +624,13 @@ const getLibrary = async user => {
 
 		return await Promise.all(
 			distinctProducts.map(async p => {
-				if (['e-book', 'audiobook'].includes(p.type.key)) {
-					p.files = (
-						await Book.where('product')
-							.equals(p._id)
-							.select('-_id files')
-							.findOne()
-							.lean()
-					).files;
-				}
+				p.files = (
+					await Book.where('product')
+						.equals(p._id)
+						.select('-_id files')
+						.findOne()
+						.lean()
+				).files;
 
 				return p;
 			})

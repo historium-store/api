@@ -307,7 +307,9 @@ export default userRouter;
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/LibraryProductResponse'
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/LibraryProductResponse'
  * /user/{id}:
  *   get:
  *     summary: Get one user
