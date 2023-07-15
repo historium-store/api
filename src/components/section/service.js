@@ -370,11 +370,64 @@ const getProducts = async (id, queryParams) => {
 	}
 };
 
+const getSectionsTree = async queryParams => {
+	const {
+		limit,
+		offset: skip,
+		withProducts,
+		orderBy,
+		order
+	} = queryParams;
+
+	try {
+		const foundSections = await Section.where('root')
+			.equals(true)
+			.where('deletedAt')
+			.exists(false)
+			.limit(limit)
+			.skip(skip)
+			.sort({ [orderBy]: order })
+			.select(
+				`-createdAt -updatedAt ${withProducts ? '' : '-products'}`
+			);
+
+		await Promise.all(
+			foundSections.map(async s => {
+				await populateNestedSections(s, withProducts);
+
+				if (withProducts) {
+					await populateNestedProducts(s);
+				}
+			})
+		);
+
+		return foundSections;
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
+const getSectionNames = async () => {
+	try {
+		return await Section.find().select('name').lean();
+	} catch (err) {
+		throw {
+			status: err.status ?? 500,
+			message: err.message ?? err
+		};
+	}
+};
+
 export default {
 	createOne,
 	getOne,
 	getAll,
 	updateOne,
 	deleteOne,
-	getProducts
+	getProducts,
+	getSectionsTree,
+	getSectionNames
 };

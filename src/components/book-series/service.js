@@ -104,15 +104,20 @@ const getOne = async id => {
 };
 
 const getAll = async queryParams => {
-	const { limit, offset: skip, orderBy, order } = queryParams;
+	const { limit, offset: skip } = queryParams;
 
 	try {
-		return await BookSeries.where('deletedAt')
+		const foundBookSeries = await BookSeries.where('deletedAt')
 			.exists(false)
 			.limit(limit)
 			.skip(skip)
-			.sort({ [orderBy]: order })
 			.lean();
+
+		foundBookSeries.sort((a, b) =>
+			a.name.localeCompare(b.name, 'uk')
+		);
+
+		return foundBookSeries;
 	} catch (err) {
 		throw {
 			status: err.status ?? 500,
