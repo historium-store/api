@@ -105,8 +105,10 @@ const productSchema = new Schema(
 );
 
 productSchema.pre('save', async function (next) {
-	await setProductCode(this);
-	await increaseProductsQuantity();
+	if (this.isNew) {
+		await setProductCode(this);
+		await increaseProductsQuantity();
+	}
 	next();
 });
 
