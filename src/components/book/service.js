@@ -794,11 +794,20 @@ const getFilters = async () => {
 	const filters = {
 		trend: ['Новинки', 'Знижка'],
 		bookType: [...new Set(books.map(b => b.type))],
-		publisher: [...new Set(books.map(b => b.publisher.name))],
+		publisher: [
+			...new Set(
+				books
+					.map(b => b.publisher.name)
+					.sort((a, b) => a.localeCompare(b, 'uk'))
+			)
+		],
 		language: [...new Set(books.map(b => b.languages).flat())],
 		author: [
 			...new Set(
-				books.map(b => b.authors.map(a => a.fullName)).flat()
+				books
+					.map(b => b.authors.map(a => a.fullName))
+					.flat()
+					.sort((a, b) => a.localeCompare(b, 'uk'))
 			)
 		],
 		price: {
