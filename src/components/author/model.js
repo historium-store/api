@@ -7,7 +7,8 @@ const authorSchema = new Schema(
 	{
 		fullName: {
 			type: String,
-			required: true
+			required: true,
+			index: true
 		},
 
 		biography: {

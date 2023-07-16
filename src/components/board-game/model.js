@@ -19,7 +19,8 @@ const boardGameSchema = new Schema(
 
 		article: {
 			type: String,
-			required: true
+			required: true,
+			index: true
 		},
 
 		type: {
