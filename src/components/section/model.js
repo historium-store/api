@@ -7,13 +7,14 @@ const sectionSchema = new Schema(
 	{
 		name: {
 			type: String,
-			required: true
+			required: true,
+			index: true
 		},
 
 		key: {
 			type: String,
 			required: true,
-			unique: true
+			index: true
 		},
 
 		products: [

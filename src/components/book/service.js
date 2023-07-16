@@ -250,6 +250,7 @@ const getOne = async id => {
 				{ path: 'editors', select: 'fullName' },
 				{ path: 'series', select: 'name' }
 			])
+			.select('-files')
 			.findOne()
 			.lean();
 
@@ -281,14 +282,15 @@ const getAll = async queryParams => {
 		publisher,
 		language,
 		author,
-		price
+		price,
+		q
 	} = queryParams;
 
 	try {
-		const query = Book.where('deletedAt').exists(false);
+		const booksQuery = Book.where('deletedAt').exists(false);
 
 		if (type) {
-			query.where('type').equals(type);
+			booksQuery.where('type').equals(type);
 		}
 
 		if (publisher) {
@@ -297,11 +299,13 @@ const getAll = async queryParams => {
 				deletedAt: { $exists: false }
 			});
 
-			query.where('publisher').in(foundPublishers.map(p => p.id));
+			booksQuery
+				.where('publisher')
+				.in(foundPublishers.map(p => p.id));
 		}
 
 		if (language) {
-			query.where('languages').in(language);
+			booksQuery.where('languages').in(language);
 		}
 
 		if (author) {
@@ -310,18 +314,39 @@ const getAll = async queryParams => {
 				deletedAt: { $exists: false }
 			});
 
-			query.where('authors').in(foundAuthors.map(a => a.id));
+			booksQuery.where('authors').in(foundAuthors.map(a => a.id));
 		}
 
-		if (price) {
-			const foundProducts = await Product.find({
-				price: { $gte: price[0], $lte: price[1] }
-			});
+		if (price || q) {
+			const productsQuery = Product.find();
 
-			query.where('product').in(foundProducts.map(p => p.id));
+			if (price) {
+				productsQuery.where({
+					price: { $gte: price[0], $lte: price[1] }
+				});
+			}
+
+			if (q) {
+				productsQuery.or([
+					{ name: { $regex: q, $options: 'i' } },
+					{ code: q },
+					{
+						creators: {
+							$elemMatch: { $regex: q, $options: 'i' }
+						}
+					}
+				]);
+			}
+
+			const foundProducts = await productsQuery
+				.select('_id')
+				.transform(result => result.map(p => p._id))
+				.lean();
+
+			booksQuery.where('product').in(foundProducts);
 		}
 
-		const foundBooks = await query
+		const foundBooks = await booksQuery
 			.limit(limit)
 			.skip(skip)
 			.sort({ [orderBy]: order })
@@ -793,11 +818,20 @@ const getFilters = async () => {
 	const filters = {
 		trend: ['Новинки', 'Знижка'],
 		bookType: [...new Set(books.map(b => b.type))],
-		publisher: [...new Set(books.map(b => b.publisher.name))],
+		publisher: [
+			...new Set(
+				books
+					.map(b => b.publisher.name)
+					.sort((a, b) => a.localeCompare(b, 'uk'))
+			)
+		],
 		language: [...new Set(books.map(b => b.languages).flat())],
 		author: [
 			...new Set(
-				books.map(b => b.authors.map(a => a.fullName)).flat()
+				books
+					.map(b => b.authors.map(a => a.fullName))
+					.flat()
+					.sort((a, b) => a.localeCompare(b, 'uk'))
 			)
 		],
 		price: {

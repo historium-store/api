@@ -12,17 +12,20 @@ const productSchema = new Schema(
 	{
 		name: {
 			type: String,
-			required: true
+			required: true,
+			index: true
 		},
 
 		code: {
 			type: String,
-			required: false
+			required: false,
+			index: true
 		},
 
 		key: {
 			type: String,
-			required: true
+			required: true,
+			index: true
 		},
 
 		price: {
@@ -105,8 +108,10 @@ const productSchema = new Schema(
 );
 
 productSchema.pre('save', async function (next) {
-	await setProductCode(this);
-	await increaseProductsQuantity();
+	if (this.isNew) {
+		await setProductCode(this);
+		await increaseProductsQuantity();
+	}
 	next();
 });
 

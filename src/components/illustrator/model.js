@@ -7,7 +7,8 @@ const illustratorSchema = new Schema(
 	{
 		fullName: {
 			type: String,
-			required: true
+			required: true,
+			index: true
 		},
 
 		books: {
