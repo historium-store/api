@@ -27,12 +27,16 @@ const getOne = async (req, res, next) => {
 };
 
 const getAll = async (req, res, next) => {
+	const { q } = req.query;
+
 	try {
 		validationResult(req)
 			.formatWith(e => e.msg)
 			.throw();
 
 		const queryParams = matchedData(req);
+
+		queryParams.q = q;
 
 		res.json(await service.getAll(queryParams));
 	} catch (err) {
