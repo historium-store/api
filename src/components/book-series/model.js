@@ -7,7 +7,8 @@ const bookSeriesSchema = new Schema(
 	{
 		name: {
 			type: String,
-			required: true
+			required: true,
+			index: true
 		},
 
 		publisher: {
